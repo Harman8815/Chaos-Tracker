@@ -11,4 +11,5 @@ urlpatterns = [
     path("", home),  # directly call home()
     path("admin/", admin.site.urls),
     path("api/auth/", include("users.urls")),
+    path('api/habits/', include('habits.urls')),
 ]
