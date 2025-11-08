@@ -1,94 +1,77 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
+import useLocalStorage from './hooks/useLocalStorage';
+import { AllData, PageId, Settings, Habit, ScoringRule } from './types';
+import { DUMMY_DATA } from './data/dummy_data';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import SettingsModal from './components/SettingsModal';
-import type { AllData, DailyData, Settings, PageId } from './types';
-import { DEFAULT_HABITS } from './constants';
+import { DEFAULT_HABITS, DEFAULT_SCORING_RULES } from './constants';
+import EditHabitsModal from './components/EditHabitsModal';
+import EditRulesModal from './components/EditRulesModal';
+
+const getToday = () => new Date().toISOString().split('T')[0];
 
 interface DataContextType {
-  data: AllData;
-  updateData: (date: string, newData: Partial<DailyData>) => void;
-  selectedPage: PageId;
-  setSelectedPage: (pageId: PageId) => void;
-  getTodayData: () => DailyData;
+    data: AllData;
+    setData: Dispatch<SetStateAction<AllData>>;
+    selectedPage: PageId;
+    setSelectedPage: Dispatch<SetStateAction<PageId>>;
+    today: string;
+    habits: Habit[];
+    setHabits: Dispatch<SetStateAction<Habit[]>>;
 }
-
-export const DataContext = createContext<DataContextType | undefined>(undefined);
 
 interface SettingsContextType {
-  settings: Settings;
-  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
-  isSettingsOpen: boolean;
-  setIsSettingsOpen: (isOpen: boolean) => void;
+    settings: Settings;
+    setSettings: Dispatch<SetStateAction<Settings>>;
+    isSettingsModalOpen: boolean;
+    setIsSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
+    isEditHabitsModalOpen: boolean;
+    setIsEditHabitsModalOpen: Dispatch<SetStateAction<boolean>>;
+    isEditRulesModalOpen: boolean;
+    setIsEditRulesModalOpen: Dispatch<SetStateAction<boolean>>;
+    scoringRules: ScoringRule[];
+    setScoringRules: Dispatch<SetStateAction<ScoringRule[]>>;
 }
 
-export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+export const DataContext = createContext<DataContextType>({} as DataContextType);
+export const SettingsContext = createContext<SettingsContextType>({} as SettingsContextType);
 
 const App: React.FC = () => {
-  const [data, setData] = useLocalStorage<AllData>('daily-tracker-data', {});
-  const [selectedPage, setSelectedPage] = useState<PageId>('home');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settings, setSettings] = useLocalStorage<Settings>('app-settings', {
-    theme: 'dark',
-    timeFormat: '12h',
-    language: 'en',
-  });
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove(settings.theme === 'dark' ? 'light' : 'dark');
-    root.classList.add(settings.theme);
-  }, [settings.theme]);
-
-  const getTodayData = (): DailyData => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayData = data[today] || {};
-    if (!todayData.habits || todayData.habits.length === 0) {
-        todayData.habits = DEFAULT_HABITS.map(h => ({ ...h, completed: false }));
-    }
-    return todayData;
-  };
-
-  const updateData = (date: string, newData: Partial<DailyData>) => {
-    setData(prevData => {
-      const dayData = prevData[date] || {};
-      const updatedDayData = { ...dayData, ...newData };
-      return {
-        ...prevData,
-        [date]: updatedDayData,
-      };
+    const [data, setData] = useLocalStorage<AllData>('tracker-data', DUMMY_DATA);
+    const [selectedPage, setSelectedPage] = useState<PageId>('points');
+    const [habits, setHabits] = useLocalStorage<Habit[]>('tracker-habits', DEFAULT_HABITS);
+    const [scoringRules, setScoringRules] = useLocalStorage<ScoringRule[]>('tracker-rules', DEFAULT_SCORING_RULES);
+    
+    const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
+        theme: 'dark',
+        timeFormat: '24h',
+        language: 'en',
     });
-  };
+    
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
+    const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
+    
+    const today = getToday();
 
-  const dataContextValue: DataContextType = {
-    data,
-    updateData,
-    selectedPage,
-    setSelectedPage,
-    getTodayData,
-  };
+    React.useEffect(() => {
+        document.documentElement.classList.toggle('dark', settings.theme === 'dark');
+    }, [settings.theme]);
 
-  const settingsContextValue: SettingsContextType = {
-    settings,
-    setSettings,
-    isSettingsOpen,
-    setIsSettingsOpen,
-  };
-
-  return (
-    <DataContext.Provider value={dataContextValue}>
-      <SettingsContext.Provider value={settingsContextValue}>
-        <div className="flex h-screen bg-light-primary dark:bg-primary text-light-text-secondary dark:text-text-secondary">
-          <Sidebar />
-          <main className="flex-1 p-8 overflow-y-auto">
-            <MainContent />
-          </main>
-          <SettingsModal />
-        </div>
-      </SettingsContext.Provider>
-    </DataContext.Provider>
-  );
+    return (
+        <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules }}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits }}>
+                <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
+                    <Sidebar />
+                    <MainContent />
+                    {isSettingsModalOpen && <SettingsModal />}
+                    {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+                    {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
+                </div>
+            </DataContext.Provider>
+        </SettingsContext.Provider>
+    );
 };
 
 export default App;

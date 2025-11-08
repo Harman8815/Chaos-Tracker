@@ -1,122 +1,104 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useMemo, useRef, useEffect, useState } from 'react';
+// FIX: Corrected import paths for context and types.
 import { DataContext, SettingsContext } from '../App';
 import { TRACKERS } from '../constants';
-import type { PageId } from '../types';
+import { PageId } from '../types';
 
-const HomeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
 );
-
-const DashboardIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+const DashboardIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
 );
-const SettingsIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2.73l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1 0 2.73l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-);
-
-const NavButton = ({ item, isSelected, onClick }: { item: { id: PageId, name: string, icon: React.ReactElement }, isSelected: boolean, onClick: () => void }) => (
-    <button
-        onClick={onClick}
-        className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 z-10 group
-        ${ isSelected
-            ? 'text-white'
-            : 'text-light-text-secondary dark:text-text-secondary hover:bg-light-border-color dark:hover:bg-border-color'
-        }`}
-        aria-label={item.name}
-        aria-current={isSelected}
-        data-pageid={item.id}
-    >
-        <div className={`transition-transform duration-300 transform group-hover:scale-110 ${isSelected ? 'scale-110' : ''}`}>
-            {item.icon}
-        </div>
-    </button>
+const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
 );
 
 
 const Sidebar: React.FC = () => {
-    const dataContext = useContext(DataContext);
-    const settingsContext = useContext(SettingsContext);
+    const { selectedPage, setSelectedPage } = useContext(DataContext);
+    const { setIsSettingsModalOpen } = useContext(SettingsContext);
+    const [wavePosition, setWavePosition] = useState(0);
+    const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-    const navContainerRef = useRef<HTMLDivElement>(null);
-    const [indicatorTop, setIndicatorTop] = useState<number | null>(null);
+    const mainNavItems = useMemo(() => {
+        const topItems = [
+            { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
+            ...TRACKERS.slice(0, 1),
+        ];
+        const bottomItems = [
+             ...TRACKERS.slice(1),
+        ];
+        return { topItems, bottomItems };
+    }, []);
 
-    if (!dataContext || !settingsContext) return null;
-
-    const { selectedPage, setSelectedPage } = dataContext;
-    const { setIsSettingsOpen } = settingsContext;
-    
-    const allNavItems = [
-        { id: 'dashboard' as PageId, name: 'Dashboard', icon: <DashboardIcon /> },
-        ...TRACKERS,
-        { id: 'home' as PageId, name: 'Home', icon: <HomeIcon /> },
-    ];
+    const allNavItems = useMemo(() => [
+        ...mainNavItems.topItems,
+        { id: 'home', name: 'Home', icon: HomeIcon },
+        ...mainNavItems.bottomItems
+    ], [mainNavItems]);
 
     useEffect(() => {
-        if (navContainerRef.current) {
-            const activeButton = navContainerRef.current.querySelector(`[data-pageid="${selectedPage}"]`) as HTMLElement;
-            if (activeButton) {
-                // The wave is h-16, button is h-14, so offset by 2px to center.
-                setIndicatorTop(activeButton.offsetTop - 2);
-            }
+        const selectedIndex = allNavItems.findIndex(item => item.id === selectedPage);
+        const selectedItem = itemRefs.current[selectedIndex];
+        if (selectedItem) {
+            setWavePosition(selectedItem.offsetTop);
         }
-    }, [selectedPage]);
+    }, [selectedPage, allNavItems]);
 
-    const homeItem = { id: 'home' as PageId, name: 'Home', icon: <HomeIcon /> };
-    const topItems = [
-        { id: 'dashboard' as PageId, name: 'Dashboard', icon: <DashboardIcon /> },
-        TRACKERS[0], // Habits
-    ];
-    const bottomItems = [
-        TRACKERS[1], // Mood
-        TRACKERS[2], // Journal
-    ];
-
+    const handleSelect = (id: PageId) => {
+        if (id === 'settings') {
+            setIsSettingsModalOpen(true);
+        } else {
+            setSelectedPage(id);
+        }
+    };
+    
+    const NavButton = ({ item, index }: { item: { id: string, name: string, icon: React.FC<any>}, index: number }) => {
+        const isSelected = selectedPage === item.id;
+        return (
+            <button
+                ref={el => { itemRefs.current[index] = el; }}
+                onClick={() => handleSelect(item.id as PageId)}
+                className={`relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out focus:outline-none group ${isSelected ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                aria-label={item.name}
+                aria-current={isSelected}
+            >
+                <item.icon className={`w-7 h-7 transition-transform duration-300 ease-in-out ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
+            </button>
+        );
+    }
 
     return (
-        <aside className="w-24 bg-light-secondary dark:bg-secondary border-r border-light-border-color dark:border-border-color flex flex-col items-center justify-between py-6">
-            <div className="flex-1 flex flex-col justify-center items-center w-full">
-                <div ref={navContainerRef} className="relative flex flex-col items-center">
-                    {/* Wave Indicator */}
-                    <div 
-                        className="absolute  -translate-x-1/2 w-16 h-16 bg-accent rounded-2xl transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                        style={{
-                            transform: indicatorTop !== null ? `translateY(${indicatorTop}px)` : 'scale(0)',
-                            opacity: indicatorTop !== null ? 1 : 0,
-                        }}
-                        aria-hidden="true"
-                    />
+        <aside className="w-24 bg-sidebar-bg flex flex-col items-center justify-between py-6">
+             <div className="relative flex flex-col items-center space-y-4">
+                <div 
+                    className="absolute left-1/2 -translate-x-1/2 w-16 h-16 bg-background rounded-2xl transition-all duration-500 ease-in-out"
+                    style={{ 
+                        transform: `translateY(${wavePosition - 4}px) translateX(-50%)`,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                    }} 
+                />
+                
+                <div className="flex flex-col items-center space-y-4">
+                    {mainNavItems.topItems.map((item, i) => <NavButton key={item.id} item={item} index={i} />)}
+                </div>
 
-                    {/* Top Icons */}
-                    <div className="flex flex-col items-center space-y-5">
-                        {topItems.map(item => (
-                            // fix: Removed unnecessary 'as PageId' cast. With corrected Tracker type, item.id is compatible with PageId.
-                            <NavButton key={item.id} item={item} isSelected={selectedPage === item.id} onClick={() => setSelectedPage(item.id)} />
-                        ))}
-                    </div>
+                <div className="my-4">
+                    <NavButton item={{id: 'home', name: 'Home', icon: HomeIcon}} index={mainNavItems.topItems.length} />
+                </div>
 
-                    {/* Home Icon */}
-                    <div className="my-5">
-                         <NavButton item={homeItem} isSelected={selectedPage === 'home'} onClick={() => setSelectedPage('home')} />
-                    </div>
-
-                    {/* Bottom Icons */}
-                     <div className="flex flex-col items-center space-y-5">
-                        {bottomItems.map(item => (
-                            // fix: Removed unnecessary 'as PageId' cast. With corrected Tracker type, item.id is compatible with PageId.
-                            <NavButton key={item.id} item={item} isSelected={selectedPage === item.id} onClick={() => setSelectedPage(item.id)} />
-                        ))}
-                    </div>
+                <div className="flex flex-col items-center space-y-4">
+                    {mainNavItems.bottomItems.map((item, i) => <NavButton key={item.id} item={item} index={mainNavItems.topItems.length + 1 + i} />)}
                 </div>
             </div>
 
             <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="relative w-14 h-14 rounded-full flex items-center justify-center text-light-text-secondary dark:text-text-secondary hover:bg-light-border-color dark:hover:bg-border-color transition-colors duration-200 group"
+                onClick={() => setIsSettingsModalOpen(true)}
+                className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group"
                 aria-label="Settings"
             >
-                <div className="transition-transform duration-300 transform group-hover:scale-110">
-                    <SettingsIcon />
-                </div>
+                <SettingsIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
             </button>
         </aside>
     );

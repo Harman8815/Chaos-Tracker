@@ -1,39 +1,46 @@
-import React from 'react';
-
-export type Mood = 'ecstatic' | 'happy' | 'neutral' | 'sad' | 'awful';
-
-export interface Habit {
-  id: string;
-  name: string;
-  completed: boolean;
-}
-
-export interface Tracker {
-  // fix: Use a specific union of string literals for id, which is a subset of PageId.
-  id: 'habits' | 'mood' | 'journal';
-  name: string;
-  icon: React.ReactElement;
-}
-
-export interface DailyData {
-  habits?: Habit[];
-  mood?: Mood;
-  journal?: string;
-}
-
-export type AllData = Record<string, DailyData>;
-
-// Navigation Type
-export type PageId = 'home' | 'dashboard' | 'habits' | 'mood' | 'journal';
-
-
-// Settings Types
 export type Theme = 'light' | 'dark';
 export type TimeFormat = '12h' | '24h';
-export type Language = 'en' | 'es' | 'de';
+export type Language = 'en' | 'es' | 'fr';
 
 export interface Settings {
     theme: Theme;
     timeFormat: TimeFormat;
     language: Language;
+}
+
+export interface Habit {
+    id: string;
+    name: string;
+    target: number;
+    rangeMax?: number;
+    // FIX: Added optional 'completed' property to track habit status for a given day.
+    completed?: boolean;
+}
+
+export interface DailyData {
+    habits?: Habit[]; // This is legacy, can be removed if fully migrated
+    points: number;
+    journal: string;
+    habitScores?: { [habitId: string]: number };
+}
+
+export type AllData = {
+    [date: string]: DailyData;
+};
+
+export type PageId = 'home' | 'dashboard' | 'habits' | 'points' | 'journal' | 'settings';
+
+export interface Tracker {
+    id: PageId;
+    name: string;
+    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+}
+
+export interface ScoringRule {
+    id: string;
+    activity: string;
+    maxPoints: number;
+    penaltyRule: string;
+    zeroPointsCondition: string;
+    scoringLogic: string;
 }

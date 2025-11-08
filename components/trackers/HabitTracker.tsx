@@ -1,61 +1,62 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
+// FIX: Corrected import paths for context, constants, and types.
 import { DataContext } from '../../App';
+import { TRACKERS, DEFAULT_HABITS } from '../../constants';
+import TrackerWrapper from '../TrackerWrapper';
 import Card from '../ui/Card';
-import type { DailyData, Habit } from '../../types';
-import { DEFAULT_HABITS } from '../../constants';
+import { Habit } from '../../types';
 
-interface HabitTrackerProps {
-    todayData: DailyData;
-}
+const HabitTracker: React.FC = () => {
+    const { data, setData, today } = useContext(DataContext);
+    const todayData = data[today] || { habits: DEFAULT_HABITS.map(h => ({ ...h, completed: false })), points: 0, journal: '' };
 
-const HabitTracker: React.FC<HabitTrackerProps> = ({ todayData }) => {
-    const dataContext = useContext(DataContext);
-    const [habits, setHabits] = useState<Habit[]>([]);
+    // FIX: Ensure habits array exists to prevent runtime errors.
+    const habitsForToday = todayData.habits || DEFAULT_HABITS.map(h => ({ ...h, completed: false }));
 
-    useEffect(() => {
-        if (todayData.habits) {
-            setHabits(todayData.habits);
-        } else {
-            const initialHabits = DEFAULT_HABITS.map(h => ({ ...h, completed: false }));
-            setHabits(initialHabits);
-        }
-    }, [todayData.habits]);
-    
     const toggleHabit = (id: string) => {
-        const today = new Date().toISOString().split('T')[0];
-        const updatedHabits = habits.map(habit =>
+        // FIX: Use the safe habitsForToday array.
+        const updatedHabits = habitsForToday.map(habit =>
             habit.id === id ? { ...habit, completed: !habit.completed } : habit
         );
-        setHabits(updatedHabits);
-        dataContext?.updateData(today, { habits: updatedHabits });
+        setData(prev => ({
+            ...prev,
+            [today]: { ...todayData, habits: updatedHabits },
+        }));
     };
 
+    const trackerInfo = TRACKERS.find(t => t.id === 'habits')!;
+    
+    // FIX: Use the safe habitsForToday array.
+    const completedCount = habitsForToday.filter(h => h.completed).length;
+    const totalCount = habitsForToday.length;
+    const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
     return (
-        <Card>
-            <h2 className="text-xl font-semibold text-light-text-primary dark:text-text-primary mb-4">Today's Habits</h2>
-            <div className="space-y-3">
-                {habits.map(habit => (
-                    <div
-                        key={habit.id}
-                        onClick={() => toggleHabit(habit.id)}
-                        className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-200 border ${
-                            habit.completed 
-                            ? 'bg-accent/10 border-accent/30 dark:bg-accent/20 dark:border-accent' 
-                            : 'bg-light-primary dark:bg-primary border-light-border-color dark:border-border-color'
-                        }`}
-                    >
-                        <div className={`w-6 h-6 rounded-md border-2 ${habit.completed ? 'bg-accent border-accent' : 'border-light-text-secondary dark:border-text-secondary'} flex items-center justify-center mr-4`}>
-                            {habit.completed && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            )}
-                        </div>
-                        <span className={`font-medium ${habit.completed ? 'text-light-text-primary dark:text-text-primary line-through' : 'text-light-text-secondary dark:text-text-secondary'}`}>
+        <TrackerWrapper tracker={trackerInfo}>
+            <Card className="mb-6">
+                 <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-lg">Today's Progress</h3>
+                    <span className="font-semibold text-accent-primary">{completedCount} / {totalCount}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2.5">
+                    <div className="bg-accent-primary h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                </div>
+            </Card>
+            
+            <div className="space-y-4">
+                {/* FIX: Use the safe habitsForToday array. */}
+                {habitsForToday.map((habit: Habit) => (
+                    <Card key={habit.id} className="flex items-center justify-between p-4 cursor-pointer hover:bg-border transition-colors" onClick={() => toggleHabit(habit.id)}>
+                        <span className={`text-lg ${habit.completed ? 'line-through text-text-disabled' : ''}`}>
                             {habit.name}
                         </span>
-                    </div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${habit.completed ? 'bg-accent-primary border-accent-primary' : 'border-border'}`}>
+                             {habit.completed && <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                    </Card>
                 ))}
             </div>
-        </Card>
+        </TrackerWrapper>
     );
 };
 

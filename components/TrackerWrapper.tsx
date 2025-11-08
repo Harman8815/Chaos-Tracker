@@ -1,22 +1,22 @@
 import React from 'react';
+// FIX: Corrected import path for types.
+import { Tracker } from '../types';
 
 interface TrackerWrapperProps {
-  title: string;
-  // fix: Use React.ReactElement to resolve issue with JSX namespace.
-  icon: React.ReactElement;
-  children: React.ReactNode;
+    tracker: Tracker;
+    children: React.ReactNode;
 }
 
-const TrackerWrapper: React.FC<TrackerWrapperProps> = ({ title, icon, children }) => {
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center mb-6">
-        <div className="text-accent">{React.cloneElement(icon, { width: 32, height: 32 })}</div>
-        <h1 className="text-3xl font-bold text-text-primary ml-4">{title}</h1>
-      </div>
-      {children}
-    </div>
-  );
+const TrackerWrapper: React.FC<TrackerWrapperProps> = ({ tracker, children }) => {
+    return (
+        <div className="p-6 h-full overflow-y-auto animate-fade-in">
+            <div className="flex items-center mb-6">
+                <tracker.icon className="w-8 h-8 text-accent-primary" />
+                <h2 className="ml-4 text-3xl font-bold text-text-primary">{tracker.name}</h2>
+            </div>
+            {children}
+        </div>
+    );
 };
 
 export default TrackerWrapper;

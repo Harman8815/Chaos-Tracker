@@ -1,57 +1,38 @@
 import React, { useContext } from 'react';
+// FIX: Corrected import paths for context and components.
 import { DataContext } from '../App';
-import Dashboard from './Dashboard';
 import HabitTracker from './trackers/HabitTracker';
-import MoodTracker from './trackers/MoodTracker';
+import PointsTracker from './trackers/PointsTracker';
 import JournalTracker from './trackers/JournalTracker';
-import TrackerWrapper from './TrackerWrapper';
-import { TRACKERS } from '../constants';
+import Dashboard from './Dashboard';
 import HomePage from './HomePage';
 
 const MainContent: React.FC = () => {
-    const dataContext = useContext(DataContext);
-    if (!dataContext) {
-        return <div>Loading...</div>;
-    }
+    const { selectedPage } = useContext(DataContext);
 
-    const { selectedPage, getTodayData } = dataContext;
-    const todayData = getTodayData();
-
-    const renderContent = () => {
-        const trackerInfo = TRACKERS.find(t => t.id === selectedPage);
-        
+    const renderPage = () => {
         switch (selectedPage) {
             case 'home':
                 return <HomePage />;
             case 'dashboard':
                 return <Dashboard />;
             case 'habits':
-                return (
-                    <TrackerWrapper title="Habit Tracker" icon={trackerInfo!.icon}>
-                        <HabitTracker todayData={todayData} />
-                    </TrackerWrapper>
-                );
-            case 'mood':
-                 return (
-                    <TrackerWrapper title="Mood Tracker" icon={trackerInfo!.icon}>
-                        <MoodTracker todayData={todayData} />
-                    </TrackerWrapper>
-                );
+                return <HabitTracker />;
+            case 'points':
+                return <PointsTracker />;
             case 'journal':
-                 return (
-                    <TrackerWrapper title="Journal" icon={trackerInfo!.icon}>
-                        <JournalTracker todayData={todayData} />
-                    </TrackerWrapper>
-                );
+                return <JournalTracker />;
             default:
-                return <HomePage />;
+                return <div>Select a tracker</div>;
         }
     };
 
     return (
-        <div className="animate-fadeIn">
-            {renderContent()}
-        </div>
+        <main className="flex-1 bg-background overflow-hidden">
+            <div key={selectedPage} className="w-full h-full">
+                 {renderPage()}
+            </div>
+        </main>
     );
 };
 
