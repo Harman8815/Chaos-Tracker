@@ -1,0 +1,5 @@
+{
+  "name": "ZenTrack - Daily Wellness Dashboard",
+  "description": "A comprehensive daily tracking application to monitor habits, mood, water intake, and journal entries. It features a dashboard with AI-powered daily reflections to provide insights into your well-being.",
+  "requestFramePermissions": []
+}
