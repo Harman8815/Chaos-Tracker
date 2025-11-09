@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -33,10 +34,16 @@
             fadeIn: {
               '0%': { opacity: 0, transform: 'translateY(10px)' },
               '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+            borderShine: {
+              '0%': { 'border-image-source': 'linear-gradient(135deg, transparent, var(--color-accent-primary), transparent)' },
+              '50%': { 'border-image-source': 'linear-gradient(135deg, transparent, var(--color-accent-primary), var(--color-accent-primary), transparent)' },
+              '100%': { 'border-image-source': 'linear-gradient(135deg, transparent, var(--color-accent-primary), transparent)' },
             }
           },
           animation: {
             'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'border-shine': 'borderShine 2s infinite linear',
           }
         }
       }
@@ -44,39 +51,67 @@
     </script>
     <style type="text/tailwindcss">
         :root {
-            --color-background: #121212;
-            --color-sidebar-bg: #1a1a1a;
-            --color-card-bg: #1e1e1e;
-            --color-input-bg: #2a2a2a;
-            --color-border: #333333;
-            --color-text-primary: #e0e0e0;
-            --color-text-secondary: #a0a0a0;
-            --color-text-disabled: #555555;
-            --color-accent-primary: #4f46e5;
-            --color-accent-primary-dark: #4338ca;
+            --color-background: #0a0a0a;
+            --color-sidebar-bg: #141414;
+            --color-card-bg: #1a1a1a;
+            --color-input-bg: #262626;
+            --color-border: #2e2e2e;
+            --color-text-primary: #f5f5f5;
+            --color-text-secondary: #a3a3a3;
+            --color-text-disabled: #525252;
+            --color-accent-primary: #7c3aed;
+            --color-accent-primary-dark: #6d28d9;
         }
         html.light {
-            --color-background: #f0f2f5;
+            --color-background: #f5f5f5;
             --color-sidebar-bg: #ffffff;
             --color-card-bg: #ffffff;
-            --color-input-bg: #e8e8e8;
-            --color-border: #dcdcdc;
-            --color-text-primary: #1f2937;
-            --color-text-secondary: #6b7280;
-            --color-text-disabled: #9ca3af;
-            --color-accent-primary: #6366f1;
-            --color-accent-primary-dark: #4f46e5;
+            --color-input-bg: #e5e5e5;
+            --color-border: #d4d4d4;
+            --color-text-primary: #171717;
+            --color-text-secondary: #737373;
+            --color-text-disabled: #a3a3a3;
+            --color-accent-primary: #8b5cf6;
+            --color-accent-primary-dark: #7c3aed;
         }
         body {
             @apply bg-background;
+        }
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: var(--color-background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 9px solid;
+            border-color: var(--color-border);
+            border-right-color: var(--color-accent-primary);
+            animation: spinner-d3wgkg 1s infinite linear;
+        }
+        html.light .spinner {
+            border-color: var(--color-border);
+            border-right-color: var(--color-accent-primary);
+        }
+        @keyframes spinner-d3wgkg {
+            to {
+                transform: rotate(1turn);
+            }
         }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^18.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^18.2.0/",
+    "react/": "https://aistudiocdn.com/react@^18.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
     "uuid": "https://aistudiocdn.com/uuid@^13.0.0"
   }
@@ -85,6 +120,9 @@
 </head>
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

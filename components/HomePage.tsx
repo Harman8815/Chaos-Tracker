@@ -2,34 +2,32 @@ import React from 'react';
 
 const HomePage: React.FC = () => {
     return (
-        <div className="w-full h-full flex items-center justify-center p-8">
-            <div className="relative w-full h-full max-w-4xl max-h-4xl rounded-3xl overflow-hidden shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 animate-gradient-xy" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                     <h1 className="text-5xl font-bold mb-4 text-shadow">
-                        Welcome
-                    </h1>
-                    <p className="text-xl text-shadow">
-                        Your daily tracking companion.
-                    </p>
-                </div>
+        <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
+            {/* Added a subtle radial gradient background to replace the starfield */}
+            <div 
+                className="absolute inset-0 z-0" 
+                style={{ 
+                    background: 'radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, var(--color-background) 70%)' 
+                }}
+            />
+            
+            <div className="relative z-10 flex flex-col items-center justify-center text-center text-white p-4 animate-fade-in">
+                <h1
+                    className="home-font text-6xl md:text-8xl font-bold mb-4"
+                    style={{ textShadow: '0 0 15px rgba(124, 58, 237, 0.7), 0 0 30px rgba(124, 58, 237, 0.5)' }}
+                >
+                    Welcome
+                </h1>
+                <p
+                    className="home-font text-xl md:text-2xl text-text-secondary max-w-md"
+                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+                >
+                    Your daily companion for tracking habits, measuring progress, and building a better you.
+                </p>
             </div>
              <style>{`
-                .text-shadow {
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                }
-                @keyframes gradient-xy {
-                    0%, 100% {
-                        background-size: 400% 400%;
-                        background-position: 15% 0%;
-                    }
-                    50% {
-                        background-size: 400% 400%;
-                        background-position: 85% 100%;
-                    }
-                }
-                .animate-gradient-xy {
-                    animation: gradient-xy 15s ease infinite;
+                .home-font {
+                    font-family: 'Poppins', sans-serif;
                 }
             `}</style>
         </div>

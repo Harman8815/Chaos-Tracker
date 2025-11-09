@@ -52,6 +52,12 @@ const LineChart = ({ data, label }: { data: {x: string, y: number}[], label: str
     );
 }
 
+const Loader: React.FC = () => (
+    <div className="flex items-center justify-center w-full h-full">
+        <div className="w-6 h-6 border-4 border-input-bg rounded-full border-t-accent-primary animate-spin"></div>
+    </div>
+);
+
 
 const Dashboard: React.FC = () => {
     const { data } = useContext(DataContext);
@@ -104,9 +110,9 @@ const Dashboard: React.FC = () => {
 
                     <Card className="flex-grow">
                         <h3 className="font-bold text-xl mb-2">AI Daily Reflection</h3>
-                        <p className="text-text-secondary mb-4 min-h-[60px]">
-                            {isLoading ? 'Thinking...' : summary}
-                        </p>
+                        <div className="text-text-secondary mb-4 min-h-[60px] flex items-center justify-center">
+                            {isLoading ? <Loader /> : <p className="w-full">{summary}</p>}
+                        </div>
                         <Button onClick={handleGenerateSummary} disabled={isLoading}>
                             {isLoading ? 'Regenerating...' : 'Regenerate'}
                         </Button>

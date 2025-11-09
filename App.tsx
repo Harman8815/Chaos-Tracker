@@ -39,7 +39,7 @@ export const SettingsContext = createContext<SettingsContextType>({} as Settings
 
 const App: React.FC = () => {
     const [data, setData] = useLocalStorage<AllData>('tracker-data', DUMMY_DATA);
-    const [selectedPage, setSelectedPage] = useState<PageId>('points');
+    const [selectedPage, setSelectedPage] = useState<PageId>('home');
     const [habits, setHabits] = useLocalStorage<Habit[]>('tracker-habits', DEFAULT_HABITS);
     const [scoringRules, setScoringRules] = useLocalStorage<ScoringRule[]>('tracker-rules', DEFAULT_SCORING_RULES);
     
@@ -58,6 +58,17 @@ const App: React.FC = () => {
     React.useEffect(() => {
         document.documentElement.classList.toggle('dark', settings.theme === 'dark');
     }, [settings.theme]);
+
+    React.useEffect(() => {
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500); // matches transition duration in index.html
+        }
+    }, []);
+
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules }}>

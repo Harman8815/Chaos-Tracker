@@ -1,5 +1,4 @@
 import React, { useContext, useMemo, useRef, useEffect, useState } from 'react';
-// FIX: Corrected import paths for context and types.
 import { DataContext, SettingsContext } from '../App';
 import { TRACKERS } from '../constants';
 import { PageId } from '../types';
@@ -18,33 +17,28 @@ const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const Sidebar: React.FC = () => {
     const { selectedPage, setSelectedPage } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
-    const [wavePosition, setWavePosition] = useState(0);
+    const [indicatorPosition, setIndicatorPosition] = useState(0);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-    const mainNavItems = useMemo(() => {
-        const topItems = [
-            { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
-            ...TRACKERS.slice(0, 1),
-        ];
-        const bottomItems = [
-             ...TRACKERS.slice(1),
-        ];
-        return { topItems, bottomItems };
-    }, []);
+    // FIX: Create a discriminated union by ensuring all nav items have a 'type' property.
+    // This resolves TypeScript errors when accessing `item.type`.
+    const navItems = useMemo(() => [
+        { type: 'item' as const, id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
+        ...TRACKERS.map(tracker => ({ ...tracker, type: 'item' as const })),
+        { type: 'divider' as const, id: 'divider' },
+        { type: 'item' as const, id: 'home', name: 'Home', icon: HomeIcon },
+    ], []);
 
-    const allNavItems = useMemo(() => [
-        ...mainNavItems.topItems,
-        { id: 'home', name: 'Home', icon: HomeIcon },
-        ...mainNavItems.bottomItems
-    ], [mainNavItems]);
 
     useEffect(() => {
-        const selectedIndex = allNavItems.findIndex(item => item.id === selectedPage);
+        // Find the correct index while skipping dividers
+        const selectedIndex = navItems.filter(item => item.type !== 'divider').findIndex(item => item.id === selectedPage);
         const selectedItem = itemRefs.current[selectedIndex];
         if (selectedItem) {
-            setWavePosition(selectedItem.offsetTop);
+            setIndicatorPosition(selectedItem.offsetTop);
         }
-    }, [selectedPage, allNavItems]);
+    }, [selectedPage, navItems]);
+    
 
     const handleSelect = (id: PageId) => {
         if (id === 'settings') {
@@ -54,43 +48,37 @@ const Sidebar: React.FC = () => {
         }
     };
     
-    const NavButton = ({ item, index }: { item: { id: string, name: string, icon: React.FC<any>}, index: number }) => {
-        const isSelected = selectedPage === item.id;
-        return (
-            <button
-                ref={el => { itemRefs.current[index] = el; }}
-                onClick={() => handleSelect(item.id as PageId)}
-                className={`relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out focus:outline-none group ${isSelected ? 'text-accent-primary' : 'text-text-secondary hover:text-text-primary'}`}
-                aria-label={item.name}
-                aria-current={isSelected}
-            >
-                <item.icon className={`w-7 h-7 transition-transform duration-300 ease-in-out ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
-            </button>
-        );
-    }
-
     return (
-        <aside className="w-24 bg-sidebar-bg flex flex-col items-center justify-between py-6">
-             <div className="relative flex flex-col items-center space-y-4">
+        <aside className="w-24 bg-sidebar-bg flex flex-col items-center justify-between py-6 shadow-2xl">
+            <div className="relative flex flex-col items-center space-y-4">
                 <div 
-                    className="absolute left-1/2 -translate-x-1/2 w-16 h-16 bg-background rounded-2xl transition-all duration-500 ease-in-out"
+                    className="absolute left-1/2 -translate-x-1/2 w-16 h-16 bg-accent-primary rounded-2xl transition-all duration-500 ease-in-out"
                     style={{ 
-                        transform: `translateY(${wavePosition - 4}px) translateX(-50%)`,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                        transform: `translateY(${indicatorPosition}px) translateX(-50%)`,
+                        boxShadow: '0 4px 12px rgba(124, 58, 237, 0.4)'
                     }} 
                 />
                 
-                <div className="flex flex-col items-center space-y-4">
-                    {mainNavItems.topItems.map((item, i) => <NavButton key={item.id} item={item} index={i} />)}
-                </div>
-
-                <div className="my-4">
-                    <NavButton item={{id: 'home', name: 'Home', icon: HomeIcon}} index={mainNavItems.topItems.length} />
-                </div>
-
-                <div className="flex flex-col items-center space-y-4">
-                    {mainNavItems.bottomItems.map((item, i) => <NavButton key={item.id} item={item} index={mainNavItems.topItems.length + 1 + i} />)}
-                </div>
+                {navItems.map((item) => {
+                    if (item.type === 'divider') {
+                        return <div key={item.id} className="h-4" />;
+                    }
+                    const isSelected = selectedPage === item.id;
+                    // We need to keep a clean index for the refs array, so we filter out dividers.
+                    const refIndex = navItems.filter(i => i.type !== 'divider').findIndex(i => i.id === item.id);
+                    return (
+                        <button
+                            key={item.id}
+                            ref={el => { if (refIndex !== -1) itemRefs.current[refIndex] = el; }}
+                            onClick={() => handleSelect(item.id as PageId)}
+                            className={`relative flex items-center justify-center w-16 h-16 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none group z-10 ${isSelected ? 'text-white' : 'text-text-secondary hover:text-text-primary'}`}
+                            aria-label={item.name}
+                            aria-current={isSelected}
+                        >
+                            <item.icon className={`w-7 h-7 transition-transform duration-300 ease-in-out ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
+                        </button>
+                    )
+                })}
             </div>
 
             <button
