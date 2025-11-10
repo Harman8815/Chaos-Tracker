@@ -13,7 +13,6 @@ export interface Habit {
     name: string;
     target: number;
     rangeMax?: number;
-    // FIX: Added optional 'completed' property to track habit status for a given day.
     completed?: boolean;
 }
 
@@ -28,7 +27,7 @@ export type AllData = {
     [date: string]: DailyData;
 };
 
-export type PageId = 'home' | 'dashboard' | 'habits' | 'points' | 'journal' | 'settings';
+export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings';
 
 export interface Tracker {
     id: PageId;
@@ -43,4 +42,37 @@ export interface ScoringRule {
     penaltyRule: string;
     zeroPointsCondition: string;
     scoringLogic: string;
+}
+
+// Planner Types
+export interface Task {
+    id: string;
+    text: string;
+    completed: boolean;
+}
+
+export interface TodoBlock {
+    id: string;
+    title: string;
+    x: number;
+    y: number;
+    tasks: Task[];
+}
+
+export interface BlockLink {
+    id: string;
+    from: string;
+    to: string;
+}
+
+export interface CanvasTransform {
+    scale: number;
+    panX: number;
+    panY: number;
+}
+
+export interface PlannerData {
+    blocks: TodoBlock[];
+    links: BlockLink[];
+    transform: CanvasTransform;
 }

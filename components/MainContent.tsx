@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
-// FIX: Corrected import paths for context and components.
 import { DataContext } from '../App';
-import HabitTracker from './trackers/HabitTracker';
+import Planner from './trackers/Planner';
 import PointsTracker from './trackers/PointsTracker';
 import JournalTracker from './trackers/JournalTracker';
 import Dashboard from './Dashboard';
@@ -16,8 +15,8 @@ const MainContent: React.FC = () => {
                 return <HomePage />;
             case 'dashboard':
                 return <Dashboard />;
-            case 'habits':
-                return <HabitTracker />;
+            case 'planner':
+                return <Planner />;
             case 'points':
                 return <PointsTracker />;
             case 'journal':

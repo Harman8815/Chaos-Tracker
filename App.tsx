@@ -1,6 +1,6 @@
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule } from './types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData } from './types';
 import { DUMMY_DATA } from './data/dummy_data';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -11,6 +11,15 @@ import EditRulesModal from './components/EditRulesModal';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
+const DEFAULT_PLANNER_DATA: PlannerData = {
+    blocks: [
+        { id: 'block-1', title: 'To-Do', x: 200, y: 200, tasks: [{id: 'task-1', text: 'Create a new block', completed: false}]},
+        { id: 'block-2', title: 'In Progress', x: 600, y: 350, tasks: []}
+    ],
+    links: [],
+    transform: { scale: 1, panX: 0, panY: 0 }
+};
+
 interface DataContextType {
     data: AllData;
     setData: Dispatch<SetStateAction<AllData>>;
@@ -19,6 +28,8 @@ interface DataContextType {
     today: string;
     habits: Habit[];
     setHabits: Dispatch<SetStateAction<Habit[]>>;
+    plannerData: PlannerData;
+    setPlannerData: Dispatch<SetStateAction<PlannerData>>;
 }
 
 interface SettingsContextType {
@@ -42,6 +53,7 @@ const App: React.FC = () => {
     const [selectedPage, setSelectedPage] = useState<PageId>('home');
     const [habits, setHabits] = useLocalStorage<Habit[]>('tracker-habits', DEFAULT_HABITS);
     const [scoringRules, setScoringRules] = useLocalStorage<ScoringRule[]>('tracker-rules', DEFAULT_SCORING_RULES);
+    const [plannerData, setPlannerData] = useLocalStorage<PlannerData>('tracker-planner', DEFAULT_PLANNER_DATA);
     
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
         theme: 'dark',
@@ -72,7 +84,7 @@ const App: React.FC = () => {
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules }}>
-            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits }}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData }}>
                 <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
                     <Sidebar />
                     <MainContent />
