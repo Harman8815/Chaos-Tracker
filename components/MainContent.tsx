@@ -5,6 +5,9 @@ import PointsTracker from './trackers/PointsTracker';
 import JournalTracker from './trackers/JournalTracker';
 import Dashboard from './Dashboard';
 import HomePage from './HomePage';
+import ExpenseTracker from './trackers/ExpenseTracker';
+import GoalTracker from './trackers/GoalTracker';
+import QuoteCollector from './trackers/QuoteCollector';
 
 const MainContent: React.FC = () => {
     const { selectedPage } = useContext(DataContext);
@@ -21,6 +24,12 @@ const MainContent: React.FC = () => {
                 return <PointsTracker />;
             case 'journal':
                 return <JournalTracker />;
+            case 'expense':
+                return <ExpenseTracker />;
+            case 'goals':
+                return <GoalTracker />;
+            case 'quotes':
+                return <QuoteCollector />;
             default:
                 return <div>Select a tracker</div>;
         }

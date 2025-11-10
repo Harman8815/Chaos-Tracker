@@ -30,7 +30,7 @@ const Sidebar: React.FC = () => {
             { id: 'home', name: 'Home', icon: HomeIcon },
         ];
         
-        const orderedIds: PageId[] = ['dashboard', 'planner', 'home', 'points', 'journal'];
+        const orderedIds: PageId[] = ['dashboard', 'planner', 'home', 'points', 'journal', 'goals', 'expense', 'quotes'];
 
         return orderedIds.map(id => {
             const item = allPossibleItems.find(i => i.id === id);
@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
             // Calculate the absolute center of the selected button relative to its container.
             // This is more robust and serves as the single source of truth for positioning.
             const newIndicatorY = selectedItem.offsetTop + selectedItem.offsetHeight / 2;
-            setIndicatorY(newIndicatorY-300);
+            setIndicatorY(newIndicatorY);
         }
     }, [selectedPage, navItems, isCollapsed]);
 
@@ -71,8 +71,8 @@ const Sidebar: React.FC = () => {
     }
     
     // Define heights as constants to ensure calculations and styles are always in sync.
-    const bulgeHeight = 80; // Corresponds to h-20
-    const highlightHeight = 64; // Corresponds to h-16
+    const bulgeHeight = 64; // Corresponds to h-16
+    const highlightHeight = 48; // Corresponds to h-12
 
     return (
         <aside className="relative bg-sidebar-bg flex flex-col items-center shadow-2xl transition-all duration-300 ease-in-out w-24 py-6 animate-fade-in z-20">
@@ -85,7 +85,7 @@ const Sidebar: React.FC = () => {
             </button>
             
             <div className="flex flex-col items-center justify-between h-full w-full">
-                <div className="relative flex flex-col items-center justify-center space-y-4 flex-grow w-full">
+                <div className="relative flex flex-col items-center justify-center space-y-2 flex-grow w-full">
                     {/* Sidebar Bulge */}
                     <div
                         className="absolute top-0 right-0 w-8 bg-sidebar-bg rounded-l-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] shadow-lg z-0"
@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
 
                     {/* Circular Highlight */}
                     <div
-                        className="absolute left-1/2 -translate-x-1/2 w-16 bg-accent-primary/20 rounded-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                        className="absolute left-1/2 -translate-x-1/2 w-12 bg-accent-primary/20 rounded-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                         style={{
                             height: `${highlightHeight}px`,
                             // To center the highlight on indicatorY, we translate it up by half its height.
@@ -114,11 +114,11 @@ const Sidebar: React.FC = () => {
                                 key={item.id}
                                 ref={el => { itemRefs.current[index] = el; }}
                                 onClick={() => handleSelect(item.id as PageId)}
-                                className={`relative flex items-center justify-center w-16 h-16 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none group z-10 ${isSelected ? 'text-white' : 'text-text-secondary hover:text-text-primary'}`}
+                                className={`relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none group z-10 ${isSelected ? 'text-white' : 'text-text-secondary hover:text-text-primary'}`}
                                 aria-label={item.name}
                                 aria-current={isSelected}
                             >
-                                <item.icon className={`w-7 h-7 transition-transform duration-300 ease-in-out ${isSelected ? 'scale-125' : 'group-hover:scale-110'}`} />
+                                <item.icon className={`w-6 h-6 transition-transform duration-300 ease-in-out ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
                             </button>
                         )
                     })}

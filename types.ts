@@ -27,7 +27,8 @@ export type AllData = {
     [date: string]: DailyData;
 };
 
-export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings';
+// FIX: Added 'pedometer' to the PageId type to support the Pedometer component.
+export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'pedometer';
 
 export interface Tracker {
     id: PageId;
