@@ -1,10 +1,12 @@
 
+
 import React, { useState, useContext, useMemo, useRef, useEffect } from 'react';
 import { DataContext, SettingsContext } from '../../App';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { DailyData } from '../../types';
 
 type View = 'daily' | 'monthly' | 'yearly';
 
@@ -82,14 +84,16 @@ const PointsTracker: React.FC = () => {
     const handleScoreClick = (date: string, habitId: string) => {
         if (!isEditable) return;
         setData(prev => {
-            const dayData = prev[date] || { points: 0, journal: '', habitScores: {} };
+            // FIX: Explicitly type dayData to resolve type inference issues.
+            const dayData: DailyData = prev[date] || { points: 0, journal: '', habitScores: {} };
             const currentScore = dayData.habitScores?.[habitId] || 0;
             const habit = habits.find(h => h.id === habitId);
             const rangeMax = habit?.rangeMax ?? 10;
             const newScore = (currentScore + 1) % (rangeMax + 1);
             
             const updatedHabitScores = { ...dayData.habitScores, [habitId]: newScore };
-            const newTotalPoints = Math.round(Object.values(updatedHabitScores).reduce((sum, score) => sum + (score || 0), 0) / habits.length);
+            // FIX: Ensure score is treated as a number in reduce.
+            const newTotalPoints = Math.round(Object.values(updatedHabitScores).reduce((sum, score) => sum + (Number(score) || 0), 0) / habits.length);
             
             return {
                 ...prev,
@@ -114,10 +118,12 @@ const PointsTracker: React.FC = () => {
         habits.forEach(h => totals[h.id] = 0);
 
         const monthData = getMonthData(currentDate.getMonth(), currentDate.getFullYear());
+        // FIX: Explicitly type the dayData parameter to resolve 'unknown' type from Object.entries.
         monthData.forEach(([, dayData]) => {
-            if (dayData.habitScores) {
-                for (const habitId in dayData.habitScores) {
-                    totals[habitId] = (totals[habitId] || 0) + (dayData.habitScores[habitId] || 0);
+            const currentDayData = dayData as DailyData;
+            if (currentDayData.habitScores) {
+                for (const habitId in currentDayData.habitScores) {
+                    totals[habitId] = (totals[habitId] || 0) + (currentDayData.habitScores[habitId] || 0);
                 }
             }
         });
@@ -128,9 +134,11 @@ const PointsTracker: React.FC = () => {
         const totals: { [day: number]: number } = {};
         for(let i = 1; i <= daysInMonth; i++) {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i).toISOString().split('T')[0];
-            const dayData = data[date];
+            // FIX: Explicitly cast dayData to resolve type inference issues.
+            const dayData = data[date] as DailyData | undefined;
             if (dayData && dayData.habitScores) {
-                totals[i] = Object.values(dayData.habitScores).reduce((sum, score) => sum + (score || 0), 0);
+                // FIX: Ensure score is treated as a number in reduce.
+                totals[i] = Object.values(dayData.habitScores).reduce((sum, score) => sum + (Number(score) || 0), 0);
             } else {
                 totals[i] = 0;
             }
@@ -143,10 +151,12 @@ const PointsTracker: React.FC = () => {
         habits.forEach(h => totals[h.id] = 0);
         
         const yearData = Object.entries(data).filter(([date]) => new Date(date).getFullYear() === currentDate.getFullYear());
+        // FIX: Explicitly type the dayData parameter to resolve 'unknown' type from Object.entries.
         yearData.forEach(([, dayData]) => {
-             if (dayData.habitScores) {
-                for (const habitId in dayData.habitScores) {
-                    totals[habitId] = (totals[habitId] || 0) + (dayData.habitScores[habitId] || 0);
+            const currentDayData = dayData as DailyData;
+             if (currentDayData.habitScores) {
+                for (const habitId in currentDayData.habitScores) {
+                    totals[habitId] = (totals[habitId] || 0) + (currentDayData.habitScores[habitId] || 0);
                 }
             }
         });

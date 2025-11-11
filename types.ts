@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type Theme = 'light' | 'dark';
 export type TimeFormat = '12h' | '24h';
 export type Language = 'en' | 'es' | 'fr';
@@ -76,4 +78,13 @@ export interface PlannerData {
     blocks: TodoBlock[];
     links: BlockLink[];
     transform: CanvasTransform;
+}
+
+export interface Expense {
+    id: string;
+    date: string; // YYYY-MM-DD
+    item: string;
+    category: string;
+    quantity: number;
+    price: number; // Price per item
 }

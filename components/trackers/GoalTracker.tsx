@@ -143,7 +143,8 @@ const GoalDashboard: React.FC<{ goals: GoalData; onClose: () => void }> = ({ goa
         };
     }, [allGoals]);
     
-    const weeklyCompletion = useMemo(() => {
+    // FIX: Explicitly typing weeklyCompletion to avoid 'unknown' type error.
+    const weeklyCompletion = useMemo((): { label: string; value: number; }[] => {
         const getWeekLabel = (d: Date) => {
             const firstDay = new Date(d.setDate(d.getDate() - d.getDay()));
             return `${firstDay.getMonth()+1}/${firstDay.getDate()}`;
@@ -236,6 +237,8 @@ const GoalTracker: React.FC = () => {
     const [showCompleted, setShowCompleted] = useState(true);
     const [newGoalText, setNewGoalText] = useState('');
     const [newGoalTags, setNewGoalTags] = useState('');
+
+    const isFutureTab = activeTab === 'future';
 
     const handleAddGoal = (e: React.FormEvent) => {
         e.preventDefault();
@@ -347,11 +350,11 @@ const GoalTracker: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="overflow-y-auto -mr-3 pr-3 space-y-6">
+                <div className={`overflow-y-auto -mr-3 pr-3 ${isFutureTab ? 'columns-1 md:columns-2 xl:columns-3 gap-6 space-y-6' : 'space-y-6'}`}>
                     {Object.keys(groupedGoals).length > 0 ? Object.entries(groupedGoals).map(([tag, goalsInGroup], index) => (
                         <Card 
                             key={tag} 
-                            className="animate-fade-in"
+                            className={`animate-fade-in w-full ${isFutureTab ? 'break-inside-avoid' : ''}`}
                             style={{ animationDelay: `${index * 50}ms`, opacity: 0 }}
                         >
                             <h4 className="font-bold text-lg mb-2 text-accent-primary">{tag}</h4>

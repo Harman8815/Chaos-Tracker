@@ -5,7 +5,7 @@ import { DataContext, SettingsContext } from '../App';
 import { getAIPoweredSummary } from '../services/geminiService';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { Habit, AllData } from '../types';
+import { Habit, AllData, DailyData } from '../types';
 
 const CHART_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#d946ef'];
 
@@ -357,7 +357,8 @@ function calculateStreaks(data: AllData, habits: Habit[]): Record<string, number
       const dateToCheck = new Date(today);
       dateToCheck.setDate(today.getDate() - i);
       const dateString = dateToCheck.toISOString().split('T')[0];
-      const dayData = data[dateString];
+      // FIX: Explicitly cast dayData to resolve type inference issues.
+      const dayData = data[dateString] as DailyData | undefined;
       const score = dayData?.habitScores?.[habit.id] ?? 0;
       if (score > 0) {
         currentStreak++;
@@ -411,7 +412,8 @@ const Dashboard: React.FC = () => {
         if (last7Days.length === 0) return [];
 
         return habits.map(habit => {
-            const totalScore = last7Days.reduce((sum, [, dayData]) => sum + (dayData.habitScores?.[habit.id] || 0), 0);
+            // FIX: Explicitly type the dayData parameter to resolve 'unknown' type from Object.entries.
+            const totalScore = last7Days.reduce((sum, [, dayData]) => sum + ((dayData as DailyData).habitScores?.[habit.id] || 0), 0);
             return {
                 axis: habit.name,
                 value: totalScore / last7Days.length,
@@ -423,9 +425,10 @@ const Dashboard: React.FC = () => {
         return Object.entries(data)
             .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
             .slice(-30)
+            // FIX: Explicitly type the dailyData parameter to resolve 'unknown' type from Object.entries.
             .map(([date, dailyData]) => ({
                 date,
-                scores: dailyData.habitScores || {}
+                scores: (dailyData as DailyData).habitScores || {}
             }));
     }, [data]);
     
@@ -434,7 +437,9 @@ const Dashboard: React.FC = () => {
             return {
                 dataForChart: trendChartData.map(({ date, scores }) => ({
                     date,
-                    scores: { 'total': Object.values(scores).reduce((sum, score) => sum + (score || 0), 0) / (habits.length || 1) }
+                    // FIX: Ensure 'score' is treated as a number in the reduce function.
+                    // FIX: Explicitly set the generic type for `reduce` to <number> to fix type inference for the accumulator.
+                    scores: { 'total': Object.values(scores).reduce<number>((sum, score) => sum + (Number(score) || 0), 0) / (habits.length || 1) }
                 })),
                 habitsForChart: [{ id: 'total', name: 'Avg Daily Score', target: 0, rangeMax: 10, completed: false }],
                 maxYForChart: 10
@@ -458,8 +463,10 @@ const Dashboard: React.FC = () => {
         
         const totalAchieved = Object.entries(data)
             .filter(([date]) => new Date(date) >= monthStart && new Date(date) <= currentDate)
+            // FIX: Explicitly type the dayData parameter to resolve 'unknown' type from Object.entries.
             .reduce((total, [, dayData]) => {
-                return total + Object.values(dayData.habitScores || {}).reduce((sum, score) => sum + (score || 0), 0);
+                // FIX: Ensure 'score' is treated as a number in the inner reduce function to prevent type errors.
+                return total + Object.values((dayData as DailyData).habitScores || {}).reduce((sum, score) => sum + (Number(score) || 0), 0);
             }, 0);
 
         const totalHabitTarget = habits.reduce((acc, habit) => acc + habit.target, 0);
