@@ -31,6 +31,7 @@ export type AllData = {
 
 // FIX: Added 'pedometer' to the PageId type to support the Pedometer component.
 export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'pedometer';
+export type ToolId = 'calculator' | 'clock' | 'pedometer';
 
 export interface Tracker {
     id: PageId;
@@ -87,4 +88,20 @@ export interface Expense {
     category: string;
     quantity: number;
     price: number; // Price per item
+}
+
+export interface Quote {
+  id: string;
+  text: string;
+  author: string;
+  tags: string[];
+  image?: string; // Optional image URL for the quote
+}
+
+export interface QuoteSource {
+  id: string;
+  title: string;
+  type: 'Movie' | 'Web Series' | 'Book';
+  coverImage: string; 
+  quotes: Quote[];
 }

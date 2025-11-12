@@ -287,7 +287,8 @@ const GoalTracker: React.FC = () => {
         return filteredByStatus.filter(g => g.status !== 'completed');
     }, [goals, activeTab, showCompleted]);
 
-    const groupedGoals = useMemo(() => {
+    // FIX: Explicitly type `groupedGoals` to fix type inference issues with `Object.entries`.
+    const groupedGoals: Record<string, Goal[]> = useMemo(() => {
         const groups: Record<string, Goal[]> = {};
         visibleGoals.forEach(goal => {
             const goalTags = goal.tags && goal.tags.length > 0 ? goal.tags : ['uncategorized'];

@@ -1,6 +1,6 @@
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData } from './types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId } from './types';
 import { DUMMY_DATA } from './data/dummy_data';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -8,6 +8,12 @@ import SettingsModal from './components/SettingsModal';
 import { DEFAULT_HABITS, DEFAULT_SCORING_RULES } from './constants';
 import EditHabitsModal from './components/EditHabitsModal';
 import EditRulesModal from './components/EditRulesModal';
+import { ToolsProvider, useTools } from './components/ToolsProvider';
+import FloatingTools from './components/common/FloatingTools';
+import DraggableResizableModal from './components/common/DraggableResizableModal';
+import Calculator from './components/tools/Calculator';
+import Clock from './components/tools/Clock';
+import PedometerTool from './components/tools/PedometerTool';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -48,6 +54,63 @@ interface SettingsContextType {
 export const DataContext = createContext<DataContextType>({} as DataContextType);
 export const SettingsContext = createContext<SettingsContextType>({} as SettingsContextType);
 
+const ToolManager: React.FC = () => {
+    const { openTools, closeTool, focusTool } = useTools();
+
+    return (
+        <>
+            <FloatingTools />
+            {openTools.map((toolId, index) => {
+                const zIndex = 100 + index;
+                switch (toolId) {
+                    case 'calculator':
+                        return (
+                            <DraggableResizableModal
+                                key={toolId}
+                                title="Calculator"
+                                onClose={() => closeTool(toolId)}
+                                zIndex={zIndex}
+                                onFocus={() => focusTool(toolId)}
+                                initialSize={{width: 320, height: 480}}
+                            >
+                                <Calculator />
+                            </DraggableResizableModal>
+                        );
+                    case 'clock':
+                         return (
+                            <DraggableResizableModal
+                                key={toolId}
+                                title="Clock"
+                                onClose={() => closeTool(toolId)}
+                                zIndex={zIndex}
+                                onFocus={() => focusTool(toolId)}
+                                initialSize={{width: 400, height: 400}}
+                            >
+                                <Clock />
+                            </DraggableResizableModal>
+                        );
+                    case 'pedometer':
+                         return (
+                            <DraggableResizableModal
+                                key={toolId}
+                                title="Pedometer"
+                                onClose={() => closeTool(toolId)}
+                                zIndex={zIndex}
+                                onFocus={() => focusTool(toolId)}
+                                initialSize={{width: 300, height: 350}}
+                            >
+                                <PedometerTool />
+                            </DraggableResizableModal>
+                        );
+                    default:
+                        return null;
+                }
+            })}
+        </>
+    );
+};
+
+
 const App: React.FC = () => {
     const [data, setData] = useLocalStorage<AllData>('tracker-data', DUMMY_DATA);
     const [selectedPage, setSelectedPage] = useState<PageId>('home');
@@ -85,13 +148,16 @@ const App: React.FC = () => {
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules }}>
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData }}>
-                <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
-                    <Sidebar />
-                    <MainContent />
-                    {isSettingsModalOpen && <SettingsModal />}
-                    {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
-                    {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
-                </div>
+                <ToolsProvider>
+                    <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
+                        <Sidebar />
+                        <MainContent />
+                        {isSettingsModalOpen && <SettingsModal />}
+                        {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+                        {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
+                        <ToolManager />
+                    </div>
+                </ToolsProvider>
             </DataContext.Provider>
         </SettingsContext.Provider>
     );
