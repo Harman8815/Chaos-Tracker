@@ -13,7 +13,7 @@ import FloatingTools from './components/common/FloatingTools';
 import DraggableResizableModal from './components/common/DraggableResizableModal';
 import Calculator from './components/tools/Calculator';
 import Clock from './components/tools/Clock';
-import PedometerTool from './components/tools/PedometerTool';
+import ChatTool from './components/tools/ChatTool';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -89,17 +89,17 @@ const ToolManager: React.FC = () => {
                                 <Clock />
                             </DraggableResizableModal>
                         );
-                    case 'pedometer':
+                    case 'chat':
                          return (
                             <DraggableResizableModal
                                 key={toolId}
-                                title="Pedometer"
+                                title="AI Assistant"
                                 onClose={() => closeTool(toolId)}
                                 zIndex={zIndex}
                                 onFocus={() => focusTool(toolId)}
-                                initialSize={{width: 300, height: 350}}
+                                initialSize={{width: 400, height: 600}}
                             >
-                                <PedometerTool />
+                                <ChatTool />
                             </DraggableResizableModal>
                         );
                     default:

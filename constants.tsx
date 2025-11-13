@@ -20,11 +20,12 @@ const GoalIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const QuoteIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 2v6c0 7 4 8 8 8Z"/><path d="M12 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2h-4c-1.25 0-2 .75-2 2v6c0 7 4 8 8 8Z"/></svg>
 );
-// FIX: Added a new icon for the Pedometer tracker.
+// FIX: Add a new icon for the Pedometer tracker.
 const FootprintsIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 16.85V18a2 2 0 0 0 2 2h2.22a2 2 0 0 0 1.9-1.06l.7-1.4a2 2 0 0 1 3.8 0l.7 1.4a2 2 0 0 0 1.9 1.06H18a2 2 0 0 0 2-2v-1.15a2 2 0 0 0-1.06-1.9l-1.4-.7a2 2 0 0 1 0-3.8l1.4-.7A2 2 0 0 0 20 6.15V5a2 2 0 0 0-2-2h-2.22a2 2 0 0 0-1.9 1.06l-.7 1.4a2 2 0 0 1-3.8 0l-.7-1.4A2 2 0 0 0 7.22 3H5a2 2 0 0 0-2 2v1.15a2 2 0 0 0 1.06 1.9l1.4.7a2 2 0 0 1 0 3.8l-1.4-.7A2 2 0 0 0 4 16.85z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 16.8V11a2 2 0 1 1 4 0v5.8"/><path d="M5.4 13.4 8.6 15"/><path d="M15 21v-5.8a2 2 0 0 0-4 0V21"/><path d="M13.6 17.6 10.4 16"/></svg>
 );
 
+// FIX: Add the Pedometer to the list of available trackers.
 export const TRACKERS: Tracker[] = [
     { id: 'planner', name: 'Planner', icon: LayoutGridIcon },
     { id: 'points', name: 'Points', icon: TrendingUpIcon },
@@ -32,7 +33,6 @@ export const TRACKERS: Tracker[] = [
     { id: 'expense', name: 'Expenses', icon: WalletIcon },
     { id: 'goals', name: 'Goals', icon: GoalIcon },
     { id: 'quotes', name: 'Quotes', icon: QuoteIcon },
-    // FIX: Added Pedometer to the list of trackers to resolve runtime error in Pedometer.tsx.
     { id: 'pedometer', name: 'Pedometer', icon: FootprintsIcon },
 ];
 
