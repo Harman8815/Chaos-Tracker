@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 
 export type Theme = 'light' | 'dark';
 export type TimeFormat = '12h' | '24h';
@@ -104,4 +104,42 @@ export interface QuoteSource {
   type: 'Movie' | 'Web Series' | 'Book';
   coverImage: string; 
   quotes: Quote[];
+}
+
+// Goal Types
+export type GoalStatus = 'active' | 'completed' | 'trashed' | 'blocked';
+export type GoalCategory = 'daily' | 'monthly' | 'future';
+
+export interface Goal {
+    id: string;
+    text: string;
+    status: GoalStatus;
+    createdAt: string;
+    completedAt?: string;
+    tags?: string[];
+}
+
+export interface GoalData {
+    daily: Goal[];
+    monthly: Goal[];
+    future: Goal[];
+}
+
+
+export interface DataContextType {
+    data: AllData;
+    setData: Dispatch<SetStateAction<AllData>>;
+    selectedPage: PageId;
+    setSelectedPage: Dispatch<SetStateAction<PageId>>;
+    today: string;
+    habits: Habit[];
+    setHabits: Dispatch<SetStateAction<Habit[]>>;
+    plannerData: PlannerData;
+    setPlannerData: Dispatch<SetStateAction<PlannerData>>;
+    goals: GoalData;
+    setGoals: Dispatch<SetStateAction<GoalData>>;
+    expenses: Expense[];
+    setExpenses: Dispatch<SetStateAction<Expense[]>>;
+    quotes: QuoteSource[];
+    setQuotes: Dispatch<SetStateAction<QuoteSource[]>>;
 }

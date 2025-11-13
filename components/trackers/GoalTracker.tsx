@@ -1,63 +1,31 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import useLocalStorage from '../../hooks/useLocalStorage';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { Goal, GoalData, GoalCategory, GoalStatus } from '../../types';
+import { DataContext } from '../../App';
 
 // --- SVG Icons ---
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
 );
 const BlockIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
 );
 const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"></polyline></svg>
 );
 const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 );
 const EyeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 );
 const EyeOffIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
 );
-
-
-// --- Type Definitions ---
-type GoalStatus = 'active' | 'completed' | 'trashed' | 'blocked';
-type GoalCategory = 'daily' | 'monthly' | 'future';
-
-interface Goal {
-    id: string;
-    text: string;
-    status: GoalStatus;
-    createdAt: string;
-    completedAt?: string;
-    tags?: string[];
-}
-
-interface GoalData {
-    daily: Goal[];
-    monthly: Goal[];
-    future: Goal[];
-}
-
-const DEFAULT_GOALS: GoalData = {
-    daily: [
-        { id: uuidv4(), text: 'Finish the report for Q3', status: 'active', createdAt: new Date().toISOString(), tags: ['work'] },
-        { id: uuidv4(), text: 'Go for a 30-minute run', status: 'completed', createdAt: new Date().toISOString(), completedAt: new Date().toISOString(), tags: ['health'] },
-    ],
-    monthly: [
-        { id: uuidv4(), text: 'Read two books', status: 'active', createdAt: new Date().toISOString(), tags: ['personal growth', 'reading'] },
-    ],
-    future: [
-        { id: uuidv4(), text: 'Plan vacation for next year', status: 'active', createdAt: new Date().toISOString(), tags: ['travel', 'personal'] },
-    ]
-};
 
 // --- Sub-components ---
 
@@ -231,7 +199,7 @@ const GoalItem: React.FC<{ goal: Goal; onToggle: (id: string) => void; onUpdateS
 
 const GoalTracker: React.FC = () => {
     const trackerInfo = TRACKERS.find(t => t.id === 'goals')!;
-    const [goals, setGoals] = useLocalStorage<GoalData>('tracker-goals', DEFAULT_GOALS);
+    const { goals, setGoals } = useContext(DataContext);
     const [activeTab, setActiveTab] = useState<GoalCategory>('daily');
     const [showDashboard, setShowDashboard] = useState(false);
     const [showCompleted, setShowCompleted] = useState(true);

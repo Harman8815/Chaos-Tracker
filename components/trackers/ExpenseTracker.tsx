@@ -1,21 +1,13 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
-import useLocalStorage from '../../hooks/useLocalStorage';
 import { Expense } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { DataContext } from '../../App';
 
 const CHART_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#d946ef'];
-
-const DUMMY_EXPENSES: Expense[] = [
-    { id: uuidv4(), date: new Date().toISOString().split('T')[0], item: 'Coffee', category: 'Food', quantity: 1, price: 3.50 },
-    { id: uuidv4(), date: new Date().toISOString().split('T')[0], item: 'Bus Fare', category: 'Transport', quantity: 2, price: 1.75 },
-    { id: uuidv4(), date: new Date(Date.now() - 86400000).toISOString().split('T')[0], item: 'Groceries', category: 'Food', quantity: 1, price: 75.40 },
-    { id: uuidv4(), date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], item: 'Movie Tickets', category: 'Entertainment', quantity: 2, price: 15.00 },
-    { id: uuidv4(), date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0], item: 'Electricity Bill', category: 'Utilities', quantity: 1, price: 120.00 },
-];
 
 // --- Sub-components ---
 
@@ -121,7 +113,7 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Exp
 
 const ExpenseTracker: React.FC = () => {
     const trackerInfo = TRACKERS.find(t => t.id === 'expense')!;
-    const [expenses, setExpenses] = useLocalStorage<Expense[]>('tracker-expenses', DUMMY_EXPENSES);
+    const { expenses, setExpenses } = useContext(DataContext);
     const [date, setDate] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() });
     const [sortConfig, setSortConfig] = useState<{ key: keyof Expense; direction: 'asc' | 'desc' } | null>({ key: 'date', direction: 'desc' });
     const [pagination, setPagination] = useState({ currentPage: 1, itemsPerPage: 10 });

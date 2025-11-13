@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI, Chat } from '@google/genai';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { marked } from 'marked';
+import { DataContext, SettingsContext } from '../../App';
 
 interface Message {
     id: string;
@@ -8,33 +9,48 @@ interface Message {
     content: string;
 }
 
+// --- Icons ---
 const SendIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+);
+const SparkleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 3L9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5z"/></svg>
+);
+const ClearIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 002-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+);
+const CopyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+);
+const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"></polyline></svg>
 );
 
+
+const WELCOME_MESSAGE: Message = {
+    id: 'initial',
+    role: 'model',
+    content: "Hello! I'm your personal data assistant. I can help you analyze your progress. \n\nHere are some things you can ask:\n*   `What was my biggest expense category last month?`\n*   `Summarize my journal entries from the last 3 days.`\n*   `Which monthly goal am I falling behind on?`"
+};
+
+
 const ChatTool: React.FC = () => {
-    const [chat, setChat] = useState<Chat | null>(null);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    // FIX: Add state to track AI initialization, as updating a ref doesn't trigger re-renders.
+    const [aiInitialized, setAiInitialized] = useState(false);
+    const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const aiRef = useRef<GoogleGenAI | null>(null);
+
+    const { data, today, habits, plannerData, goals, expenses, quotes } = useContext(DataContext);
+    const { scoringRules } = useContext(SettingsContext);
 
     useEffect(() => {
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-            const chatInstance = ai.chats.create({
-                model: 'gemini-2.5-flash',
-                config: {
-                    systemInstruction: "You are a helpful AI assistant integrated into a personal tracking application. Be friendly, concise, and helpful. Use markdown for formatting when appropriate."
-                }
-            });
-            setChat(chatInstance);
-
-            setMessages([{
-                id: 'initial',
-                role: 'model',
-                content: "Hello! I'm your AI assistant. How can I help you today?"
-            }]);
+            aiRef.current = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            setAiInitialized(true);
         } catch (error) {
             console.error("Failed to initialize AI Chat:", error);
             setMessages([{
@@ -42,6 +58,7 @@ const ChatTool: React.FC = () => {
                 role: 'model',
                 content: "Sorry, I couldn't connect to the AI service. Please check your API key and refresh."
             }]);
+            setAiInitialized(false);
         }
     }, []);
 
@@ -51,24 +68,54 @@ const ChatTool: React.FC = () => {
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || !chat || isLoading) return;
+        if (!input.trim() || !aiRef.current || isLoading) return;
 
         const userMessage: Message = {
             id: `user-${Date.now()}`,
             role: 'user',
             content: input
         };
-
-        setMessages(prev => [...prev, userMessage]);
+        
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
         setInput('');
         setIsLoading(true);
 
-        // Add a placeholder for the model's response
         const modelResponseId = `model-${Date.now()}`;
         setMessages(prev => [...prev, { id: modelResponseId, role: 'model', content: '' }]);
 
         try {
-            const result = await chat.sendMessageStream({ message: input });
+            const recentDailyData = Object.fromEntries(Object.entries(data).slice(-15));
+            const recentExpenses = expenses.slice(-30);
+            const allUserData = {
+                today,
+                dailyEntries: recentDailyData,
+                habitsConfig: habits,
+                scoringRules,
+                planner: plannerData,
+                goals,
+                expenses: recentExpenses,
+                quotes: {
+                    sourceCount: quotes.length,
+                    totalQuotes: quotes.reduce((acc, s) => acc + s.quotes.length, 0),
+                    sources: quotes.map(s => s.title)
+                }
+            };
+            const systemInstruction = `You are a helpful and insightful AI assistant integrated into a personal tracking application. Your role is to act as a data-driven life coach. Analyze the user's data to answer their questions, provide insights, identify patterns, and offer encouragement or advice. Be friendly, concise, and helpful. Use markdown for formatting, including code blocks for lists or important points. Here is a JSON summary of the user's current data: ${JSON.stringify(allUserData, null, 2)}`;
+
+            const historyForAPI = newMessages
+                .filter(msg => msg.id !== 'initial') // Don't send the welcome message back
+                .map(msg => ({
+                    role: msg.role,
+                    parts: [{ text: msg.content }]
+                }));
+
+            const result = await aiRef.current.models.generateContentStream({
+                model: 'gemini-2.5-flash',
+                contents: historyForAPI,
+                config: { systemInstruction }
+            });
+            
             let streamedText = '';
             for await (const chunk of result) {
                 streamedText += chunk.text;
@@ -78,33 +125,67 @@ const ChatTool: React.FC = () => {
             }
         } catch (error) {
             console.error("Error sending message:", error);
+            const errorMessage = (error as Error).message || "An unknown error occurred.";
             setMessages(prev => prev.map(msg => 
-                msg.id === modelResponseId ? { ...msg, content: "Sorry, I encountered an error. Please try again." } : msg
+                msg.id === modelResponseId ? { ...msg, content: `Sorry, I encountered an error: ${errorMessage}` } : msg
             ));
         } finally {
             setIsLoading(false);
         }
     };
     
+    const handleCopy = (content: string, id: string) => {
+        navigator.clipboard.writeText(content);
+        setCopiedMessageId(id);
+        setTimeout(() => setCopiedMessageId(null), 2000);
+    };
+
+    const handleClearChat = () => {
+        setMessages([WELCOME_MESSAGE]);
+    }
+    
     const parsedContent = (content: string) => {
         return { __html: marked.parse(content, { gfm: true, breaks: true }) as string };
     };
 
     return (
-        <div className="h-full flex flex-col text-text-primary">
-            <div className="flex-grow overflow-y-auto p-4 space-y-6">
+        <div className="h-full flex flex-col text-text-primary bg-background -m-4 relative">
+            <button 
+                onClick={handleClearChat}
+                title="Clear Chat"
+                className="absolute top-3 right-3 z-10 p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-input-bg transition-colors"
+            >
+                <ClearIcon />
+            </button>
+            <div className="flex-grow overflow-y-auto p-4 space-y-6 pt-12">
                 {messages.map((message) => (
-                    <div key={message.id} className={`flex items-end gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        {message.role === 'model' && <div className="w-8 h-8 rounded-full bg-accent-primary flex-shrink-0"></div>}
-                        <div className={`prose prose-invert prose-sm max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-sidebar-bg rounded-bl-none'}`}
-                           dangerouslySetInnerHTML={parsedContent(message.content)}
-                        >
+                    <div key={message.id} className={`flex items-start gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        {message.role === 'model' && (
+                            <div className="w-8 h-8 rounded-full bg-sidebar-bg border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
+                                <SparkleIcon className="w-5 h-5"/>
+                            </div>
+                        )}
+                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-sidebar-bg rounded-bl-none'}`}>
+                           <div 
+                             className="prose prose-invert prose-sm max-w-none"
+                             dangerouslySetInnerHTML={parsedContent(message.content || ' ')}
+                           />
+                           {message.role === 'model' && message.id !== 'initial' && (
+                                <button 
+                                    onClick={() => handleCopy(message.content, message.id)}
+                                    className="absolute -top-2 -right-2 p-1.5 bg-input-bg rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    {copiedMessageId === message.id ? <CheckIcon className="text-green-500" /> : <CopyIcon />}
+                                </button>
+                           )}
                         </div>
                     </div>
                 ))}
                 {isLoading && messages[messages.length-1]?.role === 'model' && (
-                     <div className="flex items-end gap-2 justify-start">
-                        <div className="w-8 h-8 rounded-full bg-accent-primary flex-shrink-0"></div>
+                     <div className="flex items-start gap-3 justify-start">
+                        <div className="w-8 h-8 rounded-full bg-sidebar-bg border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
+                            <SparkleIcon className="w-5 h-5"/>
+                        </div>
                         <div className="bg-sidebar-bg rounded-lg rounded-bl-none px-4 py-3">
                             <div className="flex items-center justify-center space-x-1">
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
@@ -116,17 +197,17 @@ const ChatTool: React.FC = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border bg-background">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Ask me anything..."
-                        disabled={isLoading || !chat}
+                        placeholder="Ask about your data..."
+                        disabled={isLoading || !aiInitialized}
                         className="flex-grow w-full bg-input-bg rounded-full px-4 py-2 border border-transparent focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     />
-                    <button type="submit" disabled={isLoading || !input.trim() || !chat} className="w-10 h-10 flex items-center justify-center rounded-full bg-accent-primary text-white disabled:bg-gray-600 transition-colors">
+                    <button type="submit" disabled={isLoading || !input.trim() || !aiInitialized} className="w-10 h-10 flex items-center justify-center rounded-full bg-accent-primary text-white disabled:bg-gray-600 transition-colors">
                         <SendIcon className="w-5 h-5" />
                     </button>
                 </form>
@@ -140,6 +221,17 @@ const ChatTool: React.FC = () => {
                 }
                 .prose code {
                     color: #f5f5f5;
+                    background-color: var(--color-input-bg);
+                    padding: 0.1em 0.3em;
+                    border-radius: 0.25rem;
+                }
+                .prose ul {
+                    margin-top: 0.5em;
+                    margin-bottom: 0.5em;
+                }
+                .prose p {
+                    margin-top: 0.5em;
+                    margin-bottom: 0.5em;
                 }
              `}</style>
         </div>

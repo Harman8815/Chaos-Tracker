@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import useLocalStorage from '../../hooks/useLocalStorage';
 import { TRACKERS } from '../../constants';
 import { Quote, QuoteSource } from '../../types';
-import { DUMMY_QUOTES } from '../../data/quotes_data';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { DataContext } from '../../App';
 
 // --- Icons ---
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -108,7 +107,7 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
 // --- Main Component ---
 
 const QuoteCollector: React.FC = () => {
-    const [allSources, setAllSources] = useLocalStorage<QuoteSource[]>('tracker-quotes', DUMMY_QUOTES);
+    const { quotes: allSources, setQuotes: setAllSources } = useContext(DataContext);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeSearch, setActiveSearch] = useState('');
     const [selectedSource, setSelectedSource] = useState<QuoteSource | null>(null);

@@ -1,7 +1,8 @@
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId } from './types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource } from './types';
 import { DUMMY_DATA } from './data/dummy_data';
+import { DUMMY_QUOTES } from './data/quotes_data';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import SettingsModal from './components/SettingsModal';
@@ -14,6 +15,7 @@ import DraggableResizableModal from './components/common/DraggableResizableModal
 import Calculator from './components/tools/Calculator';
 import Clock from './components/tools/Clock';
 import ChatTool from './components/tools/ChatTool';
+import { v4 as uuidv4 } from 'uuid';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -26,17 +28,27 @@ const DEFAULT_PLANNER_DATA: PlannerData = {
     transform: { scale: 1, panX: 0, panY: 0 }
 };
 
-interface DataContextType {
-    data: AllData;
-    setData: Dispatch<SetStateAction<AllData>>;
-    selectedPage: PageId;
-    setSelectedPage: Dispatch<SetStateAction<PageId>>;
-    today: string;
-    habits: Habit[];
-    setHabits: Dispatch<SetStateAction<Habit[]>>;
-    plannerData: PlannerData;
-    setPlannerData: Dispatch<SetStateAction<PlannerData>>;
-}
+const DUMMY_EXPENSES: Expense[] = [
+    { id: uuidv4(), date: new Date().toISOString().split('T')[0], item: 'Coffee', category: 'Food', quantity: 1, price: 3.50 },
+    { id: uuidv4(), date: new Date().toISOString().split('T')[0], item: 'Bus Fare', category: 'Transport', quantity: 2, price: 1.75 },
+    { id: uuidv4(), date: new Date(Date.now() - 86400000).toISOString().split('T')[0], item: 'Groceries', category: 'Food', quantity: 1, price: 75.40 },
+    { id: uuidv4(), date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], item: 'Movie Tickets', category: 'Entertainment', quantity: 2, price: 15.00 },
+    { id: uuidv4(), date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0], item: 'Electricity Bill', category: 'Utilities', quantity: 1, price: 120.00 },
+];
+
+const DEFAULT_GOALS: GoalData = {
+    daily: [
+        { id: uuidv4(), text: 'Finish the report for Q3', status: 'active', createdAt: new Date().toISOString(), tags: ['work'] },
+        { id: uuidv4(), text: 'Go for a 30-minute run', status: 'completed', createdAt: new Date().toISOString(), completedAt: new Date().toISOString(), tags: ['health'] },
+    ],
+    monthly: [
+        { id: uuidv4(), text: 'Read two books', status: 'active', createdAt: new Date().toISOString(), tags: ['personal growth', 'reading'] },
+    ],
+    future: [
+        { id: uuidv4(), text: 'Plan vacation for next year', status: 'active', createdAt: new Date().toISOString(), tags: ['travel', 'personal'] },
+    ]
+};
+
 
 interface SettingsContextType {
     settings: Settings;
@@ -117,6 +129,10 @@ const App: React.FC = () => {
     const [habits, setHabits] = useLocalStorage<Habit[]>('tracker-habits', DEFAULT_HABITS);
     const [scoringRules, setScoringRules] = useLocalStorage<ScoringRule[]>('tracker-rules', DEFAULT_SCORING_RULES);
     const [plannerData, setPlannerData] = useLocalStorage<PlannerData>('tracker-planner', DEFAULT_PLANNER_DATA);
+    const [goals, setGoals] = useLocalStorage<GoalData>('tracker-goals', DEFAULT_GOALS);
+    const [expenses, setExpenses] = useLocalStorage<Expense[]>('tracker-expenses', DUMMY_EXPENSES);
+    const [quotes, setQuotes] = useLocalStorage<QuoteSource[]>('tracker-quotes', DUMMY_QUOTES);
+
     
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
         theme: 'dark',
@@ -147,7 +163,7 @@ const App: React.FC = () => {
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules }}>
-            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData }}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
                         <Sidebar />
