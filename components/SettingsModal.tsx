@@ -4,7 +4,7 @@ import { SettingsContext } from '../App';
 import { Theme, TimeFormat, Language } from '../types';
 
 const SettingsModal: React.FC = () => {
-    const { settings, setSettings, setIsSettingsModalOpen } = useContext(SettingsContext);
+    const { settings, setSettings, setIsSettingsModalOpen, t } = useContext(SettingsContext);
 
     const handleThemeChange = (theme: Theme) => {
         setSettings(s => ({ ...s, theme }));
@@ -27,11 +27,11 @@ const SettingsModal: React.FC = () => {
                 className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-md"
                 onClick={e => e.stopPropagation()}
             >
-                <h2 className="text-2xl font-bold mb-6 text-text-primary">Settings</h2>
+                <h2 className="text-2xl font-bold mb-6 text-text-primary">{t('settings')}</h2>
                 
                 {/* Theme Setting */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Theme</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Theme')}</label>
                     <div className="flex space-x-2">
                         {(['light', 'dark'] as Theme[]).map(theme => (
                             <button
@@ -39,7 +39,7 @@ const SettingsModal: React.FC = () => {
                                 onClick={() => handleThemeChange(theme)}
                                 className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-accent-primary text-white' : 'bg-input-bg hover:bg-border'}`}
                             >
-                                {theme}
+                                {t(theme)}
                             </button>
                         ))}
                     </div>
@@ -47,7 +47,7 @@ const SettingsModal: React.FC = () => {
 
                 {/* Time Format Setting */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Time Format</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Time Format')}</label>
                     <div className="flex space-x-2">
                          {(['12h', '24h'] as TimeFormat[]).map(format => (
                             <button
@@ -55,7 +55,7 @@ const SettingsModal: React.FC = () => {
                                 onClick={() => handleTimeFormatChange(format)}
                                 className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-accent-primary text-white' : 'bg-input-bg hover:bg-border'}`}
                             >
-                                {format === '12h' ? '12-Hour' : '24-Hour'}
+                                {format === '12h' ? t('12-Hour') : t('24-Hour')}
                             </button>
                         ))}
                     </div>
@@ -63,15 +63,15 @@ const SettingsModal: React.FC = () => {
 
                 {/* Language Setting */}
                  <div className="mb-8">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Language (UI Only)</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Language (UI Only)')}</label>
                     <select
                         value={settings.language}
                         onChange={(e) => handleLanguageChange(e.target.value as Language)}
                         className="w-full p-2 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
-                        <option value="en">English</option>
-                        <option value="es">Español</option>
-                        <option value="fr">Français</option>
+                        <option value="en">{t('English')}</option>
+                        <option value="es">{t('Español')}</option>
+                        <option value="fr">{t('Français')}</option>
                     </select>
                 </div>
 
@@ -79,7 +79,7 @@ const SettingsModal: React.FC = () => {
                     onClick={() => setIsSettingsModalOpen(false)}
                     className="w-full py-2 rounded-md font-semibold text-white bg-accent-primary hover:bg-accent-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary"
                 >
-                    Close
+                    {t('Close')}
                 </button>
             </div>
         </div>

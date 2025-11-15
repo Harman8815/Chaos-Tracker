@@ -287,7 +287,7 @@ const StreakHighlight: React.FC<{ streaks: { name: string, streak: number }[] }>
         { bg: 'bg-orange-600/20', text: 'text-orange-500', border: 'border-orange-600' },
     ];
     const TrophyIcon = (props: React.SVGProps<SVGSVGElement>) => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 2L9 5H3v6l4 4-1 5 4-2 4 2-1-5 4-4V5h-6z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 2L9 5H3v6l4 4-1 5 4-2 4 2-1-5 4-4V5h-6z"/></svg>
     );
 
     return (
@@ -373,7 +373,7 @@ function calculateStreaks(data: AllData, habits: Habit[]): Record<string, number
 
 const Dashboard: React.FC = () => {
     const { data, habits, today } = useContext(DataContext);
-    const { settings } = useContext(SettingsContext);
+    const { settings, t } = useContext(SettingsContext);
     const [summary, setSummary] = useState('Generating reflection...');
     const [isLoading, setIsLoading] = useState(true);
     const [time, setTime] = useState(new Date());
@@ -510,7 +510,7 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="p-6 h-full overflow-y-auto animate-fade-in">
-            <h1 className="text-3xl font-bold mb-6 text-text-primary">Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-6 text-text-primary">{t('dashboard')}</h1>
             <div className="grid grid-cols-1 lg:grid-cols-4 auto-rows-min gap-6">
                 <Card className="lg:col-span-4">
                     <StreakHighlight streaks={habitStreaks} />

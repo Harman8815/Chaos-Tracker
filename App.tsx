@@ -1,6 +1,6 @@
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource } from './types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language } from './types';
 import { DUMMY_DATA } from './data/dummy_data';
 import { DUMMY_QUOTES } from './data/quotes_data';
 import Sidebar from './components/Sidebar';
@@ -49,6 +49,21 @@ const DEFAULT_GOALS: GoalData = {
     ]
 };
 
+const translations: Record<Language, Record<string, string>> = {
+    en: {
+        'home': 'Home', 'dashboard': 'Dashboard', 'planner': 'Planner', 'points': 'Points', 'journal': 'Journal', 'expense': 'Expenses', 'goals': 'Goals', 'quotes': 'Quotes', 'pedometer': 'Pedometer', 'settings': 'Settings',
+        'Theme': 'Theme', 'Time Format': 'Time Format', 'Language (UI Only)': 'Language (UI Only)', 'light': 'light', 'dark': 'dark', '12-Hour': '12-Hour', '24-Hour': '24-Hour', 'English': 'English', 'Español': 'Español', 'Français': 'Français', 'Close': 'Close',
+    },
+    es: {
+        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificador', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'pedometer': 'Podómetro', 'settings': 'Ajustes',
+        'Theme': 'Tema', 'Time Format': 'Formato de Hora', 'Language (UI Only)': 'Idioma (Solo UI)', 'light': 'claro', 'dark': 'oscuro', '12-Hour': '12 horas', '24-Hour': '24 horas', 'English': 'Inglés', 'Español': 'Español', 'Français': 'Francés', 'Close': 'Cerrar',
+    },
+    fr: {
+        'home': 'Accueil', 'dashboard': 'Tableau de bord', 'planner': 'Planificateur', 'points': 'Points', 'journal': 'Journal', 'expense': 'Dépenses', 'goals': 'Objectifs', 'quotes': 'Citations', 'pedometer': 'Podomètre', 'settings': 'Paramètres',
+        'Theme': 'Thème', 'Time Format': "Format de l'heure", 'Language (UI Only)': 'Langue (UI uniquement)', 'light': 'clair', 'dark': 'sombre', '12-Hour': '12 heures', '24-Hour': '24 heures', 'English': 'Anglais', 'Español': 'Espagnol', 'Français': 'Français', 'Close': 'Fermer',
+    }
+};
+
 
 interface SettingsContextType {
     settings: Settings;
@@ -61,6 +76,7 @@ interface SettingsContextType {
     setIsEditRulesModalOpen: Dispatch<SetStateAction<boolean>>;
     scoringRules: ScoringRule[];
     setScoringRules: Dispatch<SetStateAction<ScoringRule[]>>;
+    t: (key: string) => string;
 }
 
 export const DataContext = createContext<DataContextType>({} as DataContextType);
@@ -146,8 +162,19 @@ const App: React.FC = () => {
     
     const today = getToday();
 
+    const t = (key: string): string => {
+        return translations[settings.language][key] || key;
+    };
+
     React.useEffect(() => {
-        document.documentElement.classList.toggle('dark', settings.theme === 'dark');
+        const root = document.documentElement;
+        if (settings.theme === 'light') {
+            root.classList.add('light');
+            root.classList.remove('dark');
+        } else {
+            root.classList.remove('light');
+            root.classList.add('dark');
+        }
     }, [settings.theme]);
 
     React.useEffect(() => {
@@ -162,7 +189,7 @@ const App: React.FC = () => {
 
 
     return (
-        <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules }}>
+        <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>

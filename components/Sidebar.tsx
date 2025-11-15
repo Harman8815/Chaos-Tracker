@@ -18,16 +18,16 @@ const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const Sidebar: React.FC = () => {
     const { selectedPage, setSelectedPage } = useContext(DataContext);
-    const { setIsSettingsModalOpen } = useContext(SettingsContext);
+    const { setIsSettingsModalOpen, t } = useContext(SettingsContext);
     const [indicatorY, setIndicatorY] = useState(0);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const navItems = useMemo(() => {
-        const allPossibleItems: (Tracker | { id: PageId; name: string; icon: React.FC<React.SVGProps<SVGSVGElement>>; })[] = [
-            { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
-            ...TRACKERS,
-            { id: 'home', name: 'Home', icon: HomeIcon },
+        const allPossibleItems: (Omit<Tracker, 'name'> & { name: string } | { id: PageId; name: string; icon: React.FC<React.SVGProps<SVGSVGElement>>; })[] = [
+            { id: 'dashboard', name: t('dashboard'), icon: DashboardIcon },
+            ...TRACKERS.map(tracker => ({ ...tracker, name: t(tracker.id) })),
+            { id: 'home', name: t('home'), icon: HomeIcon },
         ];
         
         // FIX: Add 'pedometer' to the sidebar navigation order.
@@ -37,7 +37,7 @@ const Sidebar: React.FC = () => {
             const item = allPossibleItems.find(i => i.id === id);
             return item ? { ...item, type: 'item' as const } : null;
         }).filter(Boolean) as ({ id: PageId; name: string; icon: React.FC<React.SVGProps<SVGSVGElement>>; type: 'item' })[];
-    }, []);
+    }, [t]);
 
     useLayoutEffect(() => {
         if (isCollapsed) return;
@@ -128,7 +128,7 @@ const Sidebar: React.FC = () => {
                 <button
                     onClick={() => setIsSettingsModalOpen(true)}
                     className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group"
-                    aria-label="Settings"
+                    aria-label={t('settings')}
                 >
                     <SettingsIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
                 </button>
