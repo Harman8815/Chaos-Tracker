@@ -29,8 +29,18 @@ export type AllData = {
     [date: string]: DailyData;
 };
 
-// FIX: Added 'pedometer' to the PageId type to support the Pedometer component.
-export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'pedometer';
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  date: string; // YYYY-MM-DD
+  tags: string[];
+  images: string[];
+  coverImage?: string; // Main image for grid view
+}
+
+// FIX: Added 'achievements' and removed 'pedometer' from the PageId type.
+export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'achievements';
 export type ToolId = 'calculator' | 'clock' | 'chat';
 
 export interface Tracker {
@@ -142,4 +152,6 @@ export interface DataContextType {
     setExpenses: Dispatch<SetStateAction<Expense[]>>;
     quotes: QuoteSource[];
     setQuotes: Dispatch<SetStateAction<QuoteSource[]>>;
+    achievements: Achievement[];
+    setAchievements: Dispatch<SetStateAction<Achievement[]>>;
 }

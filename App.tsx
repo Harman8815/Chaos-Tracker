@@ -1,8 +1,9 @@
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language } from './types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language, Achievement } from './types';
 import { DUMMY_DATA } from './data/dummy_data';
 import { DUMMY_QUOTES } from './data/quotes_data';
+import { DUMMY_ACHIEVEMENTS } from './data/achievements_data';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import SettingsModal from './components/SettingsModal';
@@ -51,15 +52,15 @@ const DEFAULT_GOALS: GoalData = {
 
 const translations: Record<Language, Record<string, string>> = {
     en: {
-        'home': 'Home', 'dashboard': 'Dashboard', 'planner': 'Planner', 'points': 'Points', 'journal': 'Journal', 'expense': 'Expenses', 'goals': 'Goals', 'quotes': 'Quotes', 'pedometer': 'Pedometer', 'settings': 'Settings',
+        'home': 'Home', 'dashboard': 'Dashboard', 'planner': 'Planner', 'points': 'Points', 'journal': 'Journal', 'expense': 'Expenses', 'goals': 'Goals', 'quotes': 'Quotes', 'achievements': 'Achievements', 'settings': 'Settings',
         'Theme': 'Theme', 'Time Format': 'Time Format', 'Language (UI Only)': 'Language (UI Only)', 'light': 'light', 'dark': 'dark', '12-Hour': '12-Hour', '24-Hour': '24-Hour', 'English': 'English', 'Español': 'Español', 'Français': 'Français', 'Close': 'Close',
     },
     es: {
-        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificador', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'pedometer': 'Podómetro', 'settings': 'Ajustes',
+        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificador', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'achievements': 'Logros', 'settings': 'Ajustes',
         'Theme': 'Tema', 'Time Format': 'Formato de Hora', 'Language (UI Only)': 'Idioma (Solo UI)', 'light': 'claro', 'dark': 'oscuro', '12-Hour': '12 horas', '24-Hour': '24 horas', 'English': 'Inglés', 'Español': 'Español', 'Français': 'Francés', 'Close': 'Cerrar',
     },
     fr: {
-        'home': 'Accueil', 'dashboard': 'Tableau de bord', 'planner': 'Planificateur', 'points': 'Points', 'journal': 'Journal', 'expense': 'Dépenses', 'goals': 'Objectifs', 'quotes': 'Citations', 'pedometer': 'Podomètre', 'settings': 'Paramètres',
+        'home': 'Accueil', 'dashboard': 'Tableau de bord', 'planner': 'Planificateur', 'points': 'Points', 'journal': 'Journal', 'expense': 'Dépenses', 'goals': 'Objectifs', 'quotes': 'Citations', 'achievements': 'Réalisations', 'settings': 'Paramètres',
         'Theme': 'Thème', 'Time Format': "Format de l'heure", 'Language (UI Only)': 'Langue (UI uniquement)', 'light': 'clair', 'dark': 'sombre', '12-Hour': '12 heures', '24-Hour': '24 heures', 'English': 'Anglais', 'Español': 'Espagnol', 'Français': 'Français', 'Close': 'Fermer',
     }
 };
@@ -148,6 +149,7 @@ const App: React.FC = () => {
     const [goals, setGoals] = useLocalStorage<GoalData>('tracker-goals', DEFAULT_GOALS);
     const [expenses, setExpenses] = useLocalStorage<Expense[]>('tracker-expenses', DUMMY_EXPENSES);
     const [quotes, setQuotes] = useLocalStorage<QuoteSource[]>('tracker-quotes', DUMMY_QUOTES);
+    const [achievements, setAchievements] = useLocalStorage<Achievement[]>('tracker-achievements', DUMMY_ACHIEVEMENTS);
 
     
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
@@ -190,7 +192,7 @@ const App: React.FC = () => {
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
-            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes }}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
                         <Sidebar />

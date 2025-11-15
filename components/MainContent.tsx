@@ -8,7 +8,7 @@ import HomePage from './HomePage';
 import ExpenseTracker from './trackers/ExpenseTracker';
 import GoalTracker from './trackers/GoalTracker';
 import QuoteCollector from './trackers/QuoteCollector';
-import Pedometer from './trackers/Pedometer';
+import Achievements from './trackers/Achievements';
 
 const MainContent: React.FC = () => {
     const { selectedPage } = useContext(DataContext);
@@ -31,9 +31,9 @@ const MainContent: React.FC = () => {
                 return <GoalTracker />;
             case 'quotes':
                 return <QuoteCollector />;
-            // FIX: Add a case to render the Pedometer component when selected.
-            case 'pedometer':
-                return <Pedometer />;
+            // FIX: Add a case to render the Achievements component and remove Pedometer.
+            case 'achievements':
+                return <Achievements />;
             default:
                 return <div>Select a tracker</div>;
         }

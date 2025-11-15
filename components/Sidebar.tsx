@@ -30,8 +30,8 @@ const Sidebar: React.FC = () => {
             { id: 'home', name: t('home'), icon: HomeIcon },
         ];
         
-        // FIX: Add 'pedometer' to the sidebar navigation order.
-        const orderedIds: PageId[] = ['dashboard', 'planner', 'home', 'points', 'journal', 'pedometer', 'goals', 'expense', 'quotes'];
+        // FIX: Replace 'pedometer' with 'achievements' in the sidebar navigation order.
+        const orderedIds: PageId[] = ['dashboard', 'planner', 'home', 'points', 'journal', 'achievements', 'goals', 'expense', 'quotes'];
 
         return orderedIds.map(id => {
             const item = allPossibleItems.find(i => i.id === id);
