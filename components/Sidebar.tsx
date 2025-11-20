@@ -31,7 +31,20 @@ const Sidebar: React.FC = () => {
         ];
         
         // FIX: Replace 'pedometer' with 'achievements' in the sidebar navigation order.
-        const orderedIds: PageId[] = ['dashboard', 'planner', 'home', 'points', 'journal', 'achievements', 'goals', 'expense', 'quotes'];
+        const orderedIds: PageId[] = [
+  'dashboard',
+  'planner',
+  'goals',
+  'expense',
+
+  'home', // CENTER
+
+  'points',
+  'journal',
+  'achievements',
+  'quotes'
+];
+
 
         return orderedIds.map(id => {
             const item = allPossibleItems.find(i => i.id === id);
