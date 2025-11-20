@@ -86,41 +86,24 @@ const Sidebar: React.FC = () => {
             </button>
             
             <div className="flex flex-col items-center justify-between h-full w-full">
-                <div className="relative flex flex-col items-center justify-center space-y-2 flex-grow w-full">
-                    {/* Sidebar Bulge */}
-                    <div
-                        className="absolute top-0 right-0 w-8 bg-sidebar-bg rounded-l-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] shadow-lg z-0"
-                        style={{
-                            height: `${bulgeHeight}px`,
-                            // To center the bulge on indicatorY, we translate it up by half its height.
-                            transform: `translateY(${indicatorY - bulgeHeight / 2}px)`,
-                        }}
-                    />
-
-                    {/* Circular Highlight */}
-                    <div
-                        className="absolute left-1/2 -translate-x-1/2 w-12 bg-accent-primary/20 rounded-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                        style={{
-                            height: `${highlightHeight}px`,
-                            // To center the highlight on indicatorY, we translate it up by half its height.
-                            transform: `translateY(${indicatorY - highlightHeight / 2}px) translateX(-50%)`,
-                            boxShadow: '0 4px 12px rgba(124, 58, 237, 0.4)',
-                        }}
-                    />
-                    
+                <div className="relative flex flex-col items-center justify-center space-y-3 flex-grow w-full">
                     {navItems.map((item, index) => {
                         const isSelected = selectedPage === item.id;
                         return (
-                            <button
-                                key={item.id}
-                                ref={el => { itemRefs.current[index] = el; }}
-                                onClick={() => handleSelect(item.id as PageId)}
-                                className={`relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none group z-10 ${isSelected ? 'text-white' : 'text-text-secondary hover:text-text-primary'}`}
-                                aria-label={item.name}
-                                aria-current={isSelected}
-                            >
-                                <item.icon className={`w-6 h-6 transition-transform duration-300 ease-in-out ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
-                            </button>
+                          <button
+    key={item.id}
+    ref={el => { itemRefs.current[index] = el; }}
+    onClick={() => handleSelect(item.id as PageId)}
+    className={`relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none z-10
+        ${isSelected ? 'text-white ring-2 ring-blue-400' : 'text-text-secondary hover:text-text-primary'}
+    `}
+>
+    <item.icon className="w-7 h-7 flex-shrink-0 transition-transform duration-300 ease-in-out
+        ${isSelected ? 'scale-110' : 'group-hover:scale-110'}"
+    />
+</button>
+
+
                         )
                     })}
                 </div>

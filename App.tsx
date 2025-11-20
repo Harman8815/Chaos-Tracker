@@ -1,3 +1,4 @@
+
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
 import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language, Achievement } from './types';
@@ -56,7 +57,7 @@ const translations: Record<Language, Record<string, string>> = {
         'Theme': 'Theme', 'Time Format': 'Time Format', 'Language (UI Only)': 'Language (UI Only)', 'light': 'light', 'dark': 'dark', '12-Hour': '12-Hour', '24-Hour': '24-Hour', 'English': 'English', 'Español': 'Español', 'Français': 'Français', 'Close': 'Close',
     },
     es: {
-        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificador', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'achievements': 'Logros', 'settings': 'Ajustes',
+        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificateur', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'achievements': 'Logros', 'settings': 'Ajustes',
         'Theme': 'Tema', 'Time Format': 'Formato de Hora', 'Language (UI Only)': 'Idioma (Solo UI)', 'light': 'claro', 'dark': 'oscuro', '12-Hour': '12 horas', '24-Hour': '24 horas', 'English': 'Inglés', 'Español': 'Español', 'Français': 'Francés', 'Close': 'Cerrar',
     },
     fr: {
@@ -182,10 +183,13 @@ const App: React.FC = () => {
     React.useEffect(() => {
         const loader = document.getElementById('loader');
         if (loader) {
-            loader.style.opacity = '0';
+            // Add a small delay to ensure the user sees the animation at least for a second
             setTimeout(() => {
-                loader.style.display = 'none';
-            }, 500); // matches transition duration in index.html
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 800); // matches transition duration in index.html
+            }, 1000);
         }
     }, []);
 
