@@ -120,20 +120,24 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
     return (
         <div className="relative w-full h-full flex items-center justify-center min-h-[500px]">
             <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="w-full h-full max-w-4xl" preserveAspectRatio="xMidYMid meet">
-                {/* Grid */}
+                {/* Data Polygon - Rendered first so grid lines overlay it */}
+                <polygon points={pointsToString(dataPoints)} className="fill-accent-primary/60 stroke-accent-primary" strokeWidth="3" />
+
+                {/* Grid - Rendered on top */}
                 {[...Array(levels)].map((_, levelIndex) => (
                     <polygon
                         key={levelIndex}
                         points={pointsToString(data.map((_, i) => getPoint(angleSlice * i, maxValue * (levels - levelIndex) / levels)))}
-                        className="stroke-border fill-transparent opacity-30"
+                        className="stroke-text-disabled fill-transparent opacity-40"
                         strokeWidth="1"
                     />
                 ))}
-                {/* Axes */}
+                {/* Axes - Rendered on top */}
                 {data.map((_, i) => {
                     const p = getPoint(angleSlice * i, maxValue);
-                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} className="stroke-border opacity-30" />;
+                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} className="stroke-text-disabled opacity-40" />;
                 })}
+
                 {/* Labels */}
                 {data.map((d, i) => {
                     const p = getPoint(angleSlice * i, maxValue * 1.15);
@@ -143,20 +147,19 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
                     if (angleDeg < -10 && angleDeg > -170) textAnchor = "end";
 
                     return (
-                        <text 
-                            key={i} 
-                            x={p.x} 
-                            y={p.y} 
-                            textAnchor={textAnchor as any} 
-                            dy="0.3em" 
+                        <text
+                            key={i}
+                            x={p.x}
+                            y={p.y}
+                            textAnchor={textAnchor as any}
+                            dy="0.3em"
                             className="text-xs md:text-sm font-semibold fill-text-secondary"
                         >
                             {d.axis}
                         </text>
                     );
                 })}
-                {/* Data Polygon */}
-                <polygon points={pointsToString(dataPoints)} className="fill-accent-primary/40 stroke-accent-primary" strokeWidth="3" />
+
                 {/* Data points for hover */}
                 {dataPoints.map((p, i) => (
                     <circle
@@ -338,12 +341,12 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
 
 const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = ({ data }) => {
     const [expanded, setExpanded] = useState(false);
-    
+
     if (data.length === 0) return <NoData />;
-    
+
     const maxStreak = Math.max(...data.map(d => d.streak), 1);
     const displayData = expanded ? data : data.slice(0, 5);
-    
+
     return (
         <div className="space-y-4">
             <div className={`space-y-4 transition-all duration-300 ease-in-out ${expanded ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
@@ -360,9 +363,9 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
                     </div>
                 ))}
             </div>
-            
+
             {data.length > 5 && (
-                <button 
+                <button
                     onClick={() => setExpanded(!expanded)}
                     className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-border border-dashed transition-colors focus:outline-none"
                 >
@@ -373,7 +376,7 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
     )
 }
 
-const StreakStats: React.FC<{ streaks: {name: string, streak: number}[] }> = ({ streaks }) => {
+const StreakStats: React.FC<{ streaks: { name: string, streak: number }[] }> = ({ streaks }) => {
     const active = streaks.filter(s => s.streak > 0).length;
     const total = streaks.length;
     const best = streaks.length > 0 ? Math.max(...streaks.map(s => s.streak)) : 0;
@@ -408,17 +411,18 @@ const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] 
                 {data.map(item => {
                     const isBest = item.day === bestDay.day;
                     return (
-                    <div key={item.day} className="flex flex-col items-center justify-end h-full w-full max-w-[40px] group relative">
-                        <div className="absolute -top-8 text-xs bg-card-bg px-2 py-1 rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-md">
-                            {item.score.toFixed(1)} avg
+                        <div key={item.day} className="flex flex-col items-center justify-end h-full w-full max-w-[40px] group relative">
+                            <div className="absolute -top-8 text-xs bg-card-bg px-2 py-1 rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-md">
+                                {item.score.toFixed(1)} avg
+                            </div>
+                            <div
+                                className={`w-full rounded-t-md transition-all duration-300 ${isBest ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.6)]' : 'bg-accent-primary opacity-90 hover:opacity-100 hover:brightness-110'}`}
+                                style={{ height: `${(item.score / maxScore) * 100}%`, minHeight: '4px' }}
+                            />
+                            <div className={`text-[10px] mt-2 font-medium ${isBest ? 'text-yellow-500 font-bold' : 'text-text-secondary'}`}>{item.day}</div>
                         </div>
-                        <div
-                            className={`w-full rounded-t-md transition-all duration-300 ${isBest ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.6)]' : 'bg-accent-primary opacity-90 hover:opacity-100 hover:brightness-110'}`}
-                            style={{ height: `${(item.score / maxScore) * 100}%`, minHeight: '4px' }}
-                        />
-                        <div className={`text-[10px] mt-2 font-medium ${isBest ? 'text-yellow-500 font-bold' : 'text-text-secondary'}`}>{item.day}</div>
-                    </div>
-                )})}
+                    )
+                })}
             </div>
         </div>
     );
@@ -445,9 +449,9 @@ const MarkdownView: React.FC<{ content: string }> = ({ content }) => {
             setHtml(content);
         }
     }, [content]);
-    
+
     return (
-        <div 
+        <div
             className="prose prose-invert prose-sm max-w-none text-sm leading-relaxed"
             dangerouslySetInnerHTML={{ __html: html }}
         />
@@ -641,19 +645,19 @@ const Dashboard: React.FC = () => {
     const levelStats = useMemo(() => {
         let totalXP = 0;
         Object.values(data).forEach((day) => {
-             const d = day as DailyData;
-             if (d.habitScores) {
-                 totalXP += Object.values(d.habitScores).reduce((sum, s) => sum + (Number(s) || 0), 0);
-             }
+            const d = day as DailyData;
+            if (d.habitScores) {
+                totalXP += Object.values(d.habitScores).reduce((sum, s) => sum + (Number(s) || 0), 0);
+            }
         });
-        
+
         // Simple level formula: Level = floor(sqrt(XP / 10))
         const level = Math.floor(Math.sqrt(totalXP / 10));
         const currentLevelXP = Math.pow(level, 2) * 10;
         const nextLevelXP = Math.pow(level + 1, 2) * 10;
         const progress = totalXP - currentLevelXP;
         const needed = nextLevelXP - currentLevelXP;
-        
+
         let rank = "Novice Tracker";
         if (level >= 5) rank = "Consistent Achiever";
         if (level >= 10) rank = "Discipline Disciple";
@@ -667,10 +671,10 @@ const Dashboard: React.FC = () => {
     return (
         <div className="p-6 h-full overflow-y-auto animate-fade-in pb-20">
             <div className="flex justify-between items-center mb-6">
-                 <h1 className="text-3xl font-bold text-text-primary">{t('dashboard')}</h1>
-                 <div className="text-sm text-text-secondary">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <h1 className="text-3xl font-bold text-text-primary">{t('dashboard')}</h1>
+                <div className="text-sm text-text-secondary">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Row 1: Highlights */}
                 <Card className="lg:col-span-4">
@@ -697,10 +701,10 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 {/* Row 3: Radar Chart - Full Width */}
-                <Card className="lg:col-span-4">
+                <Card className="lg:col-span-2">
                     <h3 className="font-bold text-xl mb-4">Habit Performance (7 Days)</h3>
                     <div className="w-full h-[500px]">
-                         <RadarChart data={radarData} />
+                        <RadarChart data={radarData} />
                     </div>
                 </Card>
 
@@ -710,12 +714,14 @@ const Dashboard: React.FC = () => {
                     <div className="h-64 flex items-center justify-center">
                         <PieChart data={todayPieData} type="pie" />
                     </div>
+                </Card>
+                <Card className="lg:col-span-2">
                     <div className="mt-8 pt-6 border-t border-border">
-                         <h3 className="font-bold text-xl mb-4">Monthly Daily Average</h3>
-                         <MonthlyAverageTable data={monthlyAverages} />
+                        <h3 className="font-bold text-xl mb-4">Monthly Daily Average</h3>
+                        <MonthlyAverageTable data={monthlyAverages} />
                     </div>
                 </Card>
-                
+
                 <Card className="lg:col-span-2 flex flex-col justify-between">
                     <div>
                         <div className="flex justify-between items-center mb-4">
@@ -727,8 +733,8 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                     <div className="pt-4 border-t border-border mt-auto">
-                         <h4 className="text-xs font-bold text-text-secondary uppercase mb-2">Analytics</h4>
-                         <StreakStats streaks={habitStreaks} />
+                        <h4 className="text-xs font-bold text-text-secondary uppercase mb-2">Analytics</h4>
+                        <StreakStats streaks={habitStreaks} />
                     </div>
                 </Card>
 
@@ -736,20 +742,20 @@ const Dashboard: React.FC = () => {
                 <Card className="lg:col-span-2 flex flex-col">
                     <h3 className="font-bold text-xl mb-4">Weekly Performance</h3>
                     <div className="flex-grow min-h-[200px]">
-                         <WeeklyPerformanceChart data={weeklyPerformance} />
+                        <WeeklyPerformanceChart data={weeklyPerformance} />
                     </div>
                     {bestDay && (
                         <div className="mt-4 pt-4 border-t border-border text-center">
-                             <p className="text-sm text-text-secondary">Your most productive day is <span className="text-yellow-500 font-bold text-lg">{bestDay.day}</span></p>
+                            <p className="text-sm text-text-secondary">Your most productive day is <span className="text-yellow-500 font-bold text-lg">{bestDay.day}</span></p>
                         </div>
                     )}
                 </Card>
-                
-                 <Card className="lg:col-span-2 relative overflow-hidden group">
-                     {/* Background visual for gamification */}
-                     <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-accent-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-                     
-                     <div className="flex flex-col h-full justify-between relative z-10">
+
+                <Card className="lg:col-span-2 relative overflow-hidden group">
+                    {/* Background visual for gamification */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-accent-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+
+                    <div className="flex flex-col h-full justify-between relative z-10">
                         <div className="mb-6">
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="font-bold text-xl">Tracker Rank</h3>
@@ -757,7 +763,7 @@ const Dashboard: React.FC = () => {
                                     {levelStats.rank}
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-end gap-2 mb-2">
                                 <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-primary to-purple-400">
                                     {levelStats.level}
@@ -766,7 +772,7 @@ const Dashboard: React.FC = () => {
                             </div>
 
                             <div className="w-full h-6 bg-input-bg rounded-full overflow-hidden mb-2 relative shadow-inner">
-                                <div 
+                                <div
                                     className="h-full bg-gradient-to-r from-accent-primary to-purple-500 transition-all duration-1000 ease-out relative"
                                     style={{ width: `${(levelStats.progress / levelStats.needed) * 100}%` }}
                                 >
@@ -776,30 +782,30 @@ const Dashboard: React.FC = () => {
                                     {Math.round((levelStats.progress / levelStats.needed) * 100)}% to Lvl {levelStats.level + 1}
                                 </span>
                             </div>
-                            
+
                             <div className="flex justify-between text-xs text-text-secondary font-mono">
                                 <span>{levelStats.progress} XP</span>
                                 <span>{levelStats.needed} XP</span>
                             </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
-                             <div className="p-4 bg-card-bg rounded-lg border border-border shadow-sm text-center">
-                                 <div className="text-2xl font-bold text-text-primary">{levelStats.totalXP.toLocaleString()}</div>
-                                 <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Lifetime XP</div>
-                             </div>
-                              <div className="p-4 bg-card-bg rounded-lg border border-border shadow-sm text-center">
-                                 <div className="text-2xl font-bold text-text-primary">{Object.keys(data).length}</div>
-                                 <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Days Active</div>
-                             </div>
+                            <div className="p-4 bg-card-bg rounded-lg border border-border shadow-sm text-center">
+                                <div className="text-2xl font-bold text-text-primary">{levelStats.totalXP.toLocaleString()}</div>
+                                <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Lifetime XP</div>
+                            </div>
+                            <div className="p-4 bg-card-bg rounded-lg border border-border shadow-sm text-center">
+                                <div className="text-2xl font-bold text-text-primary">{Object.keys(data).length}</div>
+                                <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Days Active</div>
+                            </div>
                         </div>
-                     </div>
+                    </div>
                 </Card>
 
                 {/* Row 6: AI & Targets */}
                 <Card className="lg:col-span-2 flex flex-col min-h-[300px]">
                     <div className="flex justify-between items-start mb-2">
-                         <h3 className="font-bold text-xl flex items-center gap-2">
+                        <h3 className="font-bold text-xl flex items-center gap-2">
                             AI Daily Reflection
                             <span className="text-xs font-normal bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full">Beta</span>
                         </h3>
@@ -808,7 +814,7 @@ const Dashboard: React.FC = () => {
                         {isLoading ? (
                             <Loader />
                         ) : (
-                           <MarkdownView content={summary} />
+                            <MarkdownView content={summary} />
                         )}
                     </div>
                     <div className="mt-auto pt-2">
@@ -819,12 +825,12 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 <Card className="lg:col-span-2">
-                     <div className="flex flex-col items-center justify-between h-full p-4">
+                    <div className="flex flex-col items-center justify-between h-full p-4">
                         <h3 className="font-bold text-xl mb-4 w-full text-left">Monthly Target</h3>
                         <div className="w-full flex-grow flex items-center justify-center">
-                             <PieChart data={overallProgressData} type="donut" />
+                            <PieChart data={overallProgressData} type="donut" />
                         </div>
-                         <div className="text-center mt-4 pt-4 border-t border-border w-full">
+                        <div className="text-center mt-4 pt-4 border-t border-border w-full">
                             <h3 className="font-bold text-sm text-text-secondary uppercase tracking-wide mb-2">Current Time</h3>
                             <p className="text-4xl font-mono font-bold text-accent-primary tracking-tight">
                                 {time.toLocaleTimeString('en-US', {
@@ -833,7 +839,7 @@ const Dashboard: React.FC = () => {
                                     hour12: settings.timeFormat === '12h'
                                 })}
                             </p>
-                         </div>
+                        </div>
                     </div>
                 </Card>
             </div>
