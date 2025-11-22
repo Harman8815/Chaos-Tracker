@@ -162,6 +162,7 @@ const App: React.FC = () => {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
     const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     
     const today = getToday();
 
@@ -199,8 +200,10 @@ const App: React.FC = () => {
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
-                        <Sidebar />
-                        <MainContent />
+                        <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+                        <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'pt-20' : ''}`}>
+                             <MainContent />
+                        </div>
                         {isSettingsModalOpen && <SettingsModal />}
                         {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
                         {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}

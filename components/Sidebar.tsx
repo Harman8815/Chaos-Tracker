@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useRef, useLayoutEffect, useState } from 'react';
+import React, { useContext, useMemo, useRef } from 'react';
 import { DataContext, SettingsContext } from '../App';
 import { TRACKERS } from '../constants';
 import { PageId, Tracker } from '../types';
@@ -16,12 +16,15 @@ const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
 );
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isCollapsed: boolean;
+    toggleSidebar: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const { selectedPage, setSelectedPage } = useContext(DataContext);
     const { setIsSettingsModalOpen, t } = useContext(SettingsContext);
-    const [indicatorY, setIndicatorY] = useState(0);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const navItems = useMemo(() => {
         const allPossibleItems: (Omit<Tracker, 'name'> & { name: string } | { id: PageId; name: string; icon: React.FC<React.SVGProps<SVGSVGElement>>; })[] = [
@@ -30,20 +33,19 @@ const Sidebar: React.FC = () => {
             { id: 'home', name: t('home'), icon: HomeIcon },
         ];
         
-        // FIX: Replace 'pedometer' with 'achievements' in the sidebar navigation order.
         const orderedIds: PageId[] = [
-  'dashboard',
-  'planner',
-  'goals',
-  'expense',
+            'dashboard',
+            'planner',
+            'goals',
+            'expense',
 
-  'home', // CENTER
+            'home', // CENTER
 
-  'points',
-  'journal',
-  'achievements',
-  'quotes'
-];
+            'points',
+            'journal',
+            'achievements',
+            'quotes'
+        ];
 
 
         return orderedIds.map(id => {
@@ -52,17 +54,6 @@ const Sidebar: React.FC = () => {
         }).filter(Boolean) as ({ id: PageId; name: string; icon: React.FC<React.SVGProps<SVGSVGElement>>; type: 'item' })[];
     }, [t]);
 
-    useLayoutEffect(() => {
-        if (isCollapsed) return;
-        const selectedIndex = navItems.findIndex(item => item.id === selectedPage);
-        const selectedItem = itemRefs.current[selectedIndex];
-        if (selectedItem) {
-            // Calculate the absolute center of the selected button relative to its container.
-            // This is more robust and serves as the single source of truth for positioning.
-            const newIndicatorY = selectedItem.offsetTop + selectedItem.offsetHeight / 2;
-            setIndicatorY(newIndicatorY);
-        }
-    }, [selectedPage, navItems, isCollapsed]);
 
     const handleSelect = (id: PageId) => {
         if (id === 'settings') {
@@ -74,25 +65,29 @@ const Sidebar: React.FC = () => {
     
     if (isCollapsed) {
         return (
-            <button
-                onClick={() => setIsCollapsed(false)}
-                className="absolute top-6 left-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-sidebar-bg shadow-lg transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group animate-fade-in"
-                aria-label="Open menu"
-            >
-                <MenuIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
-            </button>
+            <div className="fixed top-6 left-6 z-50 flex items-center gap-4 animate-fade-in">
+                <button
+                    onClick={toggleSidebar}
+                    aria-label="Open menu"
+                    className="flex items-center justify-center
+                            w-14 h-14 rounded-full bg-sidebar-bg shadow-lg border border-border
+                            text-text-secondary hover:text-text-primary hover:border-accent-primary
+                            transition-all duration-300 ease-in-out group"
+                >
+                    <MenuIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
+                </button>
+                <div className="bg-sidebar-bg/80 backdrop-blur-md border border-border/50 px-4 py-2 rounded-xl shadow-sm">
+                    <span className="text-xl font-bold text-text-primary tracking-wide">Tracker</span>
+                </div>
+            </div>
         );
     }
     
-    // Define heights as constants to ensure calculations and styles are always in sync.
-    const bulgeHeight = 64; // Corresponds to h-16
-    const highlightHeight = 48; // Corresponds to h-12
-
     return (
-        <aside className="relative bg-sidebar-bg flex flex-col items-center shadow-2xl transition-all duration-300 ease-in-out w-24 py-6 animate-fade-in z-20">
+        <aside className="relative bg-sidebar-bg flex flex-col items-center shadow-2xl transition-all duration-300 ease-in-out w-24 py-6 animate-fade-in z-20 flex-shrink-0">
             <button
-                onClick={() => setIsCollapsed(true)}
-                className="flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group mb-4"
+                onClick={toggleSidebar}
+                className="flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group mb-4 hover:bg-input-bg"
                 aria-label="Close menu"
             >
                 <MenuIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
@@ -104,26 +99,25 @@ const Sidebar: React.FC = () => {
                         const isSelected = selectedPage === item.id;
                         return (
                           <button
-    key={item.id}
-    ref={el => { itemRefs.current[index] = el; }}
-    onClick={() => handleSelect(item.id as PageId)}
-    className={`relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none z-10
-        ${isSelected ? 'text-white ring-2 ring-blue-400' : 'text-text-secondary hover:text-text-primary'}
-    `}
->
-    <item.icon className="w-7 h-7 flex-shrink-0 transition-transform duration-300 ease-in-out
-        ${isSelected ? 'scale-110' : 'group-hover:scale-110'}"
-    />
-</button>
-
-
+                            key={item.id}
+                            ref={el => { itemRefs.current[index] = el; }}
+                            onClick={() => handleSelect(item.id as PageId)}
+                            className={`relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300 ease-in-out focus:outline-none z-10
+                                ${isSelected ? 'text-white ring-2 ring-blue-400' : 'text-text-secondary hover:text-text-primary hover:bg-input-bg'}
+                            `}
+                            title={item.name}
+                        >
+                            <item.icon className={`w-7 h-7 flex-shrink-0 transition-transform duration-300 ease-in-out
+                                ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}
+                            />
+                        </button>
                         )
                     })}
                 </div>
 
                 <button
                     onClick={() => setIsSettingsModalOpen(true)}
-                    className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group"
+                    className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group hover:bg-input-bg"
                     aria-label={t('settings')}
                 >
                     <SettingsIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />

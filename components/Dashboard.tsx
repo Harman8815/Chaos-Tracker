@@ -600,7 +600,7 @@ const Dashboard: React.FC = () => {
 
         for (let i = 1; i <= daysSoFar; i++) {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i).toISOString().split('T')[0];
-            const dayData = data[date];
+            const dayData = data[date] as DailyData | undefined;
             if (dayData?.habitScores) {
                 for (const habit of habits) {
                     habitTotals[habit.id] += dayData.habitScores[habit.id] || 0;
@@ -640,9 +640,10 @@ const Dashboard: React.FC = () => {
     // Gamification Stats
     const levelStats = useMemo(() => {
         let totalXP = 0;
-        Object.values(data).forEach(day => {
-             if (day.habitScores) {
-                 totalXP += Object.values(day.habitScores).reduce((sum, s) => sum + (Number(s) || 0), 0);
+        Object.values(data).forEach((day) => {
+             const d = day as DailyData;
+             if (d.habitScores) {
+                 totalXP += Object.values(d.habitScores).reduce((sum, s) => sum + (Number(s) || 0), 0);
              }
         });
         
