@@ -22,7 +22,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
-    const { selectedPage, setSelectedPage } = useContext(DataContext);
+    const { selectedPage, setSelectedPage, userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen, t } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -83,6 +83,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         );
     }
     
+    const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : 'GU';
+    
     return (
         <aside className="relative bg-sidebar-bg flex flex-col items-center shadow-2xl transition-all duration-300 ease-in-out w-24 py-6 animate-fade-in z-20 flex-shrink-0">
             <button
@@ -115,13 +117,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     })}
                 </div>
 
-                <button
-                    onClick={() => setIsSettingsModalOpen(true)}
-                    className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group hover:bg-input-bg"
-                    aria-label={t('settings')}
-                >
-                    <SettingsIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
-                </button>
+                <div className="flex flex-col items-center space-y-3">
+                    {/* Profile Avatar Button */}
+                     <button
+                        onClick={() => setSelectedPage('profile')}
+                        className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ease-in-out focus:outline-none group overflow-hidden
+                             ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary' : 'hover:ring-2 hover:ring-border'}
+                        `}
+                        title="Profile"
+                    >
+                        {userProfile.avatar ? (
+                            <img src={userProfile.avatar} alt={userProfile.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-accent-primary to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                                {initials}
+                            </div>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setIsSettingsModalOpen(true)}
+                        className="relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ease-in-out text-text-secondary hover:text-text-primary focus:outline-none group hover:bg-input-bg"
+                        aria-label={t('settings')}
+                    >
+                        <SettingsIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
+                    </button>
+                </div>
             </div>
         </aside>
     );

@@ -1,7 +1,6 @@
-
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language, Achievement } from './types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language, Achievement, UserProfile } from './types';
 import { DUMMY_DATA } from './data/dummy_data';
 import { DUMMY_QUOTES } from './data/quotes_data';
 import { DUMMY_ACHIEVEMENTS } from './data/achievements_data';
@@ -17,6 +16,8 @@ import DraggableResizableModal from './components/common/DraggableResizableModal
 import Calculator from './components/tools/Calculator';
 import Clock from './components/tools/Clock';
 import ChatTool from './components/tools/ChatTool';
+import LoginPage from './components/auth/LoginPage';
+import SignUpPage from './components/auth/SignUpPage';
 import { v4 as uuidv4 } from 'uuid';
 
 const getToday = () => new Date().toISOString().split('T')[0];
@@ -51,17 +52,30 @@ const DEFAULT_GOALS: GoalData = {
     ]
 };
 
+const DEFAULT_USER_PROFILE: UserProfile = {
+    name: 'Guest User',
+    email: 'guest@example.com',
+    joinDate: new Date().toISOString(),
+    bio: 'Consistent self-improver. Tracking habits one day at a time.',
+    location: 'Global',
+    skills: ['Consistency', 'Planning', 'Growth'],
+    socials: {
+        github: 'https://github.com',
+        linkedin: 'https://linkedin.com'
+    }
+};
+
 const translations: Record<Language, Record<string, string>> = {
     en: {
-        'home': 'Home', 'dashboard': 'Dashboard', 'planner': 'Planner', 'points': 'Points', 'journal': 'Journal', 'expense': 'Expenses', 'goals': 'Goals', 'quotes': 'Quotes', 'achievements': 'Achievements', 'settings': 'Settings',
+        'home': 'Home', 'dashboard': 'Dashboard', 'planner': 'Planner', 'points': 'Points', 'journal': 'Journal', 'expense': 'Expenses', 'goals': 'Goals', 'quotes': 'Quotes', 'achievements': 'Achievements', 'settings': 'Settings', 'profile': 'Profile',
         'Theme': 'Theme', 'Time Format': 'Time Format', 'Language (UI Only)': 'Language (UI Only)', 'light': 'light', 'dark': 'dark', '12-Hour': '12-Hour', '24-Hour': '24-Hour', 'English': 'English', 'Español': 'Español', 'Français': 'Français', 'Close': 'Close',
     },
     es: {
-        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificateur', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'achievements': 'Logros', 'settings': 'Ajustes',
+        'home': 'Inicio', 'dashboard': 'Tablero', 'planner': 'Planificateur', 'points': 'Puntos', 'journal': 'Diario', 'expense': 'Gastos', 'goals': 'Metas', 'quotes': 'Citas', 'achievements': 'Logros', 'settings': 'Ajustes', 'profile': 'Perfil',
         'Theme': 'Tema', 'Time Format': 'Formato de Hora', 'Language (UI Only)': 'Idioma (Solo UI)', 'light': 'claro', 'dark': 'oscuro', '12-Hour': '12 horas', '24-Hour': '24 horas', 'English': 'Inglés', 'Español': 'Español', 'Français': 'Francés', 'Close': 'Cerrar',
     },
     fr: {
-        'home': 'Accueil', 'dashboard': 'Tableau de bord', 'planner': 'Planificateur', 'points': 'Points', 'journal': 'Journal', 'expense': 'Dépenses', 'goals': 'Objectifs', 'quotes': 'Citations', 'achievements': 'Réalisations', 'settings': 'Paramètres',
+        'home': 'Accueil', 'dashboard': 'Tableau de bord', 'planner': 'Planificateur', 'points': 'Points', 'journal': 'Journal', 'expense': 'Dépenses', 'goals': 'Objectifs', 'quotes': 'Citations', 'achievements': 'Réalisations', 'settings': 'Paramètres', 'profile': 'Profil',
         'Theme': 'Thème', 'Time Format': "Format de l'heure", 'Language (UI Only)': 'Langue (UI uniquement)', 'light': 'clair', 'dark': 'sombre', '12-Hour': '12 heures', '24-Hour': '24 heures', 'English': 'Anglais', 'Español': 'Espagnol', 'Français': 'Français', 'Close': 'Fermer',
     }
 };
@@ -151,6 +165,7 @@ const App: React.FC = () => {
     const [expenses, setExpenses] = useLocalStorage<Expense[]>('tracker-expenses', DUMMY_EXPENSES);
     const [quotes, setQuotes] = useLocalStorage<QuoteSource[]>('tracker-quotes', DUMMY_QUOTES);
     const [achievements, setAchievements] = useLocalStorage<Achievement[]>('tracker-achievements', DUMMY_ACHIEVEMENTS);
+    const [userProfile, setUserProfile] = useLocalStorage<UserProfile>('tracker-user-profile', DEFAULT_USER_PROFILE);
 
     
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
@@ -159,12 +174,18 @@ const App: React.FC = () => {
         language: 'en',
     });
     
+    const [isAuthenticated, setIsAuthenticated] = useLocalStorage<boolean>('tracker-auth', false);
+    const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
     const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     
     const today = getToday();
+
+    const login = () => setIsAuthenticated(true);
+    const logout = () => setIsAuthenticated(false);
 
     const t = (key: string): string => {
         return translations[settings.language][key] || key;
@@ -184,12 +205,11 @@ const App: React.FC = () => {
     React.useEffect(() => {
         const loader = document.getElementById('loader');
         if (loader) {
-            // Add a small delay to ensure the user sees the animation at least for a second
             setTimeout(() => {
                 loader.style.opacity = '0';
                 setTimeout(() => {
                     loader.style.display = 'none';
-                }, 800); // matches transition duration in index.html
+                }, 800);
             }, 1000);
         }
     }, []);
@@ -197,17 +217,33 @@ const App: React.FC = () => {
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
-            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements }}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
-                        <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                        <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'pt-20' : ''}`}>
-                             <MainContent />
-                        </div>
-                        {isSettingsModalOpen && <SettingsModal />}
-                        {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
-                        {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
-                        <ToolManager />
+                        {!isAuthenticated ? (
+                            <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+                                 <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
+                                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
+                                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+                                 {authView === 'login' ? (
+                                    <LoginPage onLogin={login} onSwitchToSignUp={() => setAuthView('signup')} />
+                                 ) : (
+                                    <SignUpPage onSignUp={login} onSwitchToLogin={() => setAuthView('login')} />
+                                 )}
+                            </div>
+                        ) : (
+                            <>
+                                <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+                                <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'pt-20' : ''}`}>
+                                     <MainContent />
+                                </div>
+                                {isSettingsModalOpen && <SettingsModal />}
+                                {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+                                {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
+                                <ToolManager />
+                            </>
+                        )}
                     </div>
                 </ToolsProvider>
             </DataContext.Provider>

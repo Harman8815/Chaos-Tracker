@@ -10,6 +10,22 @@ export interface Settings {
     language: Language;
 }
 
+export interface UserProfile {
+    name: string;
+    email: string;
+    joinDate: string;
+    avatar?: string;
+    bio?: string;
+    location?: string;
+    skills?: string[];
+    socials?: {
+        github?: string;
+        linkedin?: string;
+        twitter?: string;
+        website?: string;
+    }
+}
+
 export interface Habit {
     id: string;
     name: string;
@@ -39,8 +55,7 @@ export interface Achievement {
   coverImage?: string; // Main image for grid view
 }
 
-// FIX: Added 'achievements' and removed 'pedometer' from the PageId type.
-export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'achievements';
+export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'achievements' | 'profile' | 'edit-profile';
 export type ToolId = 'calculator' | 'clock' | 'chat';
 
 export interface Tracker {
@@ -154,4 +169,7 @@ export interface DataContextType {
     setQuotes: Dispatch<SetStateAction<QuoteSource[]>>;
     achievements: Achievement[];
     setAchievements: Dispatch<SetStateAction<Achievement[]>>;
+    userProfile: UserProfile;
+    setUserProfile: Dispatch<SetStateAction<UserProfile>>;
+    logout: () => void;
 }

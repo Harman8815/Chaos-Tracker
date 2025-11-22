@@ -1,10 +1,11 @@
 import React, { useContext } from 'react';
 // FIX: Corrected import paths for context and types.
-import { SettingsContext } from '../App';
+import { DataContext, SettingsContext } from '../App';
 import { Theme, TimeFormat, Language } from '../types';
 
 const SettingsModal: React.FC = () => {
     const { settings, setSettings, setIsSettingsModalOpen, t } = useContext(SettingsContext);
+    const { logout } = useContext(DataContext);
 
     const handleThemeChange = (theme: Theme) => {
         setSettings(s => ({ ...s, theme }));
@@ -77,10 +78,22 @@ const SettingsModal: React.FC = () => {
 
                 <button
                     onClick={() => setIsSettingsModalOpen(false)}
-                    className="w-full py-2 rounded-md font-semibold text-white bg-accent-primary hover:bg-accent-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary"
+                    className="w-full py-2 rounded-md font-semibold text-white bg-accent-primary hover:bg-accent-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary mb-4"
                 >
                     {t('Close')}
                 </button>
+                
+                <div className="pt-4 border-t border-border">
+                    <button
+                        onClick={() => {
+                            setIsSettingsModalOpen(false);
+                            logout();
+                        }}
+                        className="w-full py-2 rounded-md font-semibold text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors focus:outline-none"
+                    >
+                        Log Out
+                    </button>
+                </div>
             </div>
         </div>
     );
