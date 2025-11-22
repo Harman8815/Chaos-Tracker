@@ -1,3 +1,4 @@
+
 import React, { useState, createContext, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
 import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, ToolId, DataContextType, GoalData, Expense, QuoteSource, Language, Achievement, UserProfile } from './types';
@@ -19,6 +20,7 @@ import ChatTool from './components/tools/ChatTool';
 import LoginPage from './components/auth/LoginPage';
 import SignUpPage from './components/auth/SignUpPage';
 import { v4 as uuidv4 } from 'uuid';
+import { fetchAppData } from './api/services';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 
@@ -213,6 +215,38 @@ const App: React.FC = () => {
             }, 1000);
         }
     }, []);
+
+    // API Data Sync Effect
+    React.useEffect(() => {
+        const syncData = async () => {
+            if (!isAuthenticated) return;
+
+            try {
+                console.log('Attempting to sync with remote server...');
+                const apiData = await fetchAppData();
+                
+                if (apiData) {
+                    console.log('Remote data found, syncing...', apiData);
+                    if (apiData.data) setData(apiData.data);
+                    if (apiData.habits) setHabits(apiData.habits);
+                    if (apiData.rules) setScoringRules(apiData.rules);
+                    if (apiData.planner) setPlannerData(apiData.planner);
+                    if (apiData.goals) setGoals(apiData.goals);
+                    if (apiData.expenses) setExpenses(apiData.expenses);
+                    if (apiData.quotes) setQuotes(apiData.quotes);
+                    if (apiData.achievements) setAchievements(apiData.achievements);
+                    if (apiData.userProfile) setUserProfile(apiData.userProfile);
+                }
+            } catch (error) {
+                console.warn("API sync failed or unavailable. Using local fallback data.", error);
+                // No action needed: The hooks (useLocalStorage) have already initialized the app with local data.
+            }
+        };
+
+        syncData();
+        // We only run this once on mount (or when auth changes) to mimic an initial load.
+        // Dependencies are technically needed but we don't want re-runs on every setter change unless implementing full bi-directional sync logic.
+    }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
     return (
