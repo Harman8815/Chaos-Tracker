@@ -24,94 +24,122 @@ const EditIcon = (props: React.SVGProps<SVGSVGElement>) => (
 // --- Components ---
 
 const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
-    // Generate last 365 days
-    const days = useMemo(() => {
-        const result = [];
+    const { weeks, monthLabels, totalActiveDays } = useMemo(() => {
         const today = new Date();
-        for (let i = 364; i >= 0; i--) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - i);
-            result.push(d.toISOString().split('T')[0]);
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - 365);
+        
+        // Adjust to start on Sunday
+        const dayOfWeek = startDate.getDay(); 
+        const adjustedStartDate = new Date(startDate);
+        adjustedStartDate.setDate(startDate.getDate() - dayOfWeek);
+
+        const weeks = [];
+        const monthLabels: { index: number; label: string }[] = [];
+        let totalActive = 0;
+
+        let currentDate = new Date(adjustedStartDate);
+
+        // We generate roughly 53 weeks to cover the year
+        for (let w = 0; w < 53; w++) {
+            const week = [];
+            let hasFirstOfMonth = false;
+            let monthName = "";
+
+            for (let d = 0; d < 7; d++) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const dayData = data[dateStr];
+                const score = dayData ? Object.values(dayData.habitScores || {}).reduce((a: number, b: number) => a + (Number(b) || 0), 0) : 0;
+                
+                if (score > 0) totalActive++;
+
+                if (currentDate.getDate() === 1) {
+                    hasFirstOfMonth = true;
+                    monthName = currentDate.toLocaleString('default', { month: 'short' });
+                }
+
+                week.push({ date: dateStr, score });
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            weeks.push(week);
+            if (hasFirstOfMonth) {
+                monthLabels.push({ index: w, label: monthName });
+            }
         }
-        return result;
-    }, []);
+
+        return { weeks, monthLabels, totalActiveDays: totalActive };
+    }, [data]);
 
     const getColor = (count: number) => {
-        if (count === 0) return 'bg-input-bg';
-        if (count < 10) return 'bg-accent-primary/30';
-        if (count < 20) return 'bg-accent-primary/50';
-        if (count < 30) return 'bg-accent-primary/70';
-        return 'bg-accent-primary';
+        if (count === 0) return 'bg-[#1f1f1f]'; // Inactive - Dark Gray
+        if (count <= 10) return 'bg-[#4c1d95]'; // Low - Dark Violet
+        if (count <= 20) return 'bg-[#6d28d9]'; // Medium - Violet
+        if (count <= 30) return 'bg-[#8b5cf6]'; // High - Light Violet
+        return 'bg-[#c4b5fd]';                   // Max - Bright Violet
     };
-    
-    // Group by weeks for vertical column layout
-    const weeks = useMemo(() => {
-        const weeksArray: string[][] = [];
-        let currentWeek: string[] = [];
-        
-        // Pad the beginning if the first day isn't Sunday
-        const firstDay = new Date(days[0]);
-        const dayOfWeek = firstDay.getDay(); // 0 = Sun
-        for(let i=0; i<dayOfWeek; i++) {
-            currentWeek.push(''); // Placeholder
-        }
-
-        days.forEach(day => {
-            currentWeek.push(day);
-            if (currentWeek.length === 7) {
-                weeksArray.push(currentWeek);
-                currentWeek = [];
-            }
-        });
-        if (currentWeek.length > 0) weeksArray.push(currentWeek); // Last incomplete week
-        return weeksArray;
-    }, [days]);
-
-    const totalActiveDays = days.filter(day => {
-        const dayData = data[day] as DailyData | undefined;
-        const score = Object.values(dayData?.habitScores || {}).reduce((a: number, b: number) => a + (Number(b) || 0), 0);
-        return score > 0;
-    }).length;
 
     return (
         <Card className="w-full overflow-hidden">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-6">
                  <h3 className="text-lg font-bold">Submission Calendar</h3>
-                 <span className="text-sm text-text-secondary">Total Active Days: <span className="text-text-primary font-bold">{totalActiveDays}</span></span>
+                 <div className="text-xs text-text-secondary">
+                    Total Active Days: <span className="text-text-primary font-bold">{totalActiveDays}</span>
+                 </div>
             </div>
             
-            <div className="overflow-x-auto pb-2 custom-scrollbar">
-                <div className="flex gap-1 min-w-max">
-                    {weeks.map((week, wIdx) => (
-                        <div key={wIdx} className="flex flex-col gap-1">
-                            {week.map((day, dIdx) => {
-                                if (!day) return <div key={`empty-${dIdx}`} className="w-3 h-3"></div>;
-                                const dayData = data[day] as DailyData | undefined;
-                                const totalScore = dayData ? Object.values(dayData.habitScores || {}).reduce((sum: number, s: number) => sum + (Number(s) || 0), 0) : 0;
-                                const dateObj = new Date(day);
-                                return (
-                                    <div 
-                                        key={day}
-                                        className={`w-3 h-3 rounded-[2px] ${getColor(totalScore)} hover:ring-1 hover:ring-white/50 transition-all cursor-pointer relative group`}
-                                        title={`${day}: ${totalScore} points`}
-                                    >
-                                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-20 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
-                                            {dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'})}: {totalScore} pts
-                                        </div>
-                                    </div>
-                                );
-                            })}
+            <div className="overflow-x-auto custom-scrollbar pb-2">
+                <div className="min-w-[850px] px-2">
+                    {/* Month Labels */}
+                    <div className="flex relative h-6 mb-2 text-xs text-text-secondary select-none">
+                        {monthLabels.map((m, i) => {
+                            // Prevent overlapping labels (simple heuristic)
+                            if (i > 0 && (m.index - monthLabels[i-1].index) < 3) return null;
+                            return (
+                                <span key={`${m.label}-${m.index}`} style={{ left: `${m.index * 15}px` }} className="absolute">
+                                    {m.label}
+                                </span>
+                            );
+                        })}
+                    </div>
+
+                    {/* Grid */}
+                    <div className="flex gap-[3px]">
+                         {/* Day Labels (Mon, Wed, Fri) */}
+                        <div className="flex flex-col gap-[3px] text-[10px] text-text-secondary mr-2 select-none">
+                             <div className="h-[12px]"></div>
+                             <span className="h-[12px] flex items-center">Mon</span>
+                             <div className="h-[12px]"></div>
+                             <span className="h-[12px] flex items-center">Wed</span>
+                             <div className="h-[12px]"></div>
+                             <span className="h-[12px] flex items-center">Fri</span>
+                             <div className="h-[12px]"></div>
                         </div>
-                    ))}
+
+                        {weeks.map((week, wIndex) => (
+                            <div key={wIndex} className="flex flex-col gap-[3px]">
+                                {week.map((day) => (
+                                    <div 
+                                        key={day.date}
+                                        className={`w-[12px] h-[12px] rounded-[2px] ${getColor(day.score)} relative group`}
+                                        title={`${day.date}: ${day.score} points`}
+                                    >
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
-            <div className="flex items-center justify-end gap-2 mt-3 text-xs text-text-secondary">
+
+             {/* Legend */}
+            <div className="flex items-center justify-end gap-2 mt-4 text-xs text-text-secondary mr-4 select-none">
                 <span>Less</span>
-                <div className="w-3 h-3 bg-input-bg rounded-[2px]"></div>
-                <div className="w-3 h-3 bg-accent-primary/30 rounded-[2px]"></div>
-                <div className="w-3 h-3 bg-accent-primary/50 rounded-[2px]"></div>
-                <div className="w-3 h-3 bg-accent-primary/70 rounded-[2px]"></div>
-                <div className="w-3 h-3 bg-accent-primary rounded-[2px]"></div>
+                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#1f1f1f]`}></div>
+                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#4c1d95]`}></div>
+                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#6d28d9]`}></div>
+                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#8b5cf6]`}></div>
+                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#c4b5fd]`}></div>
                 <span>More</span>
             </div>
         </Card>
