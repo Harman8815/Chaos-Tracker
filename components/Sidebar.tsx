@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     
     if (isCollapsed) {
         return (
-            <div className="fixed top-6 left-6 z-50 flex items-center gap-4 animate-fade-in">
+            <div className="fixed top-6 left-6 z-50 flex justify-between w-full gap-4 animate-fade-in">
                 <button
                     onClick={toggleSidebar}
                     aria-label="Open menu"
@@ -76,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                 >
                     <MenuIcon className="w-7 h-7 transition-transform duration-300 group-hover:scale-110" />
                 </button>
-                <div className="bg-sidebar-bg/80 backdrop-blur-md border border-border/50 px-4 py-2 rounded-xl shadow-sm">
+                <div className="bg-transparent backdrop-blur-md border border-border/50 px-4 py-2 rounded-xl shadow-sm">
                     <span className="text-xl font-bold text-text-primary tracking-wide">Tracker</span>
                 </div>
             </div>
