@@ -29,7 +29,7 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' 
     ];
 
     return (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full h-full">
             <div className="relative">
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                     {data.map((slice, i) => {
@@ -326,15 +326,55 @@ const StreakHighlight: React.FC<{ streaks: { name: string, streak: number }[] }>
 };
 
 const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> = ({ data }) => {
+    const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'avg'; direction: 'asc' | 'desc' }>({ key: 'avg', direction: 'desc' });
+
+    const sortedData = useMemo(() => {
+        const sorted = [...data];
+        sorted.sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }, [data, sortConfig]);
+
+    const requestSort = (key: 'name' | 'avg') => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
     if (data.length === 0) return <NoData />;
+
     return (
-        <div className="space-y-2 overflow-y-auto max-h-64 pr-2">
-            {data.map(item => (
-                <div key={item.name} className="flex justify-between items-center text-sm p-2 bg-input-bg/50 rounded hover:bg-input-bg transition-colors">
-                    <span className="truncate mr-2">{item.name}</span>
-                    <span className="font-mono bg-background px-2 py-0.5 rounded text-xs whitespace-nowrap">{item.avg.toFixed(2)} / day</span>
-                </div>
-            ))}
+        <div className="absolute inset-0 flex flex-col">
+            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border pb-2 pr-2 select-none bg-card-bg sticky top-0 z-10">
+                 <div 
+                    className="col-span-2 cursor-pointer flex items-center hover:text-text-primary transition-colors" 
+                    onClick={() => requestSort('name')}
+                    title="Sort by Name"
+                 >
+                    Habit {sortConfig.key === 'name' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
+                 </div>
+                 <div 
+                    className="col-span-1 text-right cursor-pointer flex items-center justify-end hover:text-text-primary transition-colors" 
+                    onClick={() => requestSort('avg')}
+                    title="Sort by Average Score"
+                 >
+                    Avg {sortConfig.key === 'avg' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
+                 </div>
+            </div>
+            
+            <div className="overflow-y-auto flex-grow custom-scrollbar">
+                {sortedData.map(item => (
+                    <div key={item.name} className="grid grid-cols-3 gap-2 text-sm p-3 hover:bg-input-bg/50 rounded border-b border-border/30 last:border-0 transition-colors">
+                        <div className="col-span-2 truncate font-medium text-text-primary" title={item.name}>{item.name}</div>
+                        <div className="col-span-1 text-right font-mono text-accent-primary bg-input-bg/30 rounded px-2 py-0.5">{item.avg.toFixed(2)}</div>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 };
@@ -349,7 +389,7 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
 
     return (
         <div className="space-y-4">
-            <div className={`space-y-4 transition-all duration-300 ease-in-out ${expanded ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
+            <div className={`space-y-4 transition-all duration-300 ease-in-out`}>
                 {displayData.map((item) => (
                     <div key={item.name} className="flex items-center gap-3 text-sm">
                         <span className="w-24 truncate text-right text-text-secondary" title={item.name}>{item.name}</span>
@@ -367,9 +407,9 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
             {data.length > 5 && (
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-border border-dashed transition-colors focus:outline-none"
+                    className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-border border-dashed transition-colors focus:outline-none uppercase font-bold tracking-wide"
                 >
-                    {expanded ? 'Show Less' : `+${data.length - 5} more habits`}
+                    {expanded ? 'Show Less' : `+ ${data.length - 5} More`}
                 </button>
             )}
         </div>
@@ -708,21 +748,16 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                {/* Row 4: Pie Chart & Monthly Average + Habit Streaks */}
+                 {/* Row 4: Pie Chart & Weekly Performance */}
                 <Card className="lg:col-span-2">
                     <h3 className="font-bold text-xl mb-4">Today's Distribution</h3>
                     <div className="h-64 flex items-center justify-center">
                         <PieChart data={todayPieData} type="pie" />
                     </div>
                 </Card>
-                <Card className="lg:col-span-2">
-                    <div className="mt-8 pt-6 border-t border-border">
-                        <h3 className="font-bold text-xl mb-4">Monthly Daily Average</h3>
-                        <MonthlyAverageTable data={monthlyAverages} />
-                    </div>
-                </Card>
 
-                <Card className="lg:col-span-2 flex flex-col justify-between">
+                 {/* Row 5: Habit Streaks & Monthly Average (Neighbors to share height) */}
+                <Card className="lg:col-span-2 flex flex-col justify-between h-full">
                     <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-xl">Habit Streaks</h3>
@@ -738,7 +773,15 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                {/* Row 5: Weekly Performance & Your Journey */}
+                <Card className="lg:col-span-2 flex flex-col h-full">
+                    <h3 className="font-bold text-xl mb-4 flex-shrink-0">Monthly Daily Average</h3>
+                    {/* Wrapper with relative positioning and flex-grow allows the absolute child to fill available space without pushing parent height, effectively depending on neighbor's height in the grid row. */}
+                    <div className="relative flex-grow min-h-[200px]">
+                         <MonthlyAverageTable data={monthlyAverages} />
+                    </div>
+                </Card>
+
+                {/* Row 6: Weekly Performance & Your Journey */}
                 <Card className="lg:col-span-2 flex flex-col">
                     <h3 className="font-bold text-xl mb-4">Weekly Performance</h3>
                     <div className="flex-grow min-h-[200px]">
