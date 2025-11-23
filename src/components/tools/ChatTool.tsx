@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { marked } from 'marked';
-import { DataContext, SettingsContext } from '../../App';
+import { DataContext } from '../../context/DataContext';
+import { SettingsContext } from '../../context/SettingsContext';
 
 interface Message {
     id: string;

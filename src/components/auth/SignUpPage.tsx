@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { DataContext } from '../../App';
+import { DataContext } from '../../context/DataContext';
 
 interface SignUpPageProps {
     onSignUp: () => void;

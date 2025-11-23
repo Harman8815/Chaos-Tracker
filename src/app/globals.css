@@ -1,37 +1,47 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+    --font-family-sans: Inter, sans-serif;
+
+    /* Define colors that can be used as utilities */
+    --color-*: initial;
+}
 
 @layer base {
-  :root {
-    --color-background: #0a0a0a;
-    --color-sidebar-bg: #141414;
-    --color-card-bg: #1a1a1a;
-    --color-input-bg: #262626;
-    --color-border: #2e2e2e;
-    --color-text-primary: #f5f5f5;
-    --color-text-secondary: #a3a3a3;
-    --color-text-disabled: #525252;
-    --color-accent-primary: #7c3aed;
-    --color-accent-primary-dark: #6d28d9;
-  }
-  
-  html.light {
-    --color-background: #f5f5f5;
-    --color-sidebar-bg: #ffffff;
-    --color-card-bg: #ffffff;
-    --color-input-bg: #e5e5e5;
-    --color-border: #d4d4d4;
-    --color-text-primary: #171717;
-    --color-text-secondary: #737373;
-    --color-text-disabled: #a3a3a3;
-    --color-accent-primary: #8b5cf6;
-    --color-accent-primary-dark: #7c3aed;
-  }
-  
-  body {
-    @apply bg-background text-text-primary;
-  }
+
+    /* Default/Dark Theme */
+    html,
+    html.dark {
+        --color-background: #0a0a0a;
+        --color-sidebar-bg: #141414;
+        --color-card-bg: #1a1a1a;
+        --color-input-bg: #262626;
+        --color-border: #2e2e2e;
+        --color-text-primary: #f5f5f5;
+        --color-text-secondary: #a3a3a3;
+        --color-text-disabled: #525252;
+        --color-accent-primary: #7c3aed;
+        --color-accent-primary-dark: #6d28d9;
+    }
+
+    /* Light Theme */
+    html.light {
+        --color-background: #f5f5f5;
+        --color-sidebar-bg: #ffffff;
+        --color-card-bg: #ffffff;
+        --color-input-bg: #e5e5e5;
+        --color-border: #d4d4d4;
+        --color-text-primary: #171717;
+        --color-text-secondary: #737373;
+        --color-text-disabled: #a3a3a3;
+        --color-accent-primary: #8b5cf6;
+        --color-accent-primary-dark: #7c3aed;
+    }
+
+    body {
+        background-color: var(--color-background);
+        color: var(--color-text-primary);
+    }
 }
 
 /* Loader Styles */
@@ -45,61 +55,221 @@
     align-items: center;
     transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
 }
+
 .pl {
     width: 6em;
     height: 6em;
 }
+
 .pl__ring {
     animation: ringA 2s linear infinite;
 }
+
 .pl__ring--a {
     stroke: var(--color-accent-primary);
 }
+
 .pl__ring--b {
     animation-name: ringB;
     stroke: var(--color-accent-primary-dark);
 }
+
 .pl__ring--c {
     animation-name: ringC;
     stroke: var(--color-text-primary);
 }
+
 .pl__ring--d {
     animation-name: ringD;
     stroke: var(--color-text-secondary);
 }
+
 @keyframes ringA {
-    from, 4% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -330; }
-    12% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -335; }
-    32% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -595; }
-    40%, 54% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -660; }
-    62% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -665; }
-    82% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -925; }
-    90%, to { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -990; }
+
+    from,
+    4% {
+        stroke-dasharray: 0 660;
+        stroke-width: 20;
+        stroke-dashoffset: -330;
+    }
+
+    12% {
+        stroke-dasharray: 60 600;
+        stroke-width: 30;
+        stroke-dashoffset: -335;
+    }
+
+    32% {
+        stroke-dasharray: 60 600;
+        stroke-width: 30;
+        stroke-dashoffset: -595;
+    }
+
+    40%,
+    54% {
+        stroke-dasharray: 0 660;
+        stroke-width: 20;
+        stroke-dashoffset: -660;
+    }
+
+    62% {
+        stroke-dasharray: 60 600;
+        stroke-width: 30;
+        stroke-dashoffset: -665;
+    }
+
+    82% {
+        stroke-dasharray: 60 600;
+        stroke-width: 30;
+        stroke-dashoffset: -925;
+    }
+
+    90%,
+    to {
+        stroke-dasharray: 0 660;
+        stroke-width: 20;
+        stroke-dashoffset: -990;
+    }
 }
+
 @keyframes ringB {
-    from, 12% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -110; }
-    20% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -115; }
-    40% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -195; }
-    48%, 62% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -220; }
-    70% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -225; }
-    90% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -305; }
-    98%, to { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -330; }
+
+    from,
+    12% {
+        stroke-dasharray: 0 220;
+        stroke-width: 20;
+        stroke-dashoffset: -110;
+    }
+
+    20% {
+        stroke-dasharray: 20 200;
+        stroke-width: 30;
+        stroke-dashoffset: -115;
+    }
+
+    40% {
+        stroke-dasharray: 20 200;
+        stroke-width: 30;
+        stroke-dashoffset: -195;
+    }
+
+    48%,
+    62% {
+        stroke-dasharray: 0 220;
+        stroke-width: 20;
+        stroke-dashoffset: -220;
+    }
+
+    70% {
+        stroke-dasharray: 20 200;
+        stroke-width: 30;
+        stroke-dashoffset: -225;
+    }
+
+    90% {
+        stroke-dasharray: 20 200;
+        stroke-width: 30;
+        stroke-dashoffset: -305;
+    }
+
+    98%,
+    to {
+        stroke-dasharray: 0 220;
+        stroke-width: 20;
+        stroke-dashoffset: -330;
+    }
 }
+
 @keyframes ringC {
-    from { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
-    8% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
-    28% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
-    36%, 58% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
-    66% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
-    86% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
-    94%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+    from {
+        stroke-dasharray: 0 440;
+        stroke-width: 20;
+        stroke-dashoffset: 0;
+    }
+
+    8% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -5;
+    }
+
+    28% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -175;
+    }
+
+    36%,
+    58% {
+        stroke-dasharray: 0 440;
+        stroke-width: 20;
+        stroke-dashoffset: -220;
+    }
+
+    66% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -225;
+    }
+
+    86% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -395;
+    }
+
+    94%,
+    to {
+        stroke-dasharray: 0 440;
+        stroke-width: 20;
+        stroke-dashoffset: -440;
+    }
 }
+
 @keyframes ringD {
-    from, 8% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
-    16% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
-    36% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
-    44%, 50% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
-    58% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
-    78% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
-    86%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+
+    from,
+    8% {
+        stroke-dasharray: 0 440;
+        stroke-width: 20;
+        stroke-dashoffset: 0;
+    }
+
+    16% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -5;
+    }
+
+    36% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -175;
+    }
+
+    44%,
+    50% {
+        stroke-dasharray: 0 440;
+        stroke-width: 20;
+        stroke-dashoffset: -220;
+    }
+
+    58% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -225;
+    }
+
+    78% {
+        stroke-dasharray: 40 400;
+        stroke-width: 30;
+        stroke-dashoffset: -395;
+    }
+
+    86%,
+    to {
+        stroke-dasharray: 0 440;
+        stroke-width: 20;
+        stroke-dashoffset: -440;
+    }
 }
