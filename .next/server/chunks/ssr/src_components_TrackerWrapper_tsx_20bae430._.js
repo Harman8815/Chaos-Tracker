@@ -1,3 +1,0 @@
-module.exports=[31112,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(89516);a.s(["default",0,({tracker:a,children:e})=>{let{t:f}=(0,c.useContext)(d.SettingsContext);return(0,b.jsxs)("div",{className:"p-6 h-full overflow-y-auto animate-fade-in",children:[(0,b.jsxs)("div",{className:"flex items-center mb-6",children:[(0,b.jsx)(a.icon,{className:"w-8 h-8 text-accent-primary"}),(0,b.jsx)("h2",{className:"ml-4 text-3xl font-bold text-text-primary",children:f(a.id)})]}),e]})}])}];
-
-//# sourceMappingURL=src_components_TrackerWrapper_tsx_20bae430._.js.map
