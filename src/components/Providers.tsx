@@ -28,8 +28,8 @@ const getToday = () => new Date().toISOString().split('T')[0];
 
 const DEFAULT_PLANNER_DATA: PlannerData = {
     blocks: [
-        { id: 'block-1', title: 'To-Do', x: 200, y: 200, tasks: [{id: 'task-1', text: 'Create a new block', completed: false}]},
-        { id: 'block-2', title: 'In Progress', x: 600, y: 350, tasks: []}
+        { id: 'block-1', title: 'To-Do', x: 200, y: 200, tasks: [{ id: 'task-1', text: 'Create a new block', completed: false }] },
+        { id: 'block-2', title: 'In Progress', x: 600, y: 350, tasks: [] }
     ],
     links: [],
     transform: { scale: 1, panX: 0, panY: 0 }
@@ -101,33 +101,33 @@ const ToolManager: React.FC = () => {
                                 onClose={() => closeTool(toolId)}
                                 zIndex={zIndex}
                                 onFocus={() => focusTool(toolId)}
-                                initialSize={{width: 320, height: 480}}
+                                initialSize={{ width: 320, height: 480 }}
                             >
                                 <Calculator />
                             </DraggableResizableModal>
                         );
                     case 'clock':
-                         return (
+                        return (
                             <DraggableResizableModal
                                 key={toolId}
                                 title="Clock"
                                 onClose={() => closeTool(toolId)}
                                 zIndex={zIndex}
                                 onFocus={() => focusTool(toolId)}
-                                initialSize={{width: 400, height: 400}}
+                                initialSize={{ width: 400, height: 400 }}
                             >
                                 <Clock />
                             </DraggableResizableModal>
                         );
                     case 'chat':
-                         return (
+                        return (
                             <DraggableResizableModal
                                 key={toolId}
                                 title="AI Assistant"
                                 onClose={() => closeTool(toolId)}
                                 zIndex={zIndex}
                                 onFocus={() => focusTool(toolId)}
-                                initialSize={{width: 400, height: 600}}
+                                initialSize={{ width: 400, height: 600 }}
                             >
                                 <ChatTool />
                             </DraggableResizableModal>
@@ -152,13 +152,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [achievements, setAchievements] = useLocalStorage<Achievement[]>('tracker-achievements', DUMMY_ACHIEVEMENTS);
     const [userProfile, setUserProfile] = useLocalStorage<UserProfile>('tracker-user-profile', DEFAULT_USER_PROFILE);
 
-    
+
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
         theme: 'dark',
         timeFormat: '24h',
         language: 'en',
     });
-    
+
     const [isAuthenticated, setIsAuthenticated] = useLocalStorage<boolean>('tracker-auth', false);
     const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
@@ -166,7 +166,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
     const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    
+
     const today = getToday();
 
     const login = () => setIsAuthenticated(true);
@@ -207,7 +207,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             try {
                 console.log('Attempting to sync with remote server...');
                 const apiData = await fetchAppData();
-                
+
                 if (apiData) {
                     console.log('Remote data found, syncing...', apiData);
                     if (apiData.data) setData(apiData.data);
@@ -226,7 +226,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         };
 
         syncData();
-    }, [isAuthenticated]); 
+    }, [isAuthenticated]);
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
@@ -235,28 +235,29 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
                         {!isAuthenticated ? (
                             <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                                 <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
-                                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
-                                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+                                <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
+                                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
+                                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-                                 {authView === 'login' ? (
+                                {authView === 'login' ? (
                                     <LoginPage onLogin={login} onSwitchToSignUp={() => setAuthView('signup')} />
-                                 ) : (
+                                ) : (
                                     <SignUpPage onSignUp={login} onSwitchToLogin={() => setAuthView('login')} />
-                                 )}
+                                )}
                             </div>
                         ) : (
                             <>
                                 <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'pt-20' : ''}`}>
-                                     {children}
+                                    {children}
                                 </div>
                                 {isSettingsModalOpen && <SettingsModal />}
                                 {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
                                 {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
-                                <ToolManager />
                             </>
                         )}
+                        {/* ToolManager available on all pages */}
+                        <ToolManager />
                     </div>
                 </ToolsProvider>
             </DataContext.Provider>

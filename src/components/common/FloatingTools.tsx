@@ -34,13 +34,13 @@ const FloatingTools: React.FC = () => {
     return (
         <div className="fixed bottom-8 right-8 z-50">
             {isOpen && (
-                <div className="flex flex-col items-center space-y-3 mb-4">
+                <div className="flex flex-col items-center space-y-3 mb-4 z-[999]">
                     {tools.map((tool, index) => (
                         <button
                             key={tool.id}
                             onClick={() => handleToolClick(tool.id)}
                             className="w-14 h-14 rounded-full bg-card-bg border border-border text-text-primary flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-accent-primary animate-fade-in"
-                            style={{ animationDelay: `${(tools.length - index) * 50}ms`, opacity: 0 }}
+                            style={{ animationDelay: `${(tools.length - index) * 50}ms`}}
                             title={tool.label}
                             aria-label={tool.label}
                         >
@@ -55,7 +55,7 @@ const FloatingTools: React.FC = () => {
                 aria-label={isOpen ? "Close tools menu" : "Open tools menu"}
                 aria-expanded={isOpen}
             >
-                <PlusIcon className={`w-8 h-8 transition-transform duration-300 ${isOpen ? 'rotate-45' : ''}`} />
+                <PlusIcon className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-45' : ''}`} />
             </button>
         </div>
     );
