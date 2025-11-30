@@ -19,6 +19,7 @@ export const ENDPOINTS = {
     QUOTES: '/quotes',
     ACHIEVEMENTS: '/achievements',
     RULES: '/rules',
+    JOURNAL: '/journal/',
 };
 
 export const REQUEST_TIMEOUT_MS = 10000;

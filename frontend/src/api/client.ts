@@ -8,14 +8,25 @@ class ApiClient {
         this.baseURL = baseURL;
     }
 
+    private getCookie(name: string): string | null {
+        if (typeof document === 'undefined') return null;
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+        return null;
+    }
+
     private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+        const csrfToken = this.getCookie('csrftoken');
+        
         const config: RequestInit = {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
+                ...(csrfToken && { 'X-CSRFToken': csrfToken }),
                 ...options.headers,
             },
             credentials: 'include', // Important for session-based auth with Django

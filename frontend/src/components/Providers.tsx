@@ -24,7 +24,13 @@ import { fetchAppData } from '../api/services';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+const getToday = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 const DEFAULT_PLANNER_DATA: PlannerData = {
     blocks: [
