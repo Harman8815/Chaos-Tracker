@@ -9,6 +9,7 @@ from .views import (
     QuoteDetailView,
     QuoteFuzzySearchView,
     QuoteTagsView,
+    PopulateDataView,
 )
 
 urlpatterns = [
@@ -34,4 +35,7 @@ urlpatterns = [
     
     # Quote endpoints (direct access)
     path('quotes/<str:quote_id>/', QuoteDetailView.as_view(), name='quote-detail'),
+    
+    # Populate Data endpoint
+    path('populate-data/', PopulateDataView.as_view(), name='populate-data'),
 ]

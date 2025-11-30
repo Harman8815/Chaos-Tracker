@@ -14,6 +14,9 @@ from .serializers import (
     SearchResultSerializer
 )
 import datetime
+from datetime import timedelta
+import random
+import uuid
 from difflib import SequenceMatcher
 
 
@@ -69,6 +72,7 @@ class SyncView(views.APIView):
 class JournalEntryListCreateView(generics.ListCreateAPIView):
     serializer_class = JournalEntrySerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
     def get_queryset(self):
         return JournalEntry.objects.filter(user=self.request.user)
@@ -522,3 +526,127 @@ class QuoteTagsView(views.APIView):
             'count': len(tags),
             'tags': list(tags)
         })
+
+
+class PopulateDataView(views.APIView):
+    """
+    POST /api/populate-data/
+    Populate database with dummy data for journal and quotes.
+    """
+    permission_classes = []  # Allow any for dev convenience
+
+    def get(self, request):
+        # Get user: request.user if authenticated, else first user
+        user = request.user
+        if not user.is_authenticated:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.first()
+            if not user:
+                return Response({'error': 'No users found to assign data to'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # --- Populate Journal ---
+        today = datetime.date.today()
+        journal_count = 0
+        
+        # Moods and dummy content
+        # moods = ['Happy', 'Sad', 'Neutral', 'Excited', 'Tired', 'Grateful']
+        journal_templates = [
+            "Today was a {adj} day. I worked on {project} and made good progress.",
+            "Feeling {adj} today. Went for a walk and saw a {noun}.",
+            "Had a meeting about {topic}. It went {adv}.",
+            "I am grateful for {noun} today.",
+            "Struggled with {topic} but eventually solved it.",
+        ]
+        adjectives = ['good', 'bad', 'productive', 'slow', 'amazing', 'challenging']
+        nouns = ['dog', 'cat', 'sunset', 'coffee', 'friend', 'book', 'movie']
+        projects = ['the tracker app', 'my novel', 'the garden', 'learning rust']
+        topics = ['API design', 'database migration', 'frontend state', 'deployment']
+        adverbs = ['well', 'poorly', 'surprisingly well', 'as expected']
+
+        for i in range(90): # Last 90 days
+            date = today - timedelta(days=i)
+            # 70% chance to have an entry
+            if random.random() < 0.7:
+                # Check if exists
+                if not JournalEntry.objects.filter(user=user, date=date).exists():
+                    template = random.choice(journal_templates)
+                    content = template.format(
+                        adj=random.choice(adjectives),
+                        noun=random.choice(nouns),
+                        project=random.choice(projects),
+                        topic=random.choice(topics),
+                        adv=random.choice(adverbs)
+                    )
+                    JournalEntry.objects.create(
+                        user=user,
+                        date=date,
+                        content=content
+                    )
+                    journal_count += 1
+
+        # --- Populate Quotes ---
+        quote_sources_data = [
+            {'title': 'The Matrix', 'type': 'Movie', 'cover_image': 'https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4XkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg'},
+            {'title': 'Inception', 'type': 'Movie', 'cover_image': 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg'},
+            {'title': 'Atomic Habits', 'type': 'Book', 'cover_image': 'https://m.media-amazon.com/images/I/91bYsX41DVL.jpg'},
+            {'title': 'Dune', 'type': 'Book', 'cover_image': 'https://m.media-amazon.com/images/I/81ym3QUd3KL.jpg'},
+            {'title': 'Silicon Valley', 'type': 'Web Series', 'cover_image': 'https://m.media-amazon.com/images/M/MV5BMTgwODYzNTM1Ml5BMl5BanBnXkFtZTgwMTcxNTYwMDI@._V1_.jpg'},
+        ]
+        
+        quotes_data = [
+            "The only way to do great work is to love what you do.",
+            "I'm going to make him an offer he can't refuse.",
+            "May the Force be with you.",
+            "You talkin' to me?",
+            "I see dead people.",
+            "Here's looking at you, kid.",
+            "Houston, we have a problem.",
+            "There's no place like home.",
+            "I feel the need... the need for speed.",
+            "Carpe diem. Seize the day, boys. Make your lives extraordinary.",
+        ]
+        
+        source_count = 0
+        quote_count = 0
+
+        for source_data in quote_sources_data:
+            source, created = QuoteSource.objects.get_or_create(
+                user=user,
+                title=source_data['title'],
+                defaults={
+                    'id': str(uuid.uuid4()),
+                    'type': source_data['type'],
+                    'cover_image': source_data['cover_image']
+                }
+            )
+            if created:
+                source_count += 1
+            
+            # Add 3-5 quotes for this source
+            for _ in range(random.randint(3, 5)):
+                text = random.choice(quotes_data)
+                # Avoid duplicates for this source
+                if not Quote.objects.filter(source=source, text=text).exists():
+                    quote = Quote.objects.create(
+                        id=str(uuid.uuid4()),
+                        source=source,
+                        text=text,
+                        author="Unknown", # Simplified
+                        image=""
+                    )
+                    # Add tags
+                    tags = random.sample(['Inspirational', 'Funny', 'Life', 'Tech', 'Wisdom'], k=random.randint(1, 3))
+                    for tag in tags:
+                        QuoteTag.objects.create(quote=quote, tag=tag)
+                    quote_count += 1
+
+        return Response({
+            'success': True,
+            'message': f'Successfully populated data for user {user.username}',
+            'stats': {
+                'journal_entries_created': journal_count,
+                'quote_sources_created': source_count,
+                'quotes_created': quote_count
+            }
+        }, status=status.HTTP_201_CREATED)
