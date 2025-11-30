@@ -1,29 +1,44 @@
-import React, { useState, useMemo, useCallback, useContext } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { TRACKERS } from '../../constants';
 import { Quote, QuoteSource } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { DataContext } from '../../context/DataContext';
+import quoteService, { SearchResult } from '../../services/quoteService';
+
+// --- Helper Components ---
+const HighlightText: React.FC<{ text: string; highlight: string }> = ({ text, highlight }) => {
+    if (!highlight.trim()) return <>{text}</>;
+    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const parts = text.split(new RegExp(`(${escapedHighlight})`, 'gi'));
+    return (
+        <>
+            {parts.map((part, i) =>
+                part.toLowerCase() === highlight.toLowerCase() ?
+                    <span key={i} className="bg-accent-primary/30 text-accent-primary font-bold rounded px-0.5">{part}</span> :
+                    part
+            )}
+        </>
+    );
+};
 
 // --- Icons ---
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 );
 const BackIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="15 18 9 12 15 6"></polyline></svg>
 );
 const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
 );
 const EditIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
 );
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
 );
 const PlusIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
 );
 
 
@@ -84,7 +99,7 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
             image: image.trim() || undefined,
         });
     };
-    
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
             <div className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
@@ -107,40 +122,115 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
 // --- Main Component ---
 
 const QuoteCollector: React.FC = () => {
-    const { quotes: allSources, setQuotes: setAllSources } = useContext(DataContext);
+    const [allSources, setAllSources] = useState<QuoteSource[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeSearch, setActiveSearch] = useState('');
     const [selectedSource, setSelectedSource] = useState<QuoteSource | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const [modalState, setModalState] = useState<{
         source?: QuoteSource | null;
         quote?: Quote | null;
     } | null>(null);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setActiveSearch(searchQuery);
-        setSelectedSource(null);
+    const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Debounced search for suggestions
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (searchQuery.trim().length >= 2 && !activeSearch) {
+                try {
+                    const results = await quoteService.fuzzySearchQuotes(searchQuery, 5);
+                    setSuggestions(results);
+                    setShowSuggestions(true);
+                } catch (err) {
+                    // Silent fail for suggestions
+                }
+            } else {
+                setShowSuggestions(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, activeSearch]);
+
+    const handleSuggestionClick = (result: SearchResult) => {
+        setSelectedSource(result.source);
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setSearchQuery('');
     };
-    
-    const resetToHome = () => {
+
+    // Fetch all sources on mount
+    useEffect(() => {
+        const fetchSources = async () => {
+            try {
+                setLoading(true);
+                const sources = await quoteService.getAllQuoteSources({ include_quotes: true });
+                setAllSources(sources);
+            } catch (err) {
+                console.error('Failed to load quote sources:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSources();
+    }, []);
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+            setError('Search query must be at least 2 characters');
+            setTimeout(() => setError(null), 3000);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setActiveSearch(searchQuery);
+            setSelectedSource(null);
+
+            // Use fuzzy search API
+            const results = await quoteService.fuzzySearchQuotes(searchQuery, 20);
+
+            // Extract sources from search results
+            const sources = results.map(result => result.source);
+            setAllSources(sources);
+        } catch (err) {
+            console.error('Search failed:', err);
+            setError('Search failed');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const resetToHome = async () => {
         setSearchQuery('');
         setActiveSearch('');
         setSelectedSource(null);
+
+        // Reload all sources
+        try {
+            setLoading(true);
+            const sources = await quoteService.getAllQuoteSources({ include_quotes: true });
+            setAllSources(sources);
+        } catch (err) {
+            console.error('Failed to reload sources:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const searchResults = useMemo(() => {
         if (!activeSearch) return [];
-        const lowercasedQuery = activeSearch.toLowerCase();
-        return allSources.filter(source => {
-            if (source.title.toLowerCase().includes(lowercasedQuery)) return true;
-            return source.quotes.some(quote => 
-                quote.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery))
-            );
-        });
+        return allSources;
     }, [activeSearch, allSources]);
 
-    // FIX: Explicitly type `groupedQuotes` to `Record<string, Quote[]>` to resolve TypeScript error where `Object.entries` infers `unknown` for the value, causing a crash on `.map`.
     const groupedQuotes: Record<string, Quote[]> = useMemo(() => {
         const groups: Record<string, Quote[]> = {};
         if (selectedSource) {
@@ -159,57 +249,141 @@ const QuoteCollector: React.FC = () => {
     }, [selectedSource]);
 
     // --- CRUD Operations ---
-    const handleSaveSource = useCallback((sourceToSave: QuoteSource) => {
-        setAllSources(prev => {
-            const exists = prev.some(s => s.id === sourceToSave.id);
+    const handleSaveSource = useCallback(async (sourceToSave: QuoteSource) => {
+        try {
+            setLoading(true);
+            const exists = allSources.some(s => s.id === sourceToSave.id);
+
             if (exists) {
-                return prev.map(s => s.id === sourceToSave.id ? sourceToSave : s);
+                // Update existing source
+                await quoteService.updateQuoteSource(sourceToSave.id, {
+                    title: sourceToSave.title,
+                    type: sourceToSave.type,
+                    coverImage: sourceToSave.coverImage,
+                });
+            } else {
+                // Create new source
+                await quoteService.createQuoteSource(sourceToSave);
             }
-            return [...prev, sourceToSave];
-        });
-        setModalState(null);
-        if(selectedSource?.id === sourceToSave.id) setSelectedSource(sourceToSave);
-    }, [setAllSources, selectedSource]);
 
-    const handleDeleteSource = (sourceId: string) => {
-        if (window.confirm("Are you sure you want to delete this entire source and all its quotes?")) {
-            setAllSources(prev => prev.filter(s => s.id !== sourceId));
+            // Refresh sources
+            const sources = await quoteService.getAllQuoteSources({ include_quotes: true });
+            setAllSources(sources);
+
+            setModalState(null);
+
+            if (selectedSource?.id === sourceToSave.id) {
+                const updated = await quoteService.getQuoteSource(sourceToSave.id);
+                setSelectedSource(updated);
+            }
+        } catch (err) {
+            console.error('Failed to save source:', err);
+            setError('Failed to save source');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setLoading(false);
+        }
+    }, [allSources, selectedSource]);
+
+    const handleDeleteSource = async (sourceId: string) => {
+        if (!window.confirm("Are you sure you want to delete this entire source and all its quotes?")) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await quoteService.deleteQuoteSource(sourceId);
+
+            // Refresh sources
+            const sources = await quoteService.getAllQuoteSources({ include_quotes: true });
+            setAllSources(sources);
+
             resetToHome();
+        } catch (err) {
+            console.error('Failed to delete source:', err);
+            setError('Failed to delete source');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setLoading(false);
         }
     };
-    
-    const handleSaveQuote = useCallback((quoteToSave: Quote) => {
+
+    const handleSaveQuote = useCallback(async (quoteToSave: Quote) => {
         if (!selectedSource) return;
-        const updatedQuotes = [...selectedSource.quotes];
-        const quoteIndex = updatedQuotes.findIndex(q => q.id === quoteToSave.id);
 
-        if (quoteIndex > -1) {
-            updatedQuotes[quoteIndex] = quoteToSave;
-        } else {
-            updatedQuotes.push(quoteToSave);
+        try {
+            setLoading(true);
+
+            const quoteExists = selectedSource.quotes.some(q => q.id === quoteToSave.id);
+
+            if (quoteExists) {
+                // Update existing quote
+                await quoteService.updateQuote(quoteToSave.id, {
+                    text: quoteToSave.text,
+                    author: quoteToSave.author,
+                    tags: quoteToSave.tags,
+                    image: quoteToSave.image,
+                });
+            } else {
+                // Create new quote
+                await quoteService.createQuote(selectedSource.id, quoteToSave);
+            }
+
+            // Refresh the source
+            const updatedSource = await quoteService.getQuoteSource(selectedSource.id);
+            setSelectedSource(updatedSource);
+
+            // Update in allSources
+            setAllSources(prev =>
+                prev.map(s => s.id === updatedSource.id ? updatedSource : s)
+            );
+
+            setModalState(null);
+        } catch (err) {
+            console.error('Failed to save quote:', err);
+            setError('Failed to save quote');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setLoading(false);
         }
+    }, [selectedSource]);
 
-        const updatedSource = { ...selectedSource, quotes: updatedQuotes };
-        setSelectedSource(updatedSource);
-        setAllSources(prev => prev.map(s => s.id === updatedSource.id ? updatedSource : s));
-        setModalState(null);
-    }, [selectedSource, setAllSources]);
-
-    const handleDeleteQuote = (quoteId: string) => {
+    const handleDeleteQuote = async (quoteId: string) => {
         if (!selectedSource || !window.confirm("Delete this quote?")) return;
-        const updatedQuotes = selectedSource.quotes.filter(q => q.id !== quoteId);
-        const updatedSource = { ...selectedSource, quotes: updatedQuotes };
-        setSelectedSource(updatedSource);
-        setAllSources(prev => prev.map(s => s.id === updatedSource.id ? updatedSource : s));
+
+        try {
+            setLoading(true);
+            await quoteService.deleteQuote(quoteId);
+
+            // Refresh the source
+            const updatedSource = await quoteService.getQuoteSource(selectedSource.id);
+            setSelectedSource(updatedSource);
+
+            // Update in allSources
+            setAllSources(prev =>
+                prev.map(s => s.id === updatedSource.id ? updatedSource : s)
+            );
+        } catch (err) {
+            console.error('Failed to delete quote:', err);
+            setError('Failed to delete quote');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setLoading(false);
+        }
     };
-    
+
     // --- Render Logic ---
 
     if (selectedSource) {
         return (
-             <div className="p-6 h-full overflow-y-auto animate-fade-in relative">
+            <div className="p-6 h-full overflow-y-auto animate-fade-in relative">
                 {modalState?.quote !== undefined && <QuoteModal quote={modalState.quote} onClose={() => setModalState(null)} onSave={handleSaveQuote} />}
                 {modalState?.source !== undefined && <SourceModal source={modalState.source} onClose={() => setModalState(null)} onSave={handleSaveSource} />}
+                {error && (
+                    <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
+                        {error}
+                    </div>
+                )}
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <Button onClick={resetToHome} className="bg-input-bg text-text-primary hover:bg-border mr-2 !p-0 w-12 h-12 flex items-center justify-center"><HomeIcon className="w-6 h-6" /></Button>
@@ -225,9 +399,9 @@ const QuoteCollector: React.FC = () => {
                         <h1 className="text-4xl font-bold">{selectedSource.title}</h1>
                         <p className="text-text-secondary mb-4">{selectedSource.type}</p>
                         <div className="flex gap-2">
-                             <Button onClick={() => setModalState({ quote: null })} className="flex items-center"><PlusIcon className="mr-2"/> Add Quote</Button>
-                             <Button onClick={() => setModalState({ source: selectedSource })} className="bg-input-bg text-text-primary hover:bg-border">Edit Source</Button>
-                             <Button onClick={() => handleDeleteSource(selectedSource.id)} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete Source</Button>
+                            <Button onClick={() => setModalState({ quote: null })} className="flex items-center"><PlusIcon className="mr-2" /> Add Quote</Button>
+                            <Button onClick={() => setModalState({ source: selectedSource })} className="bg-input-bg text-text-primary hover:bg-border">Edit Source</Button>
+                            <Button onClick={() => handleDeleteSource(selectedSource.id)} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete Source</Button>
                         </div>
                     </div>
                 </div>
@@ -240,10 +414,10 @@ const QuoteCollector: React.FC = () => {
                                 {quotes.map(quote => (
                                     <blockquote key={quote.id} className="p-4 border-l-4 border-border bg-card-bg rounded-r-lg shadow-sm group relative">
                                         <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setModalState({ quote })} className="p-1 rounded bg-input-bg hover:bg-border"><EditIcon/></button>
-                                            <button onClick={() => handleDeleteQuote(quote.id)} className="p-1 rounded bg-input-bg hover:bg-border text-red-400"><TrashIcon/></button>
+                                            <button onClick={() => setModalState({ quote })} className="p-1 rounded bg-input-bg hover:bg-border"><EditIcon /></button>
+                                            <button onClick={() => handleDeleteQuote(quote.id)} className="p-1 rounded bg-input-bg hover:bg-border text-red-400"><TrashIcon /></button>
                                         </div>
-                                        {quote.image && <img src={quote.image} alt={`Visual for "${quote.text}"`} className="w-full h-auto max-h-64 object-contain rounded-lg mb-4"/>}
+                                        {quote.image && <img src={quote.image} alt={`Visual for "${quote.text}"`} className="w-full h-auto max-h-64 object-contain rounded-lg mb-4" />}
                                         <p className="text-lg italic text-text-primary">"{quote.text}"</p>
                                         <cite className="block text-right mt-2 text-text-secondary not-italic">&mdash; {quote.author}</cite>
                                     </blockquote>
@@ -259,7 +433,12 @@ const QuoteCollector: React.FC = () => {
     if (activeSearch) {
         return (
             <div className="p-6 h-full overflow-y-auto animate-fade-in relative">
-                 <div className="flex justify-between items-center mb-6 sticky top-0 z-10 py-4 bg-background -mt-6 -mx-6 px-6">
+                {error && (
+                    <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
+                        {error}
+                    </div>
+                )}
+                <div className="flex justify-between items-center mb-6 sticky top-0 z-10 py-4 bg-background -mt-6 -mx-6 px-6">
                     <Button onClick={resetToHome} className="bg-input-bg text-text-primary hover:bg-border !p-0 w-12 h-12 flex items-center justify-center">
                         <HomeIcon className="w-6 h-6" />
                     </Button>
@@ -293,19 +472,76 @@ const QuoteCollector: React.FC = () => {
     return (
         <>
             {modalState?.source !== undefined && <SourceModal source={modalState.source} onClose={() => setModalState(null)} onSave={handleSaveSource} />}
+            {error && (
+                <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
+                    {error}
+                </div>
+            )}
+            {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
+                    <div className="bg-card-bg p-6 rounded-lg">
+                        <p className="text-lg">Loading...</p>
+                    </div>
+                </div>
+            )}
             <div className="w-full h-full flex flex-col items-center justify-center p-4 quote-bg relative overflow-hidden">
                 <div id="stars"></div><div id="stars2"></div><div id="stars3"></div>
                 <div className="relative z-10 flex flex-col items-center justify-center text-center">
                     <h1 className="text-5xl font-bold text-white mb-4" style={{ textShadow: '0 0 15px rgba(124, 58, 237, 0.7), 0 0 30px rgba(124, 58, 237, 0.5)' }}>Quote Collector</h1>
                     <p className="text-text-secondary mb-8 max-w-lg">Search for quotes from your favorite sources, or create your own collection.</p>
                     <div className="flex items-center gap-4">
-                        <form onSubmit={handleSearch} className="w-full max-w-xl">
-                            <div className="relative">
-                                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search 'Bleach', 'funny', 'Interstellar'..." className="w-full p-5 pl-14 rounded-full bg-background/50 border-2 border-border backdrop-blur-sm text-lg focus:outline-none focus:ring-2 focus:ring-accent-primary" />
-                                <SearchIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-text-secondary" />
-                            </div>
-                        </form>
-                        <Button onClick={() => setModalState({ source: null })} className="!p-0 w-16 h-16 flex items-center justify-center rounded-full" title="Add New Source"><PlusIcon className="w-8 h-8"/></Button>
+                        <div className="w-full max-w-xl relative">
+                            <form onSubmit={handleSearch} className="w-full">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                        placeholder="Search 'Bleach', 'funny', 'Interstellar'..."
+                                        className="w-full p-5 pl-14 rounded-full bg-background/50 border-2 border-border backdrop-blur-sm text-lg focus:outline-none focus:ring-2 focus:ring-accent-primary text-black"
+                                    />
+                                    <SearchIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-text-secondary" />
+                                </div>
+                            </form>
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-card-bg rounded-xl shadow-2xl border border-border overflow-hidden z-50 animate-fade-in max-h-96 overflow-y-auto">
+                                    {suggestions.map((result, index) => (
+                                        <div
+                                            key={index}
+                                            onClick={() => handleSuggestionClick(result)}
+                                            className="p-3 hover:bg-input-bg cursor-pointer border-b border-border last:border-0 transition-colors flex items-start gap-3"
+                                        >
+                                            <img src={result.source.coverImage} alt="" className="w-12 h-16 object-cover rounded-md shadow-sm flex-shrink-0" />
+                                            <div className="flex-grow min-w-0">
+                                                <h4 className="font-bold text-text-primary truncate">
+                                                    <HighlightText text={result.source.title} highlight={searchQuery} />
+                                                </h4>
+                                                <p className="text-xs text-text-secondary mb-1">{result.source.type}</p>
+
+                                                {result.match_type === 'quote' && result.matched_quotes.length > 0 && (
+                                                    <p className="text-sm text-text-secondary line-clamp-2 italic">
+                                                        "...<HighlightText text={result.matched_quotes[0].text} highlight={searchQuery} />..."
+                                                    </p>
+                                                )}
+                                                {result.match_type === 'author' && result.matched_quotes.length > 0 && (
+                                                    <p className="text-sm text-text-secondary">
+                                                        Author: <HighlightText text={result.matched_quotes[0].author} highlight={searchQuery} />
+                                                    </p>
+                                                )}
+                                                {result.match_type === 'tag' && result.matched_quotes.length > 0 && (
+                                                    <p className="text-sm text-text-secondary">
+                                                        Tag: <HighlightText text={result.matched_quotes[0].tags.find(t => t.toLowerCase().includes(searchQuery.toLowerCase())) || ''} highlight={searchQuery} />
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <Button onClick={() => setModalState({ source: null })} className="!p-0 w-16 h-16 flex items-center justify-center rounded-full" title="Add New Source"><PlusIcon className="w-8 h-8" /></Button>
                     </div>
                 </div>
             </div>
