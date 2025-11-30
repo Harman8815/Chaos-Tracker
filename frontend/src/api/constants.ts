@@ -1,7 +1,14 @@
-
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+// Django backend base URL
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
 export const ENDPOINTS = {
+    // Authentication endpoints
+    SIGNUP: '/auth/signup/',
+    LOGIN: '/auth/login/',
+    LOGOUT: '/auth/logout/',
+    ME: '/auth/me/',
+    
+    // Application endpoints
     SYNC: '/sync',
     USER_PROFILE: '/user/profile',
     HABITS: '/habits',
@@ -14,4 +21,4 @@ export const ENDPOINTS = {
     RULES: '/rules',
 };
 
-export const REQUEST_TIMEOUT_MS = 5000;
+export const REQUEST_TIMEOUT_MS = 10000;

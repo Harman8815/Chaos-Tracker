@@ -3,6 +3,10 @@ import { client } from './client';
 import { ENDPOINTS } from './constants';
 import { AllData, Habit, PlannerData, GoalData, Expense, QuoteSource, Achievement, UserProfile, ScoringRule } from '../types';
 
+// Re-export authentication service
+export { authService } from './authService';
+export type { User, LoginCredentials, SignupData, AuthResponse } from './authService';
+
 export interface AppDataResponse {
     data?: AllData;
     habits?: Habit[];

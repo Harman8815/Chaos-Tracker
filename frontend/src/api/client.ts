@@ -18,6 +18,7 @@ class ApiClient {
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
+            credentials: 'include', // Important for session-based auth with Django
             signal: controller.signal
         };
 
@@ -26,7 +27,18 @@ class ApiClient {
             clearTimeout(id);
 
             if (!response.ok) {
-                throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+                // Try to parse error message from response
+                const text = await response.text();
+                let errorMessage = `API call failed: ${response.status} ${response.statusText}`;
+                
+                try {
+                    const errorData = JSON.parse(text);
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                } catch {
+                    // If response isn't JSON, use default message
+                }
+                
+                throw new Error(errorMessage);
             }
             
             // Handle 204 No Content or empty responses gracefully

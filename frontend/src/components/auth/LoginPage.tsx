@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { authService } from '../../api/authService';
 
 interface LoginPageProps {
     onLogin: () => void;
@@ -8,18 +9,31 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignUp }) => {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate network request
-        setTimeout(() => {
+        setError('');
+
+        try {
+            const response = await authService.login({ username, password });
+
+            if (response.success && response.user) {
+                // Store user data in local storage or context
+                localStorage.setItem('user', JSON.stringify(response.user));
+                onLogin();
+            } else {
+                setError(response.error || 'Login failed');
+            }
+        } catch (err) {
+            setError('An unexpected error occurred. Please try again.');
+        } finally {
             setIsLoading(false);
-            onLogin();
-        }, 800);
+        }
     };
 
     return (
@@ -30,16 +44,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignUp }) => {
             </div>
             <Card className="w-full p-8 shadow-2xl border-border/50 bg-card-bg/80 backdrop-blur-xl">
                 <h2 className="text-2xl font-bold mb-6 text-text-primary">Welcome Back</h2>
+
+                {error && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 text-sm">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
+                        <label className="block text-sm font-medium text-text-secondary mb-1.5">Username</label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
+                            type="text"
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
                             className="w-full p-3 rounded-lg bg-input-bg border border-border text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none transition-all"
-                            placeholder="name@example.com"
+                            placeholder="your_username"
                             required
+                            autoComplete="username"
                         />
                     </div>
                     <div>
@@ -51,6 +73,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignUp }) => {
                             className="w-full p-3 rounded-lg bg-input-bg border border-border text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none transition-all"
                             placeholder="••••••••"
                             required
+                            autoComplete="current-password"
                         />
                     </div>
                     <Button type="submit" className="w-full py-3 mt-4 shadow-lg shadow-accent-primary/20" disabled={isLoading}>
