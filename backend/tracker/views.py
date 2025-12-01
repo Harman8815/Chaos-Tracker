@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag
+from django.db.models import Q, Count, Prefetch
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement
 from .serializers import (
     JournalEntrySerializer,
     QuoteSourceSerializer,
@@ -11,13 +12,16 @@ from .serializers import (
     QuoteSourceCreateUpdateSerializer,
     QuoteSerializer,
     QuoteCreateUpdateSerializer,
-    SearchResultSerializer
+    QuoteCreateUpdateSerializer,
+    SearchResultSerializer,
+    AchievementSerializer
 )
 import datetime
 from datetime import timedelta
 import random
 import uuid
 from difflib import SequenceMatcher
+import urllib.request
 
 
 class SyncView(views.APIView):
@@ -58,7 +62,8 @@ class SyncView(views.APIView):
             'goals': {},
             'expenses': [],
             'quotes': quotes_serializer.data,
-            'achievements': [],
+            'quotes': quotes_serializer.data,
+            'achievements': AchievementSerializer(Achievement.objects.filter(user=request.user), many=True).data,
             'userProfile': {
                 'name': request.user.username,
                 'email': request.user.email,
@@ -564,7 +569,7 @@ class PopulateDataView(views.APIView):
         topics = ['API design', 'database migration', 'frontend state', 'deployment']
         adverbs = ['well', 'poorly', 'surprisingly well', 'as expected']
 
-        for i in range(90): # Last 90 days
+        for i in range(365): # Last 365 days
             date = today - timedelta(days=i)
             # 70% chance to have an entry
             if random.random() < 0.7:
@@ -641,12 +646,74 @@ class PopulateDataView(views.APIView):
                         QuoteTag.objects.create(quote=quote, tag=tag)
                     quote_count += 1
 
+        # --- Populate Achievements ---
+        achievement_images = [
+            "https://m.media-amazon.com/images/I/71H3Wsh8rrL._AC_UF1000,1000_QL80_.jpg",
+            "https://cdn.wallpapersafari.com/81/82/hilSnu.jpg",
+            "https://plus.unsplash.com/premium_photo-1737182592549-0c83f93e2903?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bHV4dXJ5JTIwdmVoaWNsZXxlbnwwfHwwfHx8MA%3D%3D",
+            "https://images.unsplash.com/photo-1541348263662-e068662d82af?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c3BvcnRzJTIwY2FyfGVufDB8fDB8fHww"
+        ]
+        achievement_titles = [
+            "First 10k Revenue", "Marathon Completed", "Read 50 Books", 
+            "New Car", "Dream Vacation", "Project Launch", "Weight Loss Goal"
+        ]
+        
+        achievements_count = 0
+        # Create 50 achievements spanning 2020-2025
+        start_date = datetime.date(2020, 1, 1)
+        end_date = datetime.date(2025, 12, 31)
+        days_range = (end_date - start_date).days
+
+        for i in range(50):
+            try:
+                # Random date between 2020 and 2025
+                random_days = random.randint(0, days_range)
+                ach_date = start_date + timedelta(days=random_days)
+                
+                title = random.choice(achievement_titles)
+                img_url = random.choice(achievement_images)
+                
+                Achievement.objects.create(
+                    user=user,
+                    title=title,
+                    description=f"Achieved {title} on {ach_date}",
+                    date=ach_date,
+                    image=img_url
+                )
+                achievements_count += 1
+            except Exception as e:
+                print(f"Failed to create achievement: {e}")
+                continue
+
         return Response({
             'success': True,
             'message': f'Successfully populated data for user {user.username}',
             'stats': {
                 'journal_entries_created': journal_count,
                 'quote_sources_created': source_count,
-                'quotes_created': quote_count
+                'quotes_created': quote_count,
+                'achievements_created': achievements_count
             }
         }, status=status.HTTP_201_CREATED)
+
+
+# ==================== ACHIEVEMENT VIEWS ====================
+
+class AchievementListCreateView(generics.ListCreateAPIView):
+    serializer_class = AchievementSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Achievement.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class AchievementDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = AchievementSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Achievement.objects.filter(user=self.request.user)

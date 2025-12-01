@@ -9,7 +9,10 @@ from .views import (
     QuoteDetailView,
     QuoteFuzzySearchView,
     QuoteTagsView,
+    QuoteTagsView,
     PopulateDataView,
+    AchievementListCreateView,
+    AchievementDetailView,
 )
 
 urlpatterns = [
@@ -38,4 +41,8 @@ urlpatterns = [
     
     # Populate Data endpoint
     path('populate-data/', PopulateDataView.as_view(), name='populate-data'),
+
+    # Achievement endpoints
+    path('achievements/', AchievementListCreateView.as_view(), name='achievement-list-create'),
+    path('achievements/<int:id>/', AchievementDetailView.as_view(), name='achievement-detail'),
 ]

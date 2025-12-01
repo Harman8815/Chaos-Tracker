@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement
+import base64
 
 
 class JournalEntrySerializer(serializers.ModelSerializer):
@@ -149,3 +150,10 @@ class SearchResultSerializer(serializers.Serializer):
     matched_quotes = QuoteSerializer(many=True)
     relevance_score = serializers.FloatField()
     match_type = serializers.CharField()  # 'title', 'tag', 'author', 'text'
+
+
+class AchievementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Achievement
+        fields = ['id', 'title', 'description', 'date', 'image', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']

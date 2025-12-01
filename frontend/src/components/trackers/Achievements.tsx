@@ -1,6 +1,4 @@
-import React, { useState, useMemo, useContext } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { DataContext } from '../../context/DataContext';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TRACKERS } from '../../constants';
 import { Achievement } from '../../types';
 import TrackerWrapper from '../TrackerWrapper';
@@ -10,18 +8,36 @@ import GalleryModal from './achievements/GalleryModal';
 import AchievementModal from './achievements/AchievementModal';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import achievementService from '../../services/achievementService';
 
 type View = 'timeline' | 'grid';
 type SortOrder = 'asc' | 'desc';
 
 const Achievements: React.FC = () => {
-    const { achievements, setAchievements } = useContext(DataContext);
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [view, setView] = useState<View>('timeline');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [gallery, setGallery] = useState<{ images: string[], title: string } | null>(null);
     const [modalState, setModalState] = useState<{ achievement?: Achievement | null } | null>(null);
 
+    // Fetch achievements on mount
+    useEffect(() => {
+        const fetchAchievements = async () => {
+            try {
+                setIsLoading(true);
+                const data = await achievementService.getAllAchievements();
+                setAchievements(data);
+            } catch (error) {
+                console.error("Failed to fetch achievements:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAchievements();
+    }, []);
 
     const allTags = useMemo(() => {
         const tags = new Set<string>();
@@ -40,31 +56,52 @@ const Achievements: React.FC = () => {
     }, [achievements, sortOrder, selectedTags]);
 
     const handleTagClick = (tag: string) => {
-        setSelectedTags(prev => 
+        setSelectedTags(prev =>
             prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
         );
     };
 
-    const handleSaveAchievement = (achievementToSave: Omit<Achievement, 'id'> & { id?: string }) => {
-        setAchievements(prev => {
+    const handleSaveAchievement = async (achievementToSave: Omit<Achievement, 'id'> & { id?: string }) => {
+        try {
             if (achievementToSave.id) { // Editing existing
-                return prev.map(a => a.id === achievementToSave.id ? achievementToSave as Achievement : a);
+                const updated = await achievementService.updateAchievement(achievementToSave.id, achievementToSave as Achievement);
+                setAchievements(prev => prev.map(a => a.id === updated.id ? updated : a));
+            } else {
+                // Creating new
+                const newAchievement = await achievementService.createAchievement(achievementToSave);
+                setAchievements(prev => [...prev, newAchievement]);
             }
-            // Creating new
-            const newAchievement: Achievement = { ...achievementToSave, id: uuidv4(), images: achievementToSave.images || [] };
-            return [...prev, newAchievement];
-        });
-        setModalState(null);
+            setModalState(null);
+        } catch (error) {
+            console.error("Failed to save achievement:", error);
+            alert("Failed to save achievement. Please try again.");
+        }
     };
 
-    const handleDeleteAchievement = (achievementId: string) => {
+    const handleDeleteAchievement = async (achievementId: string) => {
         if (window.confirm("Are you sure you want to delete this achievement?")) {
-            setAchievements(prev => prev.filter(a => a.id !== achievementId));
-            setModalState(null);
+            try {
+                await achievementService.deleteAchievement(achievementId);
+                setAchievements(prev => prev.filter(a => a.id !== achievementId));
+                setModalState(null);
+            } catch (error) {
+                console.error("Failed to delete achievement:", error);
+                alert("Failed to delete achievement. Please try again.");
+            }
         }
     };
 
     const trackerInfo = TRACKERS.find(t => t.id === 'achievements')!;
+
+    if (isLoading) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-primary"></div>
+                </div>
+            </TrackerWrapper>
+        );
+    }
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
@@ -89,11 +126,11 @@ const Achievements: React.FC = () => {
                         </div>
                         <Button onClick={() => setModalState({ achievement: null })}>+ New Achievement</Button>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-text-secondary">Sort by Date:</span>
-                        <select 
-                            value={sortOrder} 
+                        <select
+                            value={sortOrder}
                             onChange={e => setSortOrder(e.target.value as SortOrder)}
                             className="p-2 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
@@ -102,18 +139,22 @@ const Achievements: React.FC = () => {
                         </select>
                     </div>
                 </div>
-                 <div className="mt-4 pt-4 border-t border-border">
+                <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex flex-wrap gap-2 items-center">
                         <span className="text-sm font-medium text-text-secondary mr-2">Filter by Tag:</span>
-                        {allTags.map(tag => (
-                            <button 
-                                key={tag} 
-                                onClick={() => handleTagClick(tag)}
-                                className={`px-3 py-1 text-xs rounded-full capitalize border transition-colors ${selectedTags.includes(tag) ? 'bg-accent-primary border-accent-primary text-white' : 'bg-input-bg border-border hover:bg-border'}`}
-                            >
-                                {tag}
-                            </button>
-                        ))}
+                        {allTags.length > 0 ? (
+                            allTags.map(tag => (
+                                <button
+                                    key={tag}
+                                    onClick={() => handleTagClick(tag)}
+                                    className={`px-3 py-1 text-xs rounded-full capitalize border transition-colors ${selectedTags.includes(tag) ? 'bg-accent-primary border-accent-primary text-white' : 'bg-input-bg border-border hover:bg-border'}`}
+                                >
+                                    {tag}
+                                </button>
+                            ))
+                        ) : (
+                            <span className="text-xs text-text-secondary italic">No tags available</span>
+                        )}
                         {selectedTags.length > 0 && (
                             <button onClick={() => setSelectedTags([])} className="text-xs text-text-secondary hover:text-text-primary underline">Clear</button>
                         )}
@@ -123,15 +164,15 @@ const Achievements: React.FC = () => {
 
             <div className="h-[calc(100vh-18rem)] overflow-y-auto -mr-6 pr-6">
                 {view === 'timeline' ? (
-                    <TimelineView 
-                        achievements={filteredAchievements} 
-                        onImageClick={setGallery} 
+                    <TimelineView
+                        achievements={filteredAchievements}
+                        onImageClick={setGallery}
                         onEdit={(ach) => setModalState({ achievement: ach })}
                     />
                 ) : (
-                    <GridView 
-                        achievements={filteredAchievements} 
-                        onImageClick={setGallery} 
+                    <GridView
+                        achievements={filteredAchievements}
+                        onImageClick={setGallery}
                         onEdit={(ach) => setModalState({ achievement: ach })}
                     />
                 )}
