@@ -9,10 +9,16 @@ from .views import (
     QuoteDetailView,
     QuoteFuzzySearchView,
     QuoteTagsView,
-    QuoteTagsView,
     PopulateDataView,
     AchievementListCreateView,
     AchievementDetailView,
+    ExpenseListCreateView,
+    ExpenseDetailView,
+    ExpenseSummaryView,
+    ExpenseCategoriesView,
+    ExpenseAnalyticsView,
+    ExpenseMonthlyStatsView,
+    ExpenseTopItemsView,
 )
 
 urlpatterns = [
@@ -45,4 +51,15 @@ urlpatterns = [
     # Achievement endpoints
     path('achievements/', AchievementListCreateView.as_view(), name='achievement-list-create'),
     path('achievements/<int:id>/', AchievementDetailView.as_view(), name='achievement-detail'),
+
+    # Expense endpoints - Analytics & Statistics (MUST come BEFORE <int:id> route)
+    path('expenses/summary/', ExpenseSummaryView.as_view(), name='expense-summary'),
+    path('expenses/categories/', ExpenseCategoriesView.as_view(), name='expense-categories'),
+    path('expenses/analytics/', ExpenseAnalyticsView.as_view(), name='expense-analytics'),
+    path('expenses/monthly-stats/', ExpenseMonthlyStatsView.as_view(), name='expense-monthly-stats'),
+    path('expenses/top-items/', ExpenseTopItemsView.as_view(), name='expense-top-items'),
+    
+    # Expense endpoints - CRUD (MUST come AFTER specific routes)
+    path('expenses/', ExpenseListCreateView.as_view(), name='expense-list-create'),
+    path('expenses/<int:id>/', ExpenseDetailView.as_view(), name='expense-detail'),
 ]

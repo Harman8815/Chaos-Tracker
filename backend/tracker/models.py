@@ -105,3 +105,29 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.date}"
+
+
+class Expense(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
+    date = models.DateField()
+    item = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)
+    quantity = models.IntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'category']),
+        ]
+
+    def __str__(self):
+        return f"{self.item} - {self.category} - ${self.price}"
+    
+    @property
+    def total(self):
+        """Calculate total cost (quantity * price)"""
+        return self.quantity * self.price

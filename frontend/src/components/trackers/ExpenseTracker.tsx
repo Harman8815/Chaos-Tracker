@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useCallback, useContext } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import { Expense } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { DataContext } from '../../context/DataContext';
+import expenseService from '../../services/expenseService';
 
 const CHART_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#d946ef'];
 
@@ -37,7 +36,7 @@ const PieChart: React.FC<{ data: { name: string; value: number }[] }> = ({ data 
                     return <path key={slice.name} d={pathData} fill={CHART_COLORS[i % CHART_COLORS.length]} />;
                 })}
             </svg>
-             <div className="flex flex-col space-y-1 text-xs">
+            <div className="flex flex-col space-y-1 text-xs">
                 {data.map((slice, i) => (
                     <div key={slice.name} className="flex items-center">
                         <div className="w-2 h-2 rounded-sm mr-2" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
@@ -62,8 +61,8 @@ const DailyExpenseChart: React.FC<{ data: { day: number, total: number }[], days
             {chartData.map(item => (
                 <div key={item.label} className="flex flex-col items-center justify-end h-full w-full group relative">
                     <div className="absolute -top-6 text-xs bg-card-bg px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">${item.value.toFixed(2)}</div>
-                    <div 
-                        className="w-full bg-accent-primary rounded-t-sm hover:bg-accent-primary-dark transition-colors" 
+                    <div
+                        className="w-full bg-accent-primary rounded-t-sm hover:bg-accent-primary-dark transition-colors"
                         style={{ height: `${(item.value / maxValue) * 100}%` }}
                     />
                     <div className="text-xs text-text-secondary mt-1">{parseInt(item.label) % 2 !== 0 ? item.label : ''}</div>
@@ -86,7 +85,7 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Exp
         onAdd({ date, item, category, quantity, price });
         onClose();
     };
-    
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
             <div className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
@@ -113,11 +112,49 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Exp
 
 const ExpenseTracker: React.FC = () => {
     const trackerInfo = TRACKERS.find(t => t.id === 'expense')!;
-    const { expenses, setExpenses } = useContext(DataContext);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [loading, setLoading] = useState(true);
     const [date, setDate] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() });
     const [sortConfig, setSortConfig] = useState<{ key: keyof Expense; direction: 'asc' | 'desc' } | null>({ key: 'date', direction: 'desc' });
     const [pagination, setPagination] = useState({ currentPage: 1, itemsPerPage: 10 });
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [analytics, setAnalytics] = useState<any>(null);
+
+    // Fetch expenses for current month
+    const fetchExpenses = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await expenseService.getAllExpenses({
+                year: date.year,
+                month: date.month
+            });
+            setExpenses(response.expenses || []);
+        } catch (error) {
+            console.error('Error fetching expenses:', error);
+            setExpenses([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [date.year, date.month]);
+
+    // Fetch analytics for charts
+    const fetchAnalytics = useCallback(async () => {
+        try {
+            const response = await expenseService.getExpenseAnalytics({
+                year: date.year,
+                month: date.month
+            });
+            setAnalytics(response.analytics);
+        } catch (error) {
+            console.error('Error fetching analytics:', error);
+            setAnalytics(null);
+        }
+    }, [date.year, date.month]);
+
+    useEffect(() => {
+        fetchExpenses();
+        fetchAnalytics();
+    }, [fetchExpenses, fetchAnalytics]);
 
     const handleSort = (key: keyof Expense) => {
         setSortConfig(prev => ({
@@ -126,25 +163,18 @@ const ExpenseTracker: React.FC = () => {
         }));
     };
 
-    const filteredExpenses = useMemo(() => {
-        return expenses.filter(e => {
-            const expenseDate = new Date(e.date);
-            return expenseDate.getFullYear() === date.year && expenseDate.getMonth() === date.month;
-        });
-    }, [expenses, date]);
-
     const sortedExpenses = useMemo(() => {
-        let sortableItems = [...filteredExpenses];
+        let sortableItems = [...expenses];
         if (sortConfig !== null) {
             sortableItems.sort((a, b) => {
                 const valA = a[sortConfig.key];
                 const valB = b[sortConfig.key];
-                
+
                 if (typeof valA === 'number' && typeof valB === 'number') {
                     return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
                 }
                 if (sortConfig.key === 'date') {
-                    return sortConfig.direction === 'asc' 
+                    return sortConfig.direction === 'asc'
                         ? new Date(valA).getTime() - new Date(valB).getTime()
                         : new Date(valB).getTime() - new Date(valA).getTime();
                 }
@@ -154,43 +184,56 @@ const ExpenseTracker: React.FC = () => {
             });
         }
         return sortableItems;
-    }, [filteredExpenses, sortConfig]);
+    }, [expenses, sortConfig]);
 
     const paginatedExpenses = useMemo(() => {
         const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
         return sortedExpenses.slice(startIndex, startIndex + pagination.itemsPerPage);
     }, [sortedExpenses, pagination]);
 
-    const { dailyChartData, categoryChartData, daysInMonth } = useMemo(() => {
-        const days = new Date(date.year, date.month + 1, 0).getDate();
-        const daily: { [day: number]: number } = {};
-        const categories: { [cat: string]: number } = {};
-        
-        filteredExpenses.forEach(e => {
-            const day = new Date(e.date).getDate();
-            const total = e.quantity * e.price;
-            daily[day] = (daily[day] || 0) + total;
-            categories[e.category] = (categories[e.category] || 0) + total;
-        });
+    const handleAddExpense = useCallback(async (newExpense: Omit<Expense, 'id'>) => {
+        try {
+            await expenseService.createExpense(newExpense);
+            await fetchExpenses();
+            await fetchAnalytics();
+        } catch (error) {
+            console.error('Error creating expense:', error);
+        }
+    }, [fetchExpenses, fetchAnalytics]);
 
-        return {
-            daysInMonth: days,
-            dailyChartData: Object.entries(daily).map(([day, total]) => ({ day: parseInt(day), total })),
-            categoryChartData: Object.entries(categories).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value)
-        };
-    }, [filteredExpenses, date]);
+    const handleUpdateExpense = async (id: string, updatedField: Partial<Expense>) => {
+        try {
+            await expenseService.updateExpense(id, updatedField);
+            await fetchExpenses();
+            await fetchAnalytics();
+        } catch (error) {
+            console.error('Error updating expense:', error);
+        }
+    };
 
-    const handleAddExpense = useCallback((newExpense: Omit<Expense, 'id'>) => {
-        setExpenses(prev => [...prev, { ...newExpense, id: uuidv4() }]);
-    }, [setExpenses]);
-
-    const handleUpdateExpense = (id: string, updatedField: Partial<Expense>) => {
-        setExpenses(prev => prev.map(e => e.id === id ? { ...e, ...updatedField } : e));
+    const handleDeleteExpense = async (id: string) => {
+        try {
+            await expenseService.deleteExpense(id);
+            await fetchExpenses();
+            await fetchAnalytics();
+        } catch (error) {
+            console.error('Error deleting expense:', error);
+        }
     };
 
     const years = useMemo(() => Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i), []);
     const months = useMemo(() => Array.from({ length: 12 }, (_, i) => ({ value: i, name: new Date(0, i).toLocaleString('default', { month: 'long' }) })), []);
     const totalPages = Math.ceil(sortedExpenses.length / pagination.itemsPerPage);
+
+    if (loading && !analytics) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-text-secondary">Loading expenses...</div>
+                </div>
+            </TrackerWrapper>
+        );
+    }
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
@@ -198,14 +241,17 @@ const ExpenseTracker: React.FC = () => {
             <div className="grid grid-cols-5 gap-6 mb-6">
                 <Card className="col-span-3">
                     <h3 className="font-bold text-lg mb-2">Daily Spending</h3>
-                    <DailyExpenseChart data={dailyChartData} daysInMonth={daysInMonth} />
+                    <DailyExpenseChart
+                        data={analytics?.daily_breakdown || []}
+                        daysInMonth={analytics?.days_in_month || 30}
+                    />
                 </Card>
                 <Card className="col-span-2">
                     <h3 className="font-bold text-lg mb-2">Category Breakdown</h3>
-                    <PieChart data={categoryChartData} />
+                    <PieChart data={analytics?.category_breakdown || []} />
                 </Card>
             </div>
-            
+
             <Card>
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
@@ -218,7 +264,7 @@ const ExpenseTracker: React.FC = () => {
                     </div>
                     <Button onClick={() => setIsModalOpen(true)}>+ Add Entry</Button>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-input-bg">
@@ -229,13 +275,14 @@ const ExpenseTracker: React.FC = () => {
                                     </th>
                                 ))}
                                 <th className="p-3">Total</th>
+                                <th className="p-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {paginatedExpenses.map(expense => (
                                 <tr key={expense.id} className="border-b border-border hover:bg-input-bg/50">
                                     {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[]).map(key => (
-                                         <td key={key} className="p-0">
+                                        <td key={key} className="p-0">
                                             <input
                                                 type={key === 'date' ? 'date' : key === 'quantity' || key === 'price' ? 'number' : 'text'}
                                                 value={expense[key]}
@@ -243,15 +290,23 @@ const ExpenseTracker: React.FC = () => {
                                                 className="w-full h-full bg-transparent p-3 focus:bg-background focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                                 step={key === 'price' ? '0.01' : '1'}
                                             />
-                                         </td>
+                                        </td>
                                     ))}
                                     <td className="p-3 font-mono">${(expense.quantity * expense.price).toFixed(2)}</td>
+                                    <td className="p-3">
+                                        <button
+                                            onClick={() => handleDeleteExpense(expense.id)}
+                                            className="text-red-500 hover:text-red-700 text-sm"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-                 <div className="flex justify-between items-center mt-4 text-sm">
+                <div className="flex justify-between items-center mt-4 text-sm">
                     <div className="flex items-center gap-2">
                         <span>Rows per page:</span>
                         <select value={pagination.itemsPerPage} onChange={e => setPagination(p => ({ ...p, itemsPerPage: parseInt(e.target.value), currentPage: 1 }))} className="p-1 rounded-md bg-input-bg border border-border">

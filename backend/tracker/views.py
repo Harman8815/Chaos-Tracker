@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense
 from .serializers import (
     JournalEntrySerializer,
     QuoteSourceSerializer,
@@ -14,8 +14,10 @@ from .serializers import (
     QuoteCreateUpdateSerializer,
     QuoteCreateUpdateSerializer,
     SearchResultSerializer,
-    AchievementSerializer
+    AchievementSerializer,
+    ExpenseSerializer
 )
+
 import datetime
 from datetime import timedelta
 import random
@@ -60,8 +62,6 @@ class SyncView(views.APIView):
             'rules': [],
             'planner': {},
             'goals': {},
-            'expenses': [],
-            'quotes': quotes_serializer.data,
             'quotes': quotes_serializer.data,
             'achievements': AchievementSerializer(Achievement.objects.filter(user=request.user), many=True).data,
             'userProfile': {
@@ -70,6 +70,8 @@ class SyncView(views.APIView):
                 'joinDate': request.user.date_joined.isoformat() if request.user.date_joined else None
             }
         }, status=status.HTTP_200_OK)
+
+
 
 
 # ==================== JOURNAL VIEWS ====================
@@ -685,6 +687,82 @@ class PopulateDataView(views.APIView):
                 print(f"Failed to create achievement: {e}")
                 continue
 
+        # --- Populate Expenses ---
+        expense_categories = {
+            'Food': {
+                'items': ['Groceries', 'Restaurant', 'Coffee', 'Fast Food', 'Snacks', 'Vegetables', 'Fruits', 'Bakery'],
+                'price_range': (5, 150)
+            },
+            'Transport': {
+                'items': ['Gas', 'Uber', 'Public Transit', 'Parking', 'Car Maintenance', 'Taxi', 'Metro Card'],
+                'price_range': (10, 100)
+            },
+            'Entertainment': {
+                'items': ['Movie Tickets', 'Concert', 'Games', 'Streaming Service', 'Books', 'Sports Event', 'Music'],
+                'price_range': (10, 200)
+            },
+            'Shopping': {
+                'items': ['Clothes', 'Shoes', 'Electronics', 'Home Decor', 'Gadgets', 'Accessories', 'Gift'],
+                'price_range': (20, 500)
+            },
+            'Healthcare': {
+                'items': ['Pharmacy', 'Doctor Visit', 'Medical Test', 'Vitamins', 'Medicine', 'Dental'],
+                'price_range': (15, 300)
+            },
+            'Utilities': {
+                'items': ['Electricity', 'Water', 'Internet', 'Phone Bill', 'Gas Bill', 'Cable TV'],
+                'price_range': (30, 200)
+            },
+            'Education': {
+                'items': ['Books', 'Course Fee', 'Tuition', 'Stationery', 'Online Course', 'Workshop'],
+                'price_range': (20, 1000)
+            },
+            'Other': {
+                'items': ['Miscellaneous', 'Pet Supplies', 'Donations', 'Subscriptions', 'Gifts', 'Household Items'],
+                'price_range': (10, 150)
+            }
+        }
+        
+        expenses_count = 0
+        # Generate expenses for last 12 months with random intervals
+        expense_start_date = today - timedelta(days=365)
+        
+        # Generate 200-300 expenses over 12 months (random intervals)
+        num_expenses = random.randint(200, 300)
+        
+        for _ in range(num_expenses):
+            # Random date in the last 12 months
+            random_days = random.randint(0, 365)
+            expense_date = expense_start_date + timedelta(days=random_days)
+            
+            # Random category
+            category = random.choice(list(expense_categories.keys()))
+            category_data = expense_categories[category]
+            
+            # Random item from category
+            item = random.choice(category_data['items'])
+            
+            # Random quantity (mostly 1, occasionally more)
+            quantity = random.choices([1, 2, 3, 4, 5], weights=[70, 15, 8, 5, 2])[0]
+            
+            # Random price within category range
+            min_price, max_price = category_data['price_range']
+            price = round(random.uniform(min_price, max_price), 2)
+            
+            try:
+                Expense.objects.create(
+                    user=user,
+                    date=expense_date,
+                    item=item,
+                    category=category,
+                    quantity=quantity,
+                    price=price
+                )
+                expenses_count += 1
+            except Exception as e:
+                print(f"Failed to create expense: {e}")
+                continue
+
         return Response({
             'success': True,
             'message': f'Successfully populated data for user {user.username}',
@@ -692,7 +770,8 @@ class PopulateDataView(views.APIView):
                 'journal_entries_created': journal_count,
                 'quote_sources_created': source_count,
                 'quotes_created': quote_count,
-                'achievements_created': achievements_count
+                'achievements_created': achievements_count,
+                'expenses_created': expenses_count
             }
         }, status=status.HTTP_201_CREATED)
 
@@ -717,3 +796,463 @@ class AchievementDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Achievement.objects.filter(user=self.request.user)
+
+
+# ==================== EXPENSE VIEWS ====================
+
+class ExpenseListCreateView(generics.ListCreateAPIView):
+    """
+    GET /api/expenses/ - List all expenses for user (with optional filtering)
+    POST /api/expenses/ - Create a new expense
+    
+    Query Parameters:
+    - year: Filter by year (YYYY)
+    - month: Filter by month (0-11, where 0 is January)
+    - category: Filter by category
+    - start_date: Filter expenses from this date (YYYY-MM-DD)
+    - end_date: Filter expenses until this date (YYYY-MM-DD)
+    """
+    serializer_class = ExpenseSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Expense.objects.filter(user=self.request.user)
+        
+        # Filter by year and month
+        year = self.request.query_params.get('year')
+        month = self.request.query_params.get('month')
+        
+        if year and month is not None:
+            try:
+                year = int(year)
+                month = int(month)  # 0-11 from frontend
+                # Convert to 1-12 for Python's datetime
+                queryset = queryset.filter(
+                    date__year=year,
+                    date__month=month + 1
+                )
+            except (ValueError, TypeError):
+                pass
+        
+        # Filter by category
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        
+        # Filter by date range
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        
+        if start_date:
+            try:
+                start_date_obj = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__gte=start_date_obj)
+            except ValueError:
+                pass
+        
+        if end_date:
+            try:
+                end_date_obj = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__lte=end_date_obj)
+            except ValueError:
+                pass
+        
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Calculate summary statistics
+        total_expenses = queryset.count()
+        total_amount = sum(expense.total for expense in queryset)
+        
+        # Category breakdown
+        categories = {}
+        for expense in queryset:
+            if expense.category not in categories:
+                categories[expense.category] = 0
+            categories[expense.category] += float(expense.total)
+        
+        return Response({
+            'success': True,
+            'count': total_expenses,
+            'total_amount': total_amount,
+            'category_breakdown': categories,
+            'expenses': serializer.data
+        })
+
+
+class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET /api/expenses/<id>/ - Get a specific expense
+    PUT/PATCH /api/expenses/<id>/ - Update an expense
+    DELETE /api/expenses/<id>/ - Delete an expense
+    """
+    serializer_class = ExpenseSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Expense.objects.filter(user=self.request.user)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({
+            'success': True,
+            'expense': serializer.data
+        })
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return Response({
+            'success': True,
+            'message': 'Expense updated successfully',
+            'expense': serializer.data
+        })
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({
+            'success': True,
+            'message': 'Expense deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+
+
+class ExpenseSummaryView(views.APIView):
+    """
+    GET /api/expenses/summary/ - Get expense summary with totals and statistics
+    
+    Query Parameters:
+    - year: Filter by year (YYYY)
+    - month: Filter by month (0-11)
+    - start_date: Start date (YYYY-MM-DD)
+    - end_date: End date (YYYY-MM-DD)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        queryset = Expense.objects.filter(user=request.user)
+        
+        # Apply filters
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        if year and month is not None:
+            try:
+                queryset = queryset.filter(
+                    date__year=int(year),
+                    date__month=int(month) + 1
+                )
+            except (ValueError, TypeError):
+                pass
+        
+        if start_date:
+            try:
+                queryset = queryset.filter(date__gte=datetime.datetime.strptime(start_date, '%Y-%m-%d').date())
+            except ValueError:
+                pass
+        
+        if end_date:
+            try:
+                queryset = queryset.filter(date__lte=datetime.datetime.strptime(end_date, '%Y-%m-%d').date())
+            except ValueError:
+                pass
+        
+        # Calculate statistics
+        total_expenses = queryset.count()
+        total_amount = sum(expense.total for expense in queryset)
+        
+        # Average per expense
+        avg_per_expense = total_amount / total_expenses if total_expenses > 0 else 0
+        
+        # Get unique categories count
+        categories = set(expense.category for expense in queryset)
+        
+        return Response({
+            'success': True,
+            'summary': {
+                'total_expenses': total_expenses,
+                'total_amount': float(total_amount),
+                'average_per_expense': float(avg_per_expense),
+                'categories_count': len(categories),
+                'unique_categories': list(categories)
+            }
+        })
+
+
+class ExpenseCategoriesView(views.APIView):
+    """
+    GET /api/expenses/categories/ - Get all expense categories with totals
+    
+    Query Parameters:
+    - year: Filter by year (YYYY)
+    - month: Filter by month (0-11)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        queryset = Expense.objects.filter(user=request.user)
+        
+        # Apply filters
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        
+        if year and month is not None:
+            try:
+                queryset = queryset.filter(
+                    date__year=int(year),
+                    date__month=int(month) + 1
+                )
+            except (ValueError, TypeError):
+                pass
+        
+        # Group by category
+        categories = {}
+        for expense in queryset:
+            if expense.category not in categories:
+                categories[expense.category] = {
+                    'name': expense.category,
+                    'count': 0,
+                    'total': 0
+                }
+            categories[expense.category]['count'] += 1
+            categories[expense.category]['total'] += float(expense.total)
+        
+        # Sort by total (descending)
+        sorted_categories = sorted(
+            categories.values(),
+            key=lambda x: x['total'],
+            reverse=True
+        )
+        
+        return Response({
+            'success': True,
+            'count': len(sorted_categories),
+            'categories': sorted_categories
+        })
+
+
+class ExpenseAnalyticsView(views.APIView):
+    """
+    GET /api/expenses/analytics/ - Get detailed analytics for expenses
+    
+    Query Parameters:
+    - year: Filter by year (YYYY)
+    - month: Filter by month (0-11)
+    
+    Returns daily breakdown, category breakdown, and trends
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        
+        if not year or month is None:
+            # Default to current month
+            today = datetime.date.today()
+            year = today.year
+            month = today.month - 1  # Convert to 0-11
+        else:
+            try:
+                year = int(year)
+                month = int(month)
+            except (ValueError, TypeError):
+                return Response({
+                    'success': False,
+                    'error': 'Invalid year or month parameter'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get expenses for the month
+        queryset = Expense.objects.filter(
+            user=request.user,
+            date__year=year,
+            date__month=month + 1
+        )
+        
+        # Daily breakdown
+        daily_totals = {}
+        category_totals = {}
+        
+        for expense in queryset:
+            day = expense.date.day
+            if day not in daily_totals:
+                daily_totals[day] = 0
+            daily_totals[day] += float(expense.total)
+            
+            if expense.category not in category_totals:
+                category_totals[expense.category] = 0
+            category_totals[expense.category] += float(expense.total)
+        
+        # Convert to list format
+        daily_data = [
+            {'day': day, 'total': total}
+            for day, total in sorted(daily_totals.items())
+        ]
+        
+        category_data = [
+            {'name': category, 'value': total}
+            for category, total in sorted(
+                category_totals.items(),
+                key=lambda x: x[1],
+                reverse=True
+            )
+        ]
+        
+        # Total for the month
+        total_month = sum(daily_totals.values())
+        
+        # Days in month
+        import calendar
+        days_in_month = calendar.monthrange(year, month + 1)[1]
+        
+        return Response({
+            'success': True,
+            'analytics': {
+                'year': year,
+                'month': month,
+                'days_in_month': days_in_month,
+                'total_amount': total_month,
+                'daily_breakdown': daily_data,
+                'category_breakdown': category_data,
+                'average_per_day': total_month / days_in_month if days_in_month > 0 else 0
+            }
+        })
+
+
+class ExpenseMonthlyStatsView(views.APIView):
+    """
+    GET /api/expenses/monthly-stats/ - Get monthly statistics for expenses
+    
+    Query Parameters:
+    - year: Year to get stats for (YYYY), defaults to current year
+    
+    Returns monthly totals for the entire year
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        year = request.query_params.get('year')
+        
+        if not year:
+            year = datetime.date.today().year
+        else:
+            try:
+                year = int(year)
+            except (ValueError, TypeError):
+                return Response({
+                    'success': False,
+                    'error': 'Invalid year parameter'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get all expenses for the year
+        queryset = Expense.objects.filter(
+            user=request.user,
+            date__year=year
+        )
+        
+        # Group by month
+        monthly_data = {}
+        for month in range(1, 13):
+            monthly_data[month] = {
+                'month': month - 1,  # 0-11 for frontend
+                'month_name': datetime.date(year, month, 1).strftime('%B'),
+                'count': 0,
+                'total': 0
+            }
+        
+        for expense in queryset:
+            month = expense.date.month
+            monthly_data[month]['count'] += 1
+            monthly_data[month]['total'] += float(expense.total)
+        
+        # Convert to list
+        monthly_list = list(monthly_data.values())
+        
+        # Calculate year total
+        year_total = sum(month['total'] for month in monthly_list)
+        
+        return Response({
+            'success': True,
+            'year': year,
+            'total_amount': year_total,
+            'monthly_stats': monthly_list
+        })
+
+
+class ExpenseTopItemsView(views.APIView):
+    """
+    GET /api/expenses/top-items/ - Get top expenses by amount
+    
+    Query Parameters:
+    - limit: Number of items to return (default: 10)
+    - year: Filter by year (YYYY)
+    - month: Filter by month (0-11)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        queryset = Expense.objects.filter(user=request.user)
+        
+        # Apply filters
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+        limit = request.query_params.get('limit', 10)
+        
+        try:
+            limit = int(limit)
+        except (ValueError, TypeError):
+            limit = 10
+        
+        if year and month is not None:
+            try:
+                queryset = queryset.filter(
+                    date__year=int(year),
+                    date__month=int(month) + 1
+                )
+            except (ValueError, TypeError):
+                pass
+        
+        # Get expenses and sort by total
+        expenses = list(queryset)
+        expenses_with_total = [
+            {
+                'id': expense.id,
+                'date': expense.date.isoformat(),
+                'item': expense.item,
+                'category': expense.category,
+                'quantity': expense.quantity,
+                'price': float(expense.price),
+                'total': float(expense.total)
+            }
+            for expense in expenses
+        ]
+        
+        # Sort by total (descending)
+        sorted_expenses = sorted(
+            expenses_with_total,
+            key=lambda x: x['total'],
+            reverse=True
+        )[:limit]
+        
+        return Response({
+            'success': True,
+            'count': len(sorted_expenses),
+            'top_expenses': sorted_expenses
+        })
+
+

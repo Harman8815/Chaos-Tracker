@@ -82,9 +82,18 @@ class ApiClient {
         });
     }
 
+    patch<T>(endpoint: string, data: any, headers?: Record<string, string>) {
+        return this.request<T>(endpoint, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+            headers
+        });
+    }
+
     delete<T>(endpoint: string, headers?: Record<string, string>) {
         return this.request<T>(endpoint, { method: 'DELETE', headers });
     }
 }
 
 export const client = new ApiClient(API_BASE_URL);
+
