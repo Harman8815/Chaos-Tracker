@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Habit } from '../types';
 import Button from './ui/Button';
-import { v4 as uuidv4 } from 'uuid';
+import { pointsService } from '../services/pointsService';
 
 interface EditHabitsModalProps {
     habits: Habit[];
@@ -11,24 +11,54 @@ interface EditHabitsModalProps {
 
 const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, onClose }) => {
     const [localHabits, setLocalHabits] = useState<Habit[]>(JSON.parse(JSON.stringify(habits)));
+    const [deletedHabitIds, setDeletedHabitIds] = useState<string[]>([]);
 
     const handleHabitChange = (id: string, field: keyof Habit, value: string | number) => {
         setLocalHabits(prev => prev.map(h => h.id === id ? { ...h, [field]: value } : h));
     };
 
     const handleAddHabit = () => {
-        setLocalHabits(prev => [...prev, { id: uuidv4(), name: 'New Habit', target: 100, rangeMax: 10 }]);
+        const newHabit = { name: 'New Habit', target: 100, rangeMax: 10, id: `new-${Date.now()}` };
+        setLocalHabits(prev => [...prev, newHabit]);
     };
 
     const handleDeleteHabit = (id: string) => {
+        setDeletedHabitIds(prev => [...prev, id]);
         setLocalHabits(prev => prev.filter(h => h.id !== id));
     };
 
-    const handleSave = () => {
-        setHabits(localHabits);
-        onClose();
-    };
+    const handleSave = async () => {
+        try {
+            // Handle deletions
+            await Promise.all(deletedHabitIds.map(id => pointsService.deleteHabit(id)));
 
+            // Handle additions and updates
+            const promises = localHabits.map(habit => {
+                const { id, ...habitData } = habit;
+                if (id.startsWith('new-')) {
+                    return pointsService.createHabit(habitData);
+                } else {
+                    const originalHabit = habits.find(h => h.id === id);
+                    if (JSON.stringify(originalHabit) !== JSON.stringify(habit)) {
+                        return pointsService.updateHabit(id, habitData);
+                    }
+                }
+                return Promise.resolve(null);
+            });
+
+            const updatedHabits = await Promise.all(promises);
+
+            // Fetch the latest habits list
+            const freshHabits = await pointsService.getHabits();
+            setHabits(freshHabits);
+
+            onClose();
+        } catch (error) {
+            console.error("Error saving habits:", error);
+            // Optionally, show an error message to the user
+        }
+    };
+    
     return (
         <div 
             className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 animate-fade-in"

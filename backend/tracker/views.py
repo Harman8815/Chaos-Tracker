@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore
 from .serializers import (
     JournalEntrySerializer,
     QuoteSourceSerializer,
@@ -15,7 +15,10 @@ from .serializers import (
     SearchResultSerializer,
     AchievementSerializer,
     ExpenseSerializer,
-    GoalSerializer
+    GoalSerializer,
+    HabitSerializer,
+    ScoringRuleSerializer,
+    DailyHabitScoreSerializer
 )
 import datetime
 from datetime import timedelta
@@ -39,14 +42,48 @@ class SyncView(views.APIView):
         # Fetch all journal entries for the user
         journal_entries = JournalEntry.objects.filter(user=request.user)
         
-        # Build the data dictionary with journal entries
+        # Fetch all habits
+        habits = Habit.objects.filter(user=request.user)
+        habits_serializer = HabitSerializer(habits, many=True)
+        
+        # Fetch all scoring rules
+        rules = ScoringRule.objects.filter(user=request.user)
+        rules_serializer = ScoringRuleSerializer(rules, many=True)
+        
+        # Fetch all daily scores
+        daily_scores = DailyHabitScore.objects.filter(user=request.user)
+        
+        # Build the data dictionary
         data = {}
+        
+        # Helper to ensure date entry exists
+        def get_date_entry(date_str):
+            if date_str not in data:
+                data[date_str] = {
+                    'journal': '',
+                    'points': 0,
+                    'habitScores': {}
+                }
+            return data[date_str]
+            
+        # Process journal entries
         for entry in journal_entries:
             date_str = entry.date.strftime('%Y-%m-%d')
-            data[date_str] = {
-                'journal': entry.content,
-                'points': 0  # You can calculate points based on your logic
-            }
+            entry_data = get_date_entry(date_str)
+            entry_data['journal'] = entry.content
+            
+        # Process daily scores
+        for score in daily_scores:
+            date_str = score.date.strftime('%Y-%m-%d')
+            entry_data = get_date_entry(date_str)
+            entry_data['habitScores'][score.habit.id] = score.score
+            
+        # Calculate daily points
+        habit_count = habits.count()
+        if habit_count > 0:
+            for date_str, entry_data in data.items():
+                total_score = sum(entry_data['habitScores'].values())
+                entry_data['points'] = round(total_score / habit_count)
         
         # Fetch quote sources with quotes
         quote_sources = QuoteSource.objects.filter(user=request.user).prefetch_related(
@@ -96,8 +133,8 @@ class SyncView(views.APIView):
         return Response({
             'success': True,
             'data': data,
-            'habits': [],
-            'rules': [],
+            'habits': habits_serializer.data,
+            'rules': rules_serializer.data,
             'planner': {
                 'blocks': blocks_data,
                 'links': links_data,
@@ -577,10 +614,139 @@ class QuoteTagsView(views.APIView):
         })
 
 
+# ==================== POINTS VIEWS ====================
+
+class HabitListCreateView(generics.ListCreateAPIView):
+    serializer_class = HabitSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Habit.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, id=str(uuid.uuid4()))
+
+
+class HabitDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = HabitSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Habit.objects.filter(user=self.request.user)
+
+
+class ScoringRuleListCreateView(generics.ListCreateAPIView):
+    serializer_class = ScoringRuleSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ScoringRule.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, id=str(uuid.uuid4()))
+
+
+class ScoringRuleDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ScoringRuleSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return ScoringRule.objects.filter(user=self.request.user)
+
+
+class DailyHabitScoreView(views.APIView):
+    """
+    GET /api/points/scores/?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+    POST /api/points/scores/ - Update score for a habit on a date
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        queryset = DailyHabitScore.objects.filter(user=request.user)
+        
+        if start_date:
+            queryset = queryset.filter(date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date__lte=end_date)
+            
+        serializer = DailyHabitScoreSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        date = request.data.get('date')
+        habit_id = request.data.get('habit_id')
+        score = request.data.get('score')
+        
+        if not all([date, habit_id, score is not None]):
+            return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        habit = get_object_or_404(Habit, id=habit_id, user=request.user)
+        
+        score_obj, created = DailyHabitScore.objects.update_or_create(
+            user=request.user,
+            date=date,
+            habit=habit,
+            defaults={'score': score}
+        )
+        
+        serializer = DailyHabitScoreSerializer(score_obj)
+        return Response(serializer.data)
+
+
+class PointsDataView(views.APIView):
+    """
+    GET /api/points/data/
+    Returns all data required for the Points Tracker:
+    - Habits
+    - Scoring Rules
+    - Daily Scores (formatted as a date-keyed dictionary)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Fetch habits and rules
+        habits = Habit.objects.filter(user=request.user)
+        rules = ScoringRule.objects.filter(user=request.user)
+        
+        # Fetch daily scores
+        daily_scores = DailyHabitScore.objects.filter(user=request.user)
+        
+        # Build the daily data dictionary
+        daily_data = {}
+        
+        for score in daily_scores:
+            date_str = score.date.strftime('%Y-%m-%d')
+            if date_str not in daily_data:
+                daily_data[date_str] = {
+                    'habitScores': {},
+                    'points': 0,
+                    'journal': ''
+                }
+            daily_data[date_str]['habitScores'][score.habit.id] = score.score
+
+        # Calculate daily points average
+        habit_count = habits.count()
+        if habit_count > 0:
+            for date_str, data in daily_data.items():
+                total_score = sum(data['habitScores'].values())
+                data['points'] = round(total_score / habit_count)
+
+        return Response({
+            'habits': HabitSerializer(habits, many=True).data,
+            'rules': ScoringRuleSerializer(rules, many=True).data,
+            'dailyData': daily_data
+        })
+
+
 class PopulateDataView(views.APIView):
     """
     POST /api/populate-data/
-    Populate database with dummy data for journal and quotes.
+    Populate database with dummy data for journal, quotes, points, etc.
     """
     permission_classes = []  # Allow any for dev convenience
 
@@ -594,8 +760,61 @@ class PopulateDataView(views.APIView):
             if not user:
                 return Response({'error': 'No users found to assign data to'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # --- Populate Journal ---
+        # --- Populate Habits ---
+        habits_data = [
+            {'name': 'Exercise', 'target': 30, 'range_max': 60},
+            {'name': 'Reading', 'target': 20, 'range_max': 50},
+            {'name': 'Meditation', 'target': 10, 'range_max': 30},
+            {'name': 'Coding', 'target': 4, 'range_max': 8},
+            {'name': 'Water Intake', 'target': 8, 'range_max': 12},
+        ]
+        
+        created_habits = []
+        for h_data in habits_data:
+            habit, _ = Habit.objects.get_or_create(
+                user=user,
+                name=h_data['name'],
+                defaults={
+                    'id': str(uuid.uuid4()),
+                    'target': h_data['target'],
+                    'range_max': h_data['range_max']
+                }
+            )
+            created_habits.append(habit)
+
+        # --- Populate Scoring Rules ---
+        rules_data = [
+            {'activity': 'Gym', 'max_points': 10, 'scoring_logic': '1 point per 10 mins'},
+            {'activity': 'Reading', 'max_points': 5, 'scoring_logic': '1 point per 10 pages'},
+            {'activity': 'Coding', 'max_points': 15, 'scoring_logic': '2 points per hour'},
+        ]
+        
+        for r_data in rules_data:
+            ScoringRule.objects.get_or_create(
+                user=user,
+                activity=r_data['activity'],
+                defaults={
+                    'id': str(uuid.uuid4()),
+                    'max_points': r_data['max_points'],
+                    'scoring_logic': r_data['scoring_logic']
+                }
+            )
+
+        # --- Populate Daily Scores ---
         today = datetime.date.today()
+        for i in range(30): # Last 30 days
+            date = today - timedelta(days=i)
+            for habit in created_habits:
+                # Random score between 0 and range_max
+                score = random.randint(0, habit.range_max)
+                DailyHabitScore.objects.update_or_create(
+                    user=user,
+                    date=date,
+                    habit=habit,
+                    defaults={'score': score}
+                )
+
+        # --- Populate Journal ---
         journal_count = 0
         
         # Moods and dummy content

@@ -23,6 +23,12 @@ from .views import (
     GoalDetailView,
     PlannerDataView,
     PlannerBlockDetailView,
+    HabitListCreateView,
+    HabitDetailView,
+    ScoringRuleListCreateView,
+    ScoringRuleDetailView,
+    DailyHabitScoreView,
+    PointsDataView,
 )
 
 urlpatterns = [
@@ -74,4 +80,12 @@ urlpatterns = [
     # Planner endpoints
     path('planner/', PlannerDataView.as_view(), name='planner-data'),
     path('planner/blocks/<str:block_id>/', PlannerBlockDetailView.as_view(), name='planner-block-detail'),
+
+    # Points endpoints
+    path('points/habits/', HabitListCreateView.as_view(), name='habit-list-create'),
+    path('points/habits/<str:id>/', HabitDetailView.as_view(), name='habit-detail'),
+    path('points/rules/', ScoringRuleListCreateView.as_view(), name='scoring-rule-list-create'),
+    path('points/rules/<str:id>/', ScoringRuleDetailView.as_view(), name='scoring-rule-detail'),
+    path('points/scores/', DailyHabitScoreView.as_view(), name='daily-habit-score'),
+    path('points/data/', PointsDataView.as_view(), name='points-data'),
 ]

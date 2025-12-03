@@ -354,9 +354,8 @@ All expense endpoints require authentication. Include the session cookie or auth
 ## 📝 Notes
 
 ### Month Indexing
-- Frontend uses 0-11 (JavaScript standard): January = 0, December = 11
-- Backend converts to 1-12 (Python standard): January = 1, December = 12
-- Always pass month as 0-11 in API requests
+- The API expects the month to be passed as an integer from 0-11, where January is 0 and December is 11.
+- This is consistent with JavaScript's `getMonth()` method.
 
 ### Date Format
 - All dates should be in ISO format: `YYYY-MM-DD`

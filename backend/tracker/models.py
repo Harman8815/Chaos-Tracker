@@ -246,3 +246,71 @@ class PlannerSettings(models.Model):
     def __str__(self):
         return f"{self.user.username}'s planner settings"
 
+
+class Habit(models.Model):
+    """
+    Represents a habit to be tracked
+    """
+    id = models.CharField(max_length=100, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
+    name = models.CharField(max_length=255)
+    target = models.IntegerField(default=1)
+    range_max = models.IntegerField(default=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class ScoringRule(models.Model):
+    """
+    Represents a rule for scoring points
+    """
+    id = models.CharField(max_length=100, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scoring_rules')
+    activity = models.CharField(max_length=255)
+    max_points = models.IntegerField(default=10)
+    penalty_rule = models.CharField(max_length=255, blank=True)
+    zero_points_condition = models.CharField(max_length=255, blank=True)
+    scoring_logic = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return self.activity
+
+
+class DailyHabitScore(models.Model):
+    """
+    Stores the score for a specific habit on a specific date
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habit_scores')
+    date = models.DateField()
+    habit = models.ForeignKey(Habit, on_delete=models.CASCADE, related_name='scores')
+    score = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['user', 'date', 'habit']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.habit.name} - {self.date}: {self.score}"
+

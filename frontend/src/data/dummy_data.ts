@@ -19,12 +19,9 @@ const generatePastData = (): AllData => {
         DEFAULT_HABITS.forEach(habit => {
             habitScores[habit.id] = Math.floor(Math.random() * 11);
         });
-        
-        const totalPoints = Math.round(Object.values(habitScores).reduce((sum, score) => sum + score, 0) / DEFAULT_HABITS.length);
 
         data[dateString] = {
             habits,
-            points: totalPoints,
             journal: i % 5 === 0 ? `This is a journal entry for ${dateString}. Feeling pretty good about my progress.` : '',
             habitScores
         };

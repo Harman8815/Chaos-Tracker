@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScoringRule } from '../types';
 import Button from './ui/Button';
-import { v4 as uuidv4 } from 'uuid';
+import { pointsService } from '../services/pointsService';
 
 interface EditRulesModalProps {
     rules: ScoringRule[];
@@ -11,22 +11,51 @@ interface EditRulesModalProps {
 
 const EditRulesModal: React.FC<EditRulesModalProps> = ({ rules, setRules, onClose }) => {
     const [localRules, setLocalRules] = useState<ScoringRule[]>(JSON.parse(JSON.stringify(rules)));
+    const [deletedRuleIds, setDeletedRuleIds] = useState<string[]>([]);
 
     const handleRuleChange = (id: string, field: keyof ScoringRule, value: string | number) => {
         setLocalRules(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
     };
 
     const handleAddRule = () => {
-        setLocalRules(prev => [...prev, { id: uuidv4(), activity: 'New Activity', maxPoints: 10, penaltyRule: '', zeroPointsCondition: '', scoringLogic: '' }]);
+        setLocalRules(prev => [...prev, { id: `new-${Date.now()}`, activity: 'New Activity', maxPoints: 10, penaltyRule: '', zeroPointsCondition: '', scoringLogic: '' }]);
     };
 
     const handleDeleteRule = (id: string) => {
+        setDeletedRuleIds(prev => [...prev, id]);
         setLocalRules(prev => prev.filter(r => r.id !== id));
     };
 
-    const handleSave = () => {
-        setRules(localRules);
-        onClose();
+    const handleSave = async () => {
+        try {
+            // Handle deletions
+            await Promise.all(deletedRuleIds.map(id => pointsService.deleteRule(id)));
+
+            // Handle additions and updates
+            const promises = localRules.map(rule => {
+                const { id, ...ruleData } = rule;
+                if (id.startsWith('new-')) {
+                    return pointsService.createRule(ruleData);
+                } else {
+                    const originalRule = rules.find(r => r.id === id);
+                    if (JSON.stringify(originalRule) !== JSON.stringify(rule)) {
+                        return pointsService.updateRule(id, ruleData);
+                    }
+                }
+                return Promise.resolve(null);
+            });
+
+            await Promise.all(promises);
+
+            // Fetch the latest rules list
+            const freshRules = await pointsService.getRules();
+            setRules(freshRules);
+
+            onClose();
+        } catch (error) {
+            console.error("Error saving rules:", error);
+            // Optionally, show an error message to the user
+        }
     };
 
     return (

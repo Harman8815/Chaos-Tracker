@@ -36,7 +36,6 @@ export interface Habit {
 
 export interface DailyData {
     habits?: Habit[]; // This is legacy, can be removed if fully migrated
-    points: number;
     journal: string;
     habitScores?: { [habitId: string]: number };
 }

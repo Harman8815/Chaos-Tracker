@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore
 
 import base64
 
@@ -221,4 +221,36 @@ class PlannerDataSerializer(serializers.Serializer):
     blocks = PlannerBlockSerializer(many=True, required=False)
     links = PlannerLinkSerializer(many=True, required=False)
     transform = serializers.JSONField(required=False)
+
+
+# ==================== POINTS SERIALIZERS ====================
+
+class HabitSerializer(serializers.ModelSerializer):
+    rangeMax = serializers.IntegerField(source='range_max', required=False)
+
+    class Meta:
+        model = Habit
+        fields = ['id', 'name', 'target', 'rangeMax', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ScoringRuleSerializer(serializers.ModelSerializer):
+    maxPoints = serializers.IntegerField(source='max_points')
+    penaltyRule = serializers.CharField(source='penalty_rule', required=False, allow_blank=True)
+    zeroPointsCondition = serializers.CharField(source='zero_points_condition', required=False, allow_blank=True)
+    scoringLogic = serializers.CharField(source='scoring_logic', required=False, allow_blank=True)
+
+    class Meta:
+        model = ScoringRule
+        fields = ['id', 'activity', 'maxPoints', 'penaltyRule', 'zeroPointsCondition', 'scoringLogic', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class DailyHabitScoreSerializer(serializers.ModelSerializer):
+    habit_id = serializers.CharField(source='habit.id', read_only=True)
+    
+    class Meta:
+        model = DailyHabitScore
+        fields = ['date', 'habit_id', 'score', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
