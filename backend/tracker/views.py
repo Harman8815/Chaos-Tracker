@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal
 from .serializers import (
     JournalEntrySerializer,
     QuoteSourceSerializer,
@@ -12,12 +12,11 @@ from .serializers import (
     QuoteSourceCreateUpdateSerializer,
     QuoteSerializer,
     QuoteCreateUpdateSerializer,
-    QuoteCreateUpdateSerializer,
     SearchResultSerializer,
     AchievementSerializer,
-    ExpenseSerializer
+    ExpenseSerializer,
+    GoalSerializer
 )
-
 import datetime
 from datetime import timedelta
 import random
@@ -763,6 +762,69 @@ class PopulateDataView(views.APIView):
                 print(f"Failed to create expense: {e}")
                 continue
 
+        # --- Populate Goals ---
+        goal_templates = {
+            'daily': [
+                'Drink 8 glasses of water', 'Read 30 minutes', 'Exercise for 45 mins', 
+                'Meditate for 10 mins', 'No sugar', 'Walk 10,000 steps', 
+                'Write in journal', 'Learn 5 new words'
+            ],
+            'monthly': [
+                'Read 2 books', 'Save $500', 'Lose 2kg', 'Complete online course', 
+                'Visit a new place', 'Declutter house', 'Try a new recipe', 
+                'Call parents every week'
+            ],
+            'future': [
+                'Buy a house', 'Travel to Japan', 'Learn to play piano', 
+                'Run a marathon', 'Start a business', 'Retire early', 
+                'Learn Spanish', 'Write a book'
+            ]
+        }
+        
+        goal_tags = ['health', 'finance', 'learning', 'personal', 'career', 'travel', 'mindfulness']
+        goals_count = 0
+        
+        for category, templates in goal_templates.items():
+            # Create 5-10 goals per category
+            num_goals = random.randint(5, 10)
+            selected_goals = random.sample(templates, min(num_goals, len(templates)))
+            
+            for text in selected_goals:
+                status_choice = random.choices(
+                    ['active', 'completed', 'blocked', 'trashed'], 
+                    weights=[50, 30, 10, 10]
+                )[0]
+                
+                # Random tags (1-3 tags)
+                num_tags = random.randint(1, 3)
+                tags = random.sample(goal_tags, num_tags)
+                
+                created_at = today - timedelta(days=random.randint(1, 90))
+                completed_at = None
+                
+                if status_choice == 'completed':
+                    # Completed after created_at
+                    days_to_complete = random.randint(1, 30)
+                    completed_at = created_at + timedelta(days=days_to_complete)
+                    if completed_at > datetime.date.today():
+                        completed_at = datetime.date.today()
+
+                
+                try:
+                    Goal.objects.create(
+                        user=user,
+                        text=text,
+                        category=category,
+                        status=status_choice,
+                        tags=tags,
+                        created_at=created_at,
+                        completed_at=completed_at
+                    )
+                    goals_count += 1
+                except Exception as e:
+                    print(f"Failed to create goal: {e}")
+                    continue
+
         return Response({
             'success': True,
             'message': f'Successfully populated data for user {user.username}',
@@ -771,9 +833,11 @@ class PopulateDataView(views.APIView):
                 'quote_sources_created': source_count,
                 'quotes_created': quote_count,
                 'achievements_created': achievements_count,
-                'expenses_created': expenses_count
+                'expenses_created': expenses_count,
+                'goals_created': goals_count
             }
         }, status=status.HTTP_201_CREATED)
+
 
 
 # ==================== ACHIEVEMENT VIEWS ====================
@@ -1254,5 +1318,99 @@ class ExpenseTopItemsView(views.APIView):
             'count': len(sorted_expenses),
             'top_expenses': sorted_expenses
         })
+
+
+# ==================== GOAL VIEWS ====================
+
+class GoalListCreateView(generics.ListCreateAPIView):
+    """
+    GET /api/goals/ - List all goals for user
+    POST /api/goals/ - Create a new goal
+    
+    Query Parameters:
+    - category: Filter by category (daily, monthly, future)
+    - status: Filter by status (active, completed, blocked, trashed)
+    """
+    serializer_class = GoalSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Goal.objects.filter(user=self.request.user)
+        
+        # Filter by category
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+            
+        # Filter by status
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+            
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Group by category for easier frontend consumption if needed, 
+        # but standard list is usually better for REST.
+        # Let's stick to standard list response but maybe add stats?
+        
+        return Response({
+            'success': True,
+            'count': queryset.count(),
+            'goals': serializer.data
+        })
+
+
+class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET /api/goals/<id>/ - Get a specific goal
+    PUT/PATCH /api/goals/<id>/ - Update a goal
+    DELETE /api/goals/<id>/ - Delete a goal
+    """
+    serializer_class = GoalSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Goal.objects.filter(user=self.request.user)
+        
+    def perform_update(self, serializer):
+        # If status is changing to 'completed', set completed_at
+        if 'status' in serializer.validated_data and serializer.validated_data['status'] == 'completed':
+            serializer.save(completed_at=datetime.datetime.now())
+        # If status is changing from 'completed' to something else, clear completed_at
+        elif 'status' in serializer.validated_data and serializer.validated_data['status'] != 'completed':
+            serializer.save(completed_at=None)
+        else:
+            serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return Response({
+            'success': True,
+            'message': 'Goal updated successfully',
+            'goal': serializer.data
+        })
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({
+            'success': True,
+            'message': 'Goal deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
+
 
 

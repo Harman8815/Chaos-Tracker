@@ -136,11 +136,12 @@ export type GoalStatus = 'active' | 'completed' | 'trashed' | 'blocked';
 export type GoalCategory = 'daily' | 'monthly' | 'future';
 
 export interface Goal {
-    id: string;
+    id: number; // Changed from string to number to match backend
     text: string;
     status: GoalStatus;
-    createdAt: string;
-    completedAt?: string;
+    category: GoalCategory;
+    created_at: string;
+    completed_at?: string;
     tags?: string[];
 }
 

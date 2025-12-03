@@ -131,3 +131,38 @@ class Expense(models.Model):
     def total(self):
         """Calculate total cost (quantity * price)"""
         return self.quantity * self.price
+
+
+class Goal(models.Model):
+    GOAL_CATEGORIES = [
+        ('daily', 'Daily'),
+        ('monthly', 'Monthly'),
+        ('future', 'Future'),
+    ]
+    
+    GOAL_STATUS = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('blocked', 'Blocked'),
+        ('trashed', 'Trashed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals')
+    text = models.CharField(max_length=500)
+    category = models.CharField(max_length=20, choices=GOAL_CATEGORIES, default='daily')
+    status = models.CharField(max_length=20, choices=GOAL_STATUS, default='active')
+    tags = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'category']),
+            models.Index(fields=['user', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.category} - {self.text[:30]}"
+

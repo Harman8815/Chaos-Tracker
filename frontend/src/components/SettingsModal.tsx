@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-// FIX: Corrected import paths for context and types.
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { Theme, TimeFormat, Language } from '../types';
@@ -15,22 +14,22 @@ const SettingsModal: React.FC = () => {
     const handleTimeFormatChange = (format: TimeFormat) => {
         setSettings(s => ({ ...s, timeFormat: format }));
     };
-    
+
     const handleLanguageChange = (lang: Language) => {
-        setSettings(s => ({...s, language: lang }));
+        setSettings(s => ({ ...s, language: lang }));
     }
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 animate-fade-in"
             onClick={() => setIsSettingsModalOpen(false)}
         >
-            <div 
+            <div
                 className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-md"
                 onClick={e => e.stopPropagation()}
             >
                 <h2 className="text-2xl font-bold mb-6 text-text-primary">{t('settings')}</h2>
-                
+
                 {/* Theme Setting */}
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-text-secondary mb-2">{t('Theme')}</label>
@@ -51,7 +50,7 @@ const SettingsModal: React.FC = () => {
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-text-secondary mb-2">{t('Time Format')}</label>
                     <div className="flex space-x-2">
-                         {(['12h', '24h'] as TimeFormat[]).map(format => (
+                        {(['12h', '24h'] as TimeFormat[]).map(format => (
                             <button
                                 key={format}
                                 onClick={() => handleTimeFormatChange(format)}
@@ -64,7 +63,7 @@ const SettingsModal: React.FC = () => {
                 </div>
 
                 {/* Language Setting */}
-                 <div className="mb-8">
+                <div className="mb-8">
                     <label className="block text-sm font-medium text-text-secondary mb-2">{t('Language (UI Only)')}</label>
                     <select
                         value={settings.language}
@@ -77,13 +76,36 @@ const SettingsModal: React.FC = () => {
                     </select>
                 </div>
 
+                {/* Debug Actions */}
+                <div className="mb-6 pt-4 border-t border-border">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">Debug Actions</label>
+                    <button
+                        onClick={async () => {
+                            if (confirm('This will generate dummy data for expenses, goals, etc. Continue?')) {
+                                try {
+                                    const { client } = await import('../api/client');
+                                    await client.get('/populate-data/');
+                                    alert('Data populated successfully! Please refresh the page.');
+                                    window.location.reload();
+                                } catch (error) {
+                                    alert('Failed to populate data.');
+                                    console.error(error);
+                                }
+                            }
+                        }}
+                        className="w-full py-2 rounded-md text-sm font-semibold text-accent-primary bg-accent-primary/10 hover:bg-accent-primary/20 transition-colors"
+                    >
+                        Populate Dummy Data
+                    </button>
+                </div>
+
                 <button
                     onClick={() => setIsSettingsModalOpen(false)}
                     className="w-full py-2 rounded-md font-semibold text-white bg-accent-primary hover:bg-accent-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary mb-4"
                 >
                     {t('Close')}
                 </button>
-                
+
                 <div className="pt-4 border-t border-border">
                     <button
                         onClick={() => {

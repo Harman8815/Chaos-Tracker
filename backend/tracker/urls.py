@@ -19,6 +19,8 @@ from .views import (
     ExpenseAnalyticsView,
     ExpenseMonthlyStatsView,
     ExpenseTopItemsView,
+    GoalListCreateView,
+    GoalDetailView,
 )
 
 urlpatterns = [
@@ -62,4 +64,8 @@ urlpatterns = [
     # Expense endpoints - CRUD (MUST come AFTER specific routes)
     path('expenses/', ExpenseListCreateView.as_view(), name='expense-list-create'),
     path('expenses/<int:id>/', ExpenseDetailView.as_view(), name='expense-detail'),
+
+    # Goal endpoints
+    path('goals/', GoalListCreateView.as_view(), name='goal-list-create'),
+    path('goals/<int:id>/', GoalDetailView.as_view(), name='goal-detail'),
 ]

@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal
+
 import base64
 
 
@@ -167,4 +168,12 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model = Expense
         fields = ['id', 'date', 'item', 'category', 'quantity', 'price', 'total', 'created_at', 'updated_at']
         read_only_fields = ['id', 'total', 'created_at', 'updated_at']
+
+
+class GoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = ['id', 'text', 'category', 'status', 'tags', 'created_at', 'updated_at', 'completed_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
 
