@@ -166,3 +166,83 @@ class Goal(models.Model):
     def __str__(self):
         return f"{self.category} - {self.text[:30]}"
 
+
+class PlannerBlock(models.Model):
+    """
+    Represents a draggable block in the planner canvas
+    """
+    id = models.CharField(max_length=100, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='planner_blocks')
+    title = models.CharField(max_length=255, default='New Block')
+    x = models.FloatField(default=0)
+    y = models.FloatField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} - ({self.x}, {self.y})"
+
+
+class PlannerTask(models.Model):
+    """
+    Individual task within a planner block
+    """
+    id = models.CharField(max_length=100, primary_key=True)
+    block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='tasks')
+    text = models.CharField(max_length=500)
+    completed = models.BooleanField(default=False)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['block', 'order']),
+        ]
+
+    def __str__(self):
+        return f"{self.text[:30]} - {'✓' if self.completed else '○'}"
+
+
+class PlannerLink(models.Model):
+    """
+    Represents a connection between two planner blocks
+    """
+    id = models.CharField(max_length=100, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='planner_links')
+    from_block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='outgoing_links')
+    to_block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='incoming_links')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.from_block.title} → {self.to_block.title}"
+
+
+class PlannerSettings(models.Model):
+    """
+    Stores user-specific planner settings like canvas transform
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='planner_settings')
+    transform = models.JSONField(default=dict)  # {scale, panX, panY}
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Planner settings'
+
+    def __str__(self):
+        return f"{self.user.username}'s planner settings"
+

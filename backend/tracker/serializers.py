@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings
 
 import base64
 
@@ -176,4 +176,49 @@ class GoalSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'category', 'status', 'tags', 'created_at', 'updated_at', 'completed_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+
+# ==================== PLANNER SERIALIZERS ====================
+
+class PlannerTaskSerializer(serializers.Serializer):
+    """
+    Serializer for individual tasks within a planner block
+    """
+    id = serializers.CharField(max_length=100)
+    text = serializers.CharField(max_length=500)
+    completed = serializers.BooleanField(default=False)
+
+
+class PlannerBlockSerializer(serializers.Serializer):
+    """
+    Serializer for planner blocks with nested tasks
+    """
+    id = serializers.CharField(max_length=100)
+    title = serializers.CharField(max_length=255)
+    x = serializers.FloatField()
+    y = serializers.FloatField()
+    tasks = PlannerTaskSerializer(many=True, required=False)
+
+
+class PlannerLinkSerializer(serializers.Serializer):
+    """
+    Serializer for links between planner blocks
+    """
+    id = serializers.CharField(max_length=100)
+    from_field = serializers.CharField(max_length=100, source='from')
+    to = serializers.CharField(max_length=100)
+
+    def to_representation(self, instance):
+        """Custom representation to use 'from' instead of 'from_field'"""
+        ret = super().to_representation(instance)
+        ret['from'] = ret.pop('from_field')
+        return ret
+
+
+class PlannerDataSerializer(serializers.Serializer):
+    """
+    Complete planner data structure
+    """
+    blocks = PlannerBlockSerializer(many=True, required=False)
+    links = PlannerLinkSerializer(many=True, required=False)
+    transform = serializers.JSONField(required=False)
 

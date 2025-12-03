@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings
 from .serializers import (
     JournalEntrySerializer,
     QuoteSourceSerializer,
@@ -54,12 +54,55 @@ class SyncView(views.APIView):
         )
         quotes_serializer = QuoteSourceSerializer(quote_sources, many=True)
         
+        # Fetch planner data
+        planner_blocks = PlannerBlock.objects.filter(user=request.user).prefetch_related('tasks')
+        blocks_data = []
+        
+        for block in planner_blocks:
+            tasks_data = [
+                {
+                    'id': task.id,
+                    'text': task.text,
+                    'completed': task.completed
+                }
+                for task in block.tasks.all()
+            ]
+            
+            blocks_data.append({
+                'id': block.id,
+                'title': block.title,
+                'x': block.x,
+                'y': block.y,
+                'tasks': tasks_data
+            })
+        
+        # Get planner links
+        planner_links = PlannerLink.objects.filter(user=request.user)
+        links_data = [
+            {
+                'id': link.id,
+                'from': link.from_block_id,
+                'to': link.to_block_id
+            }
+            for link in planner_links
+        ]
+        
+        # Get planner transform settings
+        planner_settings, _ = PlannerSettings.objects.get_or_create(
+            user=request.user,
+            defaults={'transform': {'scale': 1, 'panX': 0, 'panY': 0}}
+        )
+        
         return Response({
             'success': True,
             'data': data,
             'habits': [],
             'rules': [],
-            'planner': {},
+            'planner': {
+                'blocks': blocks_data,
+                'links': links_data,
+                'transform': planner_settings.transform
+            },
             'goals': {},
             'quotes': quotes_serializer.data,
             'achievements': AchievementSerializer(Achievement.objects.filter(user=request.user), many=True).data,
@@ -1413,4 +1456,279 @@ class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
         }, status=status.HTTP_204_NO_CONTENT)
 
 
+# ==================== PLANNER VIEWS ====================
+
+class PlannerDataView(views.APIView):
+    """
+    GET /api/planner/ - Get all planner data for the user
+    PUT /api/planner/ - Replace all planner data
+    PATCH /api/planner/ - Partially update planner data
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Retrieve all planner data for the authenticated user
+        """
+        user = request.user
+        
+        # Get all blocks with their tasks
+        blocks = PlannerBlock.objects.filter(user=user).prefetch_related('tasks')
+        blocks_data = []
+        
+        for block in blocks:
+            tasks_data = [
+                {
+                    'id': task.id,
+                    'text': task.text,
+                    'completed': task.completed
+                }
+                for task in block.tasks.all()
+            ]
+            
+            blocks_data.append({
+                'id': block.id,
+                'title': block.title,
+                'x': block.x,
+                'y': block.y,
+                'tasks': tasks_data
+            })
+        
+        # Get all links
+        links = PlannerLink.objects.filter(user=user)
+        links_data = [
+            {
+                'id': link.id,
+                'from': link.from_block_id,
+                'to': link.to_block_id
+            }
+            for link in links
+        ]
+        
+        # Get transform settings
+        settings, _ = PlannerSettings.objects.get_or_create(
+            user=user,
+            defaults={'transform': {'scale': 1, 'panX': 0, 'panY': 0}}
+        )
+        
+        return Response({
+            'success': True,
+            'planner': {
+                'blocks': blocks_data,
+                'links': links_data,
+                'transform': settings.transform
+            }
+        })
+
+    def put(self, request):
+        """
+        Replace all planner data (full update)
+        """
+        user = request.user
+        data = request.data
+        
+        # Delete existing data
+        PlannerBlock.objects.filter(user=user).delete()
+        PlannerLink.objects.filter(user=user).delete()
+        
+        # Create new blocks
+        blocks_data = data.get('blocks', [])
+        for block_data in blocks_data:
+            block = PlannerBlock.objects.create(
+                id=block_data['id'],
+                user=user,
+                title=block_data.get('title', 'New Block'),
+                x=block_data.get('x', 0),
+                y=block_data.get('y', 0)
+            )
+            
+            # Create tasks for this block
+            tasks_data = block_data.get('tasks', [])
+            for idx, task_data in enumerate(tasks_data):
+                PlannerTask.objects.create(
+                    id=task_data['id'],
+                    block=block,
+                    text=task_data['text'],
+                    completed=task_data.get('completed', False),
+                    order=idx
+                )
+        
+        # Create new links
+        links_data = data.get('links', [])
+        for link_data in links_data:
+            PlannerLink.objects.create(
+                id=link_data['id'],
+                user=user,
+                from_block_id=link_data['from'],
+                to_block_id=link_data['to']
+            )
+        
+        # Update transform
+        transform_data = data.get('transform', {'scale': 1, 'panX': 0, 'panY': 0})
+        settings, _ = PlannerSettings.objects.update_or_create(
+            user=user,
+            defaults={'transform': transform_data}
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Planner data updated successfully'
+        })
+
+    def patch(self, request):
+        """
+        Partially update planner data
+        """
+        user = request.user
+        data = request.data
+        
+        # Update blocks if provided
+        if 'blocks' in data:
+            blocks_data = data['blocks']
+            for block_data in blocks_data:
+                block_id = block_data['id']
+                
+                # Update or create block
+                block, created = PlannerBlock.objects.update_or_create(
+                    id=block_id,
+                    user=user,
+                    defaults={
+                        'title': block_data.get('title', 'New Block'),
+                        'x': block_data.get('x', 0),
+                        'y': block_data.get('y', 0)
+                    }
+                )
+                
+                # Update tasks if provided
+                if 'tasks' in block_data:
+                    # Delete existing tasks for this block
+                    PlannerTask.objects.filter(block=block).delete()
+                    
+                    # Create new tasks
+                    tasks_data = block_data['tasks']
+                    for idx, task_data in enumerate(tasks_data):
+                        PlannerTask.objects.create(
+                            id=task_data['id'],
+                            block=block,
+                            text=task_data['text'],
+                            completed=task_data.get('completed', False),
+                            order=idx
+                        )
+        
+        # Update links if provided
+        if 'links' in data:
+            # Delete existing links
+            PlannerLink.objects.filter(user=user).delete()
+            
+            # Create new links
+            links_data = data['links']
+            for link_data in links_data:
+                PlannerLink.objects.create(
+                    id=link_data['id'],
+                    user=user,
+                    from_block_id=link_data['from'],
+                    to_block_id=link_data['to']
+                )
+        
+        # Update transform if provided
+        if 'transform' in data:
+            settings, _ = PlannerSettings.objects.update_or_create(
+                user=user,
+                defaults={'transform': data['transform']}
+            )
+        
+        return Response({
+            'success': True,
+            'message': 'Planner data updated successfully'
+        })
+
+
+class PlannerBlockDetailView(views.APIView):
+    """
+    GET /api/planner/blocks/<block_id>/ - Get a specific block
+    PUT /api/planner/blocks/<block_id>/ - Update a specific block
+    DELETE /api/planner/blocks/<block_id>/ - Delete a specific block
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, block_id):
+        return get_object_or_404(
+            PlannerBlock.objects.prefetch_related('tasks'),
+            id=block_id,
+            user=self.request.user
+        )
+
+    def get(self, request, block_id):
+        """Get a specific block with its tasks"""
+        block = self.get_object(block_id)
+        
+        tasks_data = [
+            {
+                'id': task.id,
+                'text': task.text,
+                'completed': task.completed
+            }
+            for task in block.tasks.all()
+        ]
+        
+        return Response({
+            'success': True,
+            'block': {
+                'id': block.id,
+                'title': block.title,
+                'x': block.x,
+                'y': block.y,
+                'tasks': tasks_data
+            }
+        })
+
+    def put(self, request, block_id):
+        """Update a specific block"""
+        block = self.get_object(block_id)
+        data = request.data
+        
+        # Update block fields
+        block.title = data.get('title', block.title)
+        block.x = data.get('x', block.x)
+        block.y = data.get('y', block.y)
+        block.save()
+        
+        # Update tasks if provided
+        if 'tasks' in data:
+            # Delete existing tasks
+            PlannerTask.objects.filter(block=block).delete()
+            
+            # Create new tasks
+            tasks_data = data['tasks']
+            for idx, task_data in enumerate(tasks_data):
+                PlannerTask.objects.create(
+                    id=task_data['id'],
+                    block=block,
+                    text=task_data['text'],
+                    completed=task_data.get('completed', False),
+                    order=idx
+                )
+        
+        return Response({
+            'success': True,
+            'message': 'Block updated successfully'
+        })
+
+    def delete(self, request, block_id):
+        """Delete a specific block and its associated links"""
+        block = self.get_object(block_id)
+        
+        # Delete associated links
+        PlannerLink.objects.filter(
+            Q(from_block=block) | Q(to_block=block),
+            user=request.user
+        ).delete()
+        
+        # Delete the block (tasks will be cascade deleted)
+        block.delete()
+        
+        return Response({
+            'success': True,
+            'message': 'Block deleted successfully'
+        }, status=status.HTTP_204_NO_CONTENT)
 

@@ -21,6 +21,8 @@ from .views import (
     ExpenseTopItemsView,
     GoalListCreateView,
     GoalDetailView,
+    PlannerDataView,
+    PlannerBlockDetailView,
 )
 
 urlpatterns = [
@@ -68,4 +70,8 @@ urlpatterns = [
     # Goal endpoints
     path('goals/', GoalListCreateView.as_view(), name='goal-list-create'),
     path('goals/<int:id>/', GoalDetailView.as_view(), name='goal-detail'),
+
+    # Planner endpoints
+    path('planner/', PlannerDataView.as_view(), name='planner-data'),
+    path('planner/blocks/<str:block_id>/', PlannerBlockDetailView.as_view(), name='planner-block-detail'),
 ]
