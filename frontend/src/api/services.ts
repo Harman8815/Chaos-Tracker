@@ -25,10 +25,38 @@ export interface AppDataResponse {
  */
 export const fetchAppData = async (): Promise<AppDataResponse | null> => {
     try {
-        // Simulating a consolidated sync endpoint.
-        // In a real scenario, this might be Promise.all() calls to multiple endpoints.
-        const response = await client.get<AppDataResponse>(ENDPOINTS.SYNC);
-        return response;
+        // Replace the single /sync call with parallel requests to existing endpoints.
+        // Use Promise.allSettled so partial data can be returned if some endpoints fail.
+        const [pointsRes, plannerRes, goalsRes, expensesRes, quotesRes, achievementsRes] = await Promise.allSettled([
+            client.get<any>('/points/data/'),
+            client.get<any>('/planner/'),
+            client.get<any>('/goals/'),
+            client.get<any>('/expenses/'),
+            client.get<any>('/quotes/sources/'),
+            client.get<any>('/achievements/'),
+        ]);
+
+        const aggregated: AppDataResponse = {};
+
+        if (pointsRes.status === 'fulfilled' && pointsRes.value) {
+            const pd = pointsRes.value as any;
+            if (pd.data) aggregated.data = pd.data as any;
+            if (pd.habits) aggregated.habits = pd.habits as any;
+            if (pd.rules) aggregated.rules = pd.rules as any;
+            // Some backends return combined object shapes; also accept `dailyData` or `points` naming
+            if (!aggregated.data && pd.dailyData) aggregated.data = pd.dailyData as any;
+        }
+
+        if (plannerRes.status === 'fulfilled') aggregated.planner = plannerRes.value as any;
+        if (goalsRes.status === 'fulfilled') aggregated.goals = goalsRes.value as any;
+        if (expensesRes.status === 'fulfilled') aggregated.expenses = expensesRes.value as any;
+        if (quotesRes.status === 'fulfilled') aggregated.quotes = quotesRes.value as any;
+        if (achievementsRes.status === 'fulfilled') aggregated.achievements = achievementsRes.value as any;
+
+        // Note: backend currently doesn't expose a user profile endpoint under tracker URLs,
+        // so we don't attempt to fetch `userProfile` here to avoid calling non-existent endpoints.
+
+        return aggregated;
     } catch (error) {
         console.warn('API unavailable or failed. Falling back to local storage data.', error);
         return null;

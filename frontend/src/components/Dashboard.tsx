@@ -3,6 +3,7 @@ import React, { useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { getAIPoweredSummary } from '../services/geminiService';
+import { dashboardService } from '../services/dashboardService';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import { Habit, AllData, DailyData } from '../types';
@@ -533,6 +534,9 @@ const Dashboard: React.FC = () => {
     const { settings, t } = useContext(SettingsContext);
     const [summary, setSummary] = useState('Generating reflection...');
     const [isLoading, setIsLoading] = useState(true);
+    const [serverStreaks, setServerStreaks] = useState<any[] | null>(null);
+    const [todayDistributionServer, setTodayDistributionServer] = useState<any | null>(null);
+    const [habitPerf7Server, setHabitPerf7Server] = useState<any[] | null>(null);
     const [time, setTime] = useState(new Date());
     const [selectedTrend, setSelectedTrend] = useState('total');
 
@@ -551,7 +555,37 @@ const Dashboard: React.FC = () => {
 
     useEffect(handleGenerateSummary, [data, habits]);
 
+    // Fetch analytics from server and keep as optional override
+    useEffect(() => {
+        let mounted = true;
+
+        const fetchAnalytics = async () => {
+            try {
+                const streaksRes = await dashboardService.getStreaks();
+                if (mounted && streaksRes?.streaks) setServerStreaks(streaksRes.streaks.map((s: any) => ({ name: s.name, streak: s.current_streak })));
+
+                const distRes = await dashboardService.getTodayDistribution();
+                // backend now returns per-habit distribution under `habits`
+                if (mounted && distRes?.habits) setTodayDistributionServer(distRes.habits);
+
+                const perfRes = await dashboardService.getHabitPerformance7();
+                if (mounted && perfRes?.data) setHabitPerf7Server(perfRes.data);
+            } catch (e) {
+                // Non-fatal - keep client-side computed values
+                console.debug('Analytics endpoints unavailable or failed', e);
+            }
+        };
+
+        fetchAnalytics();
+        return () => { mounted = false };
+    }, [habits]);
+
     const todayPieData = useMemo(() => {
+        // Prefer server-provided distribution (array of { habit_id, name, score, percentage })
+        if (todayDistributionServer && Array.isArray(todayDistributionServer) && todayDistributionServer.length) {
+            return todayDistributionServer.map((h: any) => ({ name: h.name, value: h.score }));
+        }
+
         const todayScores = data[today]?.habitScores || {};
         return habits
             .map(habit => ({
@@ -559,7 +593,7 @@ const Dashboard: React.FC = () => {
                 value: todayScores[habit.id] || 0,
             }))
             .filter(d => d.value > 0);
-    }, [data, today, habits]);
+    }, [data, today, habits, todayDistributionServer]);
 
     const radarData = useMemo(() => {
         const last7Days = Object.entries(data)
@@ -629,12 +663,15 @@ const Dashboard: React.FC = () => {
     }, [data, habits, today]);
 
     const habitStreaks = useMemo(() => {
+        if (serverStreaks && serverStreaks.length > 0) {
+            return serverStreaks.sort((a: any, b: any) => b.streak - a.streak);
+        }
         const streaks = calculateStreaks(data, habits);
         return habits.map(h => ({
             name: h.name,
             streak: streaks[h.id] || 0,
         })).sort((a, b) => b.streak - a.streak);
-    }, [data, habits]);
+    }, [data, habits, serverStreaks]);
 
     const monthlyAverages = useMemo(() => {
         const currentDate = new Date(today);

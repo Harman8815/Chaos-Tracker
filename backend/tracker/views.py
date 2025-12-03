@@ -743,6 +743,186 @@ class PointsDataView(views.APIView):
         })
 
 
+class PointsAnalyticsStreaksView(views.APIView):
+    """
+    GET /api/points/analytics/streaks/ - Returns current and best streaks per habit
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        habits = Habit.objects.filter(user=request.user)
+        results = []
+
+        for habit in habits:
+            # Get all scores for this habit ordered by date
+            scores = DailyHabitScore.objects.filter(user=request.user, habit=habit).order_by('date')
+
+            # Compute best streak and current streak
+            best = 0
+            current = 0
+            prev_date = None
+            running = 0
+
+            for s in scores:
+                done = (s.score or 0) > 0
+                if done:
+                    if prev_date is None or (s.date - prev_date).days == 1:
+                        running += 1
+                    else:
+                        running = 1
+                else:
+                    running = 0
+
+                if running > best:
+                    best = running
+
+                prev_date = s.date
+
+            # current streak: look backwards from today
+            current = 0
+            today = datetime.date.today()
+            day_cursor = today
+            while True:
+                score_obj = DailyHabitScore.objects.filter(user=request.user, habit=habit, date=day_cursor).first()
+                if score_obj and (score_obj.score or 0) > 0:
+                    current += 1
+                    day_cursor = day_cursor - timedelta(days=1)
+                else:
+                    break
+
+            results.append({
+                'habit_id': habit.id,
+                'name': habit.name,
+                'current_streak': current,
+                'best_streak': best
+            })
+
+        return Response({'success': True, 'streaks': results})
+
+
+class PointsAnalyticsTodayDistributionView(views.APIView):
+    """
+    GET /api/points/analytics/today-distribution/ - Returns distribution of scores for today
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = datetime.date.today()
+
+        habits = list(Habit.objects.filter(user=request.user))
+        # Build per-habit score list
+        habit_list = []
+        total_score = 0
+
+        for habit in habits:
+            score_obj = DailyHabitScore.objects.filter(user=request.user, habit=habit, date=today).first()
+            score_val = int(score_obj.score) if score_obj and score_obj.score is not None else 0
+            habit_list.append({
+                'habit_id': habit.id,
+                'name': habit.name,
+                'score': score_val
+            })
+            total_score += score_val
+
+        # Compute percentages
+        for h in habit_list:
+            h['percentage'] = round((h['score'] / total_score) * 100, 1) if total_score > 0 else 0
+
+        return Response({'success': True, 'date': today.isoformat(), 'total': total_score, 'habits': habit_list})
+
+
+class PointsAnalyticsHabitPerformance7View(views.APIView):
+    """
+    GET /api/points/analytics/habit-performance/7/ - Returns last 7 days performance per habit
+    Optional query params: habit_id (to filter a single habit)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        habit_id = request.query_params.get('habit_id')
+        end_date = datetime.date.today()
+        start_date = end_date - timedelta(days=6)  # last 7 days inclusive
+
+        habits_qs = Habit.objects.filter(user=request.user)
+        if habit_id:
+            habits_qs = habits_qs.filter(id=habit_id)
+
+        results = []
+        date_list = [(start_date + timedelta(days=i)).isoformat() for i in range(7)]
+
+        for habit in habits_qs:
+            scores = DailyHabitScore.objects.filter(user=request.user, habit=habit, date__range=(start_date, end_date))
+            score_map = {s.date.isoformat(): s.score for s in scores}
+            series = []
+            for d in date_list:
+                series.append({'date': d, 'score': score_map.get(d, 0)})
+
+            total = sum(item['score'] for item in series)
+            avg = total / 7
+
+            results.append({
+                'habit_id': habit.id,
+                'name': habit.name,
+                'series': series,
+                'total': total,
+                'average': avg
+            })
+
+        return Response({'success': True, 'start_date': start_date.isoformat(), 'end_date': end_date.isoformat(), 'data': results})
+
+
+class PointsAnalyticsHabitTrend30View(views.APIView):
+    """
+    GET /api/points/analytics/habit-trend/30/ - Returns 30-day trend for a habit or all habits
+    Query params:
+      - habit_id (optional) : filter for a single habit
+      - start_date (optional) and end_date (optional) : override date range
+      - min_score (optional) : filter out scores below this value
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        habit_id = request.query_params.get('habit_id')
+        min_score = request.query_params.get('min_score')
+        start_date_param = request.query_params.get('start_date')
+        end_date_param = request.query_params.get('end_date')
+
+        end_date = datetime.date.today() if not end_date_param else datetime.datetime.strptime(end_date_param, '%Y-%m-%d').date()
+        start_date = end_date - timedelta(days=29) if not start_date_param else datetime.datetime.strptime(start_date_param, '%Y-%m-%d').date()
+
+        try:
+            min_score_val = int(min_score) if min_score is not None else None
+        except ValueError:
+            min_score_val = None
+
+        habits_qs = Habit.objects.filter(user=request.user)
+        if habit_id:
+            habits_qs = habits_qs.filter(id=habit_id)
+
+        date_list = []
+        delta = (end_date - start_date).days
+        for i in range(delta + 1):
+            date_list.append((start_date + timedelta(days=i)).isoformat())
+
+        results = []
+
+        for habit in habits_qs:
+            scores = DailyHabitScore.objects.filter(user=request.user, habit=habit, date__range=(start_date, end_date))
+            if min_score_val is not None:
+                scores = scores.filter(score__gte=min_score_val)
+            score_map = {s.date.isoformat(): s.score for s in scores}
+
+            series = [{'date': d, 'score': score_map.get(d, 0)} for d in date_list]
+
+            results.append({
+                'habit_id': habit.id,
+                'name': habit.name,
+                'series': series
+            })
+
+        return Response({'success': True, 'start_date': start_date.isoformat(), 'end_date': end_date.isoformat(), 'data': results})
+
+
 class PopulateDataView(views.APIView):
     """
     POST /api/populate-data/

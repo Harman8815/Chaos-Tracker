@@ -29,6 +29,10 @@ from .views import (
     ScoringRuleDetailView,
     DailyHabitScoreView,
     PointsDataView,
+    PointsAnalyticsStreaksView,
+    PointsAnalyticsTodayDistributionView,
+    PointsAnalyticsHabitPerformance7View,
+    PointsAnalyticsHabitTrend30View,
 )
 
 urlpatterns = [
@@ -88,4 +92,9 @@ urlpatterns = [
     path('points/rules/<str:id>/', ScoringRuleDetailView.as_view(), name='scoring-rule-detail'),
     path('points/scores/', DailyHabitScoreView.as_view(), name='daily-habit-score'),
     path('points/data/', PointsDataView.as_view(), name='points-data'),
+    # Points analytics
+    path('points/analytics/streaks/', PointsAnalyticsStreaksView.as_view(), name='points-analytics-streaks'),
+    path('points/analytics/today-distribution/', PointsAnalyticsTodayDistributionView.as_view(), name='points-analytics-today-distribution'),
+    path('points/analytics/habit-performance/7/', PointsAnalyticsHabitPerformance7View.as_view(), name='points-analytics-habit-performance-7'),
+    path('points/analytics/habit-trend/30/', PointsAnalyticsHabitTrend30View.as_view(), name='points-analytics-habit-trend-30'),
 ]
