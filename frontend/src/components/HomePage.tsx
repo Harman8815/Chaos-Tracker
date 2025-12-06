@@ -1,87 +1,77 @@
-
-import React, { useRef, useLayoutEffect } from 'react';
-import { gsap } from 'gsap';
+import React, { useRef, useEffect } from "react";
+import * as THREE from "three";
+import CLOUDS from "vanta/dist/vanta.clouds.min";
+import { motion } from "framer-motion";
 
 const HomePage: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const titleRef = useRef<HTMLHeadingElement>(null);
-    const subtitleRef = useRef<HTMLParagraphElement>(null);
+    const vantaRef = useRef<any>(null);
 
-    useLayoutEffect(() => {
-        const ctx = gsap.context(() => {
-            // Animate background decoration
-            gsap.to('.decoration', {
-                y: -20,
-                rotation: 5,
-                duration: 3,
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut",
-                stagger: {
-                    amount: 1,
-                    from: "random"
-                }
+    useEffect(() => {
+        if (!vantaRef.current && containerRef.current) {
+            vantaRef.current = CLOUDS({
+                el: containerRef.current,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.0,
+                minWidth: 200.0,
+
+                // ⭐ FIXED COLORS (all numeric hex)
+                skyColor: 0x0A0F1F,
+                cloudColor: 0x4C5B70,
+                cloudShadowColor: 0x1B2330,
+                sunColor: 0x6F7FA6,
+                sunGlareColor: 0xAAB8FF,
+                sunlightColor: 0x8FA3FF,
+
+                THREE: THREE
             });
+        }
 
-            const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-            tl.fromTo(titleRef.current, 
-                { y: 100, opacity: 0, skewY: 7 },
-                { y: 0, opacity: 1, skewY: 0, duration: 1.2 }
-            )
-            .fromTo(subtitleRef.current,
-                { y: 20, opacity: 0 },
-                { y: 0, opacity: 1, duration: 0.8 },
-                "-=0.8"
-            )
-            .fromTo('.decoration', 
-                { scale: 0, opacity: 0 },
-                { scale: 1, opacity: 0.2, duration: 1.5, stagger: 0.2 },
-                "-=1"
-            );
-
-        }, containerRef);
-
-        return () => ctx.revert();
+        // return () => {
+        //     if (vantaRef.current) {
+        //         vantaRef.current.destroy();
+        //         vantaRef.current = null;
+        //     }
+        // };
     }, []);
 
     return (
-        <div ref={containerRef} className="w-full h-full relative flex items-center justify-center overflow-hidden">
-            <div 
-                className="absolute inset-0 z-0" 
-                style={{ 
-                    background: 'radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, var(--color-background) 70%)' 
-                }}
+        <>
+            {/* Background Layer - Fixed to cover entire viewport behind sidebar */}
+            <div
+                ref={containerRef}
+                className="fixed inset-0 w-screen h-screen z-0 pointer-events-none"
+                style={{ position: 'fixed', top: 0, left: 0 }}
             />
-            
-            {/* Decorative Elements */}
-            <div className="decoration absolute top-1/4 left-1/4 w-32 h-32 bg-accent-primary rounded-full blur-3xl opacity-0" />
-            <div className="decoration absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-600 rounded-full blur-3xl opacity-0" />
-            <div className="decoration absolute top-1/2 left-2/3 w-24 h-24 bg-purple-500 rounded-full blur-2xl opacity-0" />
-            <div className="decoration absolute top-[10%] right-[10%] w-40 h-40 bg-indigo-600 rounded-full blur-[60px] opacity-0" />
 
-            <div className="relative z-10 flex flex-col items-center justify-center text-center text-white p-4">
-                <h1
-                    ref={titleRef}
-                    className="home-font text-6xl md:text-8xl font-bold mb-4 opacity-0 transform-gpu"
-                    style={{ textShadow: '0 0 15px rgba(124, 58, 237, 0.7), 0 0 30px rgba(124, 58, 237, 0.5)' }}
-                >
-                    Welcome
-                </h1>
-                <p
-                    ref={subtitleRef}
-                    className="home-font text-xl md:text-2xl text-text-secondary max-w-md opacity-0"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
-                >
-                    Your daily companion for tracking habits, measuring progress, and building a better you.
-                </p>
+            {/* Content Layer - Centered relative to the layout container */}
+            <div className="relative z-10 w-full h-full flex items-center justify-center text-white pointer-events-none">
+                <div className="text-center p-4 pointer-events-auto select-none">
+                    <motion.h1
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.9, ease: "easeOut" }}
+                        className="text-6xl md:text-8xl font-extrabold 
+        bg-gradient-to-r from-cyan-400 to-purple-500 
+        bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]"
+                    >
+                        Welcome
+                    </motion.h1>
+
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                        className="text-xl md:text-2xl max-w-md mx-auto mt-5 text-gray-300 leading-relaxed"
+                    >
+                        Your daily companion for tracking habits, measuring progress,
+                        and building a better you.
+                    </motion.p>
+                </div>
             </div>
-             <style>{`
-                .home-font {
-                    font-family: 'Poppins', sans-serif;
-                }
-            `}</style>
-        </div>
+        </>
     );
 };
 
