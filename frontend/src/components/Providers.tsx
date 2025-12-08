@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { fetchAppData } from '../api/services';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
+import VantaBackground from './VantaBackground';
 
 const getToday = () => {
     const d = new Date();
@@ -51,14 +52,14 @@ const DUMMY_EXPENSES: Expense[] = [
 
 const DEFAULT_GOALS: GoalData = {
     daily: [
-        { id: uuidv4(), text: 'Finish the report for Q3', status: 'active', createdAt: new Date().toISOString(), tags: ['work'] },
-        { id: uuidv4(), text: 'Go for a 30-minute run', status: 'completed', createdAt: new Date().toISOString(), completedAt: new Date().toISOString(), tags: ['health'] },
+        { id: 1, text: 'Finish the report for Q3', status: 'active', category: 'daily', created_at: new Date().toISOString(), tags: ['work'] },
+        { id: 2, text: 'Go for a 30-minute run', status: 'completed', category: 'daily', created_at: new Date().toISOString(), completed_at: new Date().toISOString(), tags: ['health'] },
     ],
     monthly: [
-        { id: uuidv4(), text: 'Read two books', status: 'active', createdAt: new Date().toISOString(), tags: ['personal growth', 'reading'] },
+        { id: 3, text: 'Read two books', status: 'active', category: 'monthly', created_at: new Date().toISOString(), tags: ['personal growth', 'reading'] },
     ],
     future: [
-        { id: uuidv4(), text: 'Plan vacation for next year', status: 'active', createdAt: new Date().toISOString(), tags: ['travel', 'personal'] },
+        { id: 4, text: 'Plan vacation for next year', status: 'active', category: 'future', created_at: new Date().toISOString(), tags: ['travel', 'personal'] },
     ]
 };
 
@@ -239,6 +240,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
+                        <VantaBackground />
                         {!isAuthenticated ? (
                             <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
@@ -254,7 +256,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         ) : (
                             <>
                                 <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                                <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'pt-20' : ''}`}>
+                                <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out relative z-10 ${isSidebarCollapsed ? 'pt-20' : ''}`}>
                                     {children}
                                 </div>
                                 {isSettingsModalOpen && <SettingsModal />}

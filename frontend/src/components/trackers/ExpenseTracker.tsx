@@ -5,72 +5,8 @@ import { Expense } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import expenseService from '../../services/expenseService';
-
-const CHART_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#d946ef'];
-
-// --- Sub-components ---
-
-const PieChart: React.FC<{ data: { name: string; value: number }[] }> = ({ data }) => {
-    if (!data || data.length === 0 || data.every(d => d.value === 0)) return <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">No expenses this month.</div>;
-
-    const size = 180;
-    const radius = size / 2;
-    const total = data.reduce((sum, d) => sum + d.value, 0);
-    let startAngle = -90;
-
-    const getCoordinatesForPercent = (percent: number) => [
-        radius + radius * Math.cos(2 * Math.PI * percent),
-        radius + radius * Math.sin(2 * Math.PI * percent),
-    ];
-
-    return (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                {data.map((slice, i) => {
-                    const endAngle = startAngle + (slice.value / total) * 360;
-                    const start = getCoordinatesForPercent(startAngle / 360);
-                    const end = getCoordinatesForPercent(endAngle / 360);
-                    const largeArcFlag = (endAngle - startAngle) > 180 ? 1 : 0;
-                    const pathData = `M ${start[0]},${start[1]} A ${radius},${radius} 0 ${largeArcFlag} 1 ${end[0]},${end[1]} L ${radius},${radius} Z`;
-                    startAngle = endAngle;
-                    return <path key={slice.name} d={pathData} fill={CHART_COLORS[i % CHART_COLORS.length]} />;
-                })}
-            </svg>
-            <div className="flex flex-col space-y-1 text-xs">
-                {data.map((slice, i) => (
-                    <div key={slice.name} className="flex items-center">
-                        <div className="w-2 h-2 rounded-sm mr-2" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                        <span>{slice.name} ({total > 0 ? ((slice.value / total) * 100).toFixed(0) : 0}%)</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const DailyExpenseChart: React.FC<{ data: { day: number, total: number }[], daysInMonth: number }> = ({ data, daysInMonth }) => {
-    const chartData = Array.from({ length: daysInMonth }, (_, i) => {
-        const dayData = data.find(d => d.day === i + 1);
-        return { label: (i + 1).toString(), value: dayData ? dayData.total : 0 };
-    });
-
-    const maxValue = Math.max(...chartData.map(d => d.value), 1);
-
-    return (
-        <div className="flex justify-between items-end h-48 w-full gap-1 px-2">
-            {chartData.map(item => (
-                <div key={item.label} className="flex flex-col items-center justify-end h-full w-full group relative">
-                    <div className="absolute -top-6 text-xs bg-card-bg px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">${item.value.toFixed(2)}</div>
-                    <div
-                        className="w-full bg-accent-primary rounded-t-sm hover:bg-accent-primary-dark transition-colors"
-                        style={{ height: `${(item.value / maxValue) * 100}%` }}
-                    />
-                    <div className="text-xs text-text-secondary mt-1">{parseInt(item.label) % 2 !== 0 ? item.label : ''}</div>
-                </div>
-            ))}
-        </div>
-    );
-};
+import BarChart from '../charts/BarChart';
+import PieChart from '../charts/PieChart';
 
 const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Expense, 'id'>) => void; }> = ({ onClose, onAdd }) => {
     const [item, setItem] = useState('');
@@ -119,6 +55,14 @@ const ExpenseTracker: React.FC = () => {
     const [pagination, setPagination] = useState({ currentPage: 1, itemsPerPage: 10 });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [analytics, setAnalytics] = useState<any>(null);
+    // Transform daily_breakdown for BarChart
+    const dailyChartData = useMemo(() => {
+        if (!analytics?.daily_breakdown) return [] as { name: string; value: number }[];
+        return analytics.daily_breakdown.map((d: { day: number; total: number }) => ({
+            name: d.day.toString(),
+            value: d.total,
+        }));
+    }, [analytics]);
 
     // Fetch expenses for current month
     const fetchExpenses = useCallback(async () => {
@@ -240,15 +184,10 @@ const ExpenseTracker: React.FC = () => {
             {isModalOpen && <AddExpenseModal onClose={() => setIsModalOpen(false)} onAdd={handleAddExpense} />}
             <div className="grid grid-cols-5 gap-6 mb-6">
                 <Card className="col-span-3">
-                    <h3 className="font-bold text-lg mb-2">Daily Spending</h3>
-                    <DailyExpenseChart
-                        data={analytics?.daily_breakdown || []}
-                        daysInMonth={analytics?.days_in_month || 30}
-                    />
+                    <BarChart title="Daily Spending" data={dailyChartData} totalBars={analytics?.days_in_month || 30} />
                 </Card>
                 <Card className="col-span-2">
-                    <h3 className="font-bold text-lg mb-2">Category Breakdown</h3>
-                    <PieChart data={analytics?.category_breakdown || []} />
+                    <PieChart title="Daily Spending" data={analytics?.category_breakdown || []} />
                 </Card>
             </div>
 
