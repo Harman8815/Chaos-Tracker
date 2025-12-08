@@ -223,6 +223,15 @@
     * {
         scrollbar-width: thin;
         scrollbar-color: var(--color-input-bg) var(--color-card-bg);
+/* Date input – white calendar icon for dark theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
+  cursor: pointer;
+}
+/* Firefox */
+input[type="date"]::-moz-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
+}
     }
 }
 

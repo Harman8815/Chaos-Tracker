@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
     ResponsiveContainer,
     BarChart as RechartsBarChart,
@@ -7,37 +7,52 @@ import {
     YAxis,
     Tooltip,
     CartesianGrid,
+    Cell,
 } from "recharts";
 
 interface ChartProps {
     title: string;
     data: { name: string; value: number }[];
     height?: number;
-    totalBars?: number; // number of bars to display (e.g., days in month)
+    totalBars?: number;
+    normalColor?: string; // default bar color
+    hoverColor?: string; // highlighted bar color
+    highlightedBarName?: string; // name of bar to highlight (e.g., current date)
 }
 
-const BarChart: React.FC<ChartProps> = ({ title, data, height = 350, totalBars }) => {
+const BarChart: React.FC<ChartProps> = ({
+    title,
+    data,
+    height = 250,
+    totalBars,
+    normalColor = "#8840ff",
+    hoverColor = "#eab308",
+    highlightedBarName,
+}) => {
+    // Default to today's date number if not provided
+    const defaultHighlight = new Date().getDate().toString();
+    const highlightName = highlightedBarName ?? defaultHighlight;
+
+    const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
     const displayData = useMemo(() => {
-        if (!totalBars) return data.map(d => ({
-            ...d,
-            value: Number(d.value.toFixed(2))
-        }));
-
-        const dataMap = new Map(data.map(d => [d.name, d.value]));
+        if (!totalBars) {
+            return data.map(d => ({ ...d, value: Number(d.value.toFixed(2)) }));
+        }
+        const map = new Map(data.map(d => [d.name, d.value]));
         const result: { name: string; value: number }[] = [];
-
         for (let i = 1; i <= totalBars; i++) {
             const name = i.toString();
-            const rawValue = dataMap.get(name) ?? 0;
-
-            result.push({
-                name,
-                value: Number(rawValue.toFixed(2))
-            });
+            const rawValue = map.get(name) ?? 0;
+            result.push({ name, value: Number(rawValue.toFixed(2)) });
         }
-
         return result;
     }, [data, totalBars]);
+
+    const highlightedIndex = useMemo(
+        () => displayData.findIndex(d => d.name === highlightName),
+        [displayData, highlightName]
+    );
 
     if (!data || data.length === 0) {
         return (
@@ -48,50 +63,62 @@ const BarChart: React.FC<ChartProps> = ({ title, data, height = 350, totalBars }
     }
 
     return (
-        <div className="w-full bg-transparent rounded-xl p-6">
-
-            {/* Title */}
+        <div className="w-full bg-transparent rounded-xl p-2">
             <h2 className="text-xl font-semibold mb-4 text-white tracking-wide">
                 {title}
             </h2>
-
             <ResponsiveContainer width="100%" height={height}>
-                <RechartsBarChart data={displayData} margin={{ top: 10, right: 0, left: -10, bottom: -20 }}>
+                <RechartsBarChart
+                    data={displayData}
+                    margin={{ top: 20, right: 0, left: -30, bottom: -40 }}
+                    onMouseLeave={() => setHoverIndex(null)}
+                >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-
-                    {/* Category Labels */}
                     <XAxis
                         dataKey="name"
                         tick={{ fill: "#ccc", fontSize: 12 }}
-                        interval={0}                // ensures 20+ items show
-                        angle={-35}                 // rotates ticks for visibility
+                        interval={0}
+                        angle={-35}
                         textAnchor="end"
                         height={60}
                     />
-
-                    {/* Tick Marks on Y-axis */}
                     <YAxis
                         tick={{ fill: "#eee", fontSize: 12 }}
                         tickLine={{ stroke: "#444" }}
                         axisLine={{ stroke: "#444" }}
                     />
-
-                    {/* Tooltip */}
                     <Tooltip
+                        formatter={(v: number) => Number(v.toFixed(2))}
                         contentStyle={{
                             backgroundColor: "#1d2430",
                             border: "1px solid #333",
                             borderRadius: "8px",
                         }}
+                        cursor={{ fill: "#0000002a" }}
                         labelStyle={{ color: "#fff" }}
                         itemStyle={{ color: "#ddd" }}
                     />
-
                     <Bar
                         dataKey="value"
-                        fill="rgba(56,189,248,0.8)"        // cyan translucent
                         radius={[6, 6, 0, 0]}
-                    />
+                        onMouseEnter={(_, index) => setHoverIndex(index)}
+                        onMouseLeave={() => setHoverIndex(null)}
+                    >
+                        {displayData.map((entry, index) => {
+                            const isHover = hoverIndex === index;
+                            const cellStyle: React.CSSProperties = {
+                                transition: "all 180ms ease",
+                                transformOrigin: "center bottom",
+                            };
+                            return (
+                                <Cell
+                                    key={index}
+                                    fill={isHover || index === highlightedIndex ? hoverColor : normalColor}
+                                    style={cellStyle}
+                                />
+                            );
+                        })}
+                    </Bar>
                 </RechartsBarChart>
             </ResponsiveContainer>
         </div>

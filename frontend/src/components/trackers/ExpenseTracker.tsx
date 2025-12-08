@@ -182,60 +182,121 @@ const ExpenseTracker: React.FC = () => {
     return (
         <TrackerWrapper tracker={trackerInfo}>
             {isModalOpen && <AddExpenseModal onClose={() => setIsModalOpen(false)} onAdd={handleAddExpense} />}
-            <div className="grid grid-cols-5 gap-6 mb-6">
-                <Card className="col-span-3">
-                    <BarChart title="Daily Spending" data={dailyChartData} totalBars={analytics?.days_in_month || 30} />
+            <div className="flex flex-col gap-4 mb-6 text-sm lg:flex-row lg:gap-6 lg:p-0 lg:text-base">
+                <Card className="flex flex-1 lg:flex-[4] items-center justify-center align-center">
+                    <BarChart
+                        title="Daily Spending"
+                        data={dailyChartData}
+                        totalBars={analytics?.days_in_month || 30}
+                        height={250}
+                    />
                 </Card>
-                <Card className="col-span-2">
-                    <PieChart title="Daily Spending" data={analytics?.category_breakdown || []} />
+
+                <Card className="flex-1 lg:flex-[1]">
+                    <PieChart
+                        title="Daily Spending"
+                        data={analytics?.category_breakdown || []}
+                        height={250}
+                    />
                 </Card>
             </div>
 
-            <Card>
-                <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-2">
-                        <select value={date.month} onChange={e => setDate(d => ({ ...d, month: parseInt(e.target.value) }))} className="p-2 rounded-md bg-input-bg border border-border">
-                            {months.map(m => <option key={m.value} value={m.value}>{m.name}</option>)}
+
+
+            <Card className="p-4 lg:p-6 text-sm lg:text-base">
+
+                {/* Header Section */}
+                <div className="flex flex-col gap-3 mb-4 lg:flex-row lg:items-center lg:justify-between">
+
+                    {/* Select Filters */}
+                    <div className="flex items-center gap-3">
+                        <select
+                            value={date.month}
+                            onChange={e => setDate(d => ({ ...d, month: parseInt(e.target.value) }))}
+                            className="p-2 rounded-md bg-input-bg border border-border text-sm lg:text-base"
+                        >
+                            {months.map(m => (
+                                <option key={m.value} value={m.value}>{m.name}</option>
+                            ))}
                         </select>
-                        <select value={date.year} onChange={e => setDate(d => ({ ...d, year: parseInt(e.target.value) }))} className="p-2 rounded-md bg-input-bg border border-border">
-                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+
+                        <select
+                            value={date.year}
+                            onChange={e => setDate(d => ({ ...d, year: parseInt(e.target.value) }))}
+                            className="p-2 rounded-md bg-input-bg border border-border text-sm lg:text-base"
+                        >
+                            {years.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
                         </select>
                     </div>
-                    <Button onClick={() => setIsModalOpen(true)}>+ Add Entry</Button>
+
+                    {/* Add Button */}
+                    <Button className="w-full lg:w-auto" onClick={() => setIsModalOpen(true)}>
+                        + Add Entry
+                    </Button>
                 </div>
 
+                {/* Table Section */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
+                    <table className="w-full text-xs lg:text-sm text-left">
                         <thead className="bg-input-bg">
                             <tr>
-                                {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[]).map(key => (
-                                    <th key={key} className="p-3 capitalize cursor-pointer" onClick={() => handleSort(key)}>
-                                        {key} {sortConfig?.key === key && (sortConfig.direction === 'asc' ? '▲' : '▼')}
-                                    </th>
-                                ))}
-                                <th className="p-3">Total</th>
-                                <th className="p-3">Actions</th>
+                                {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[])
+                                    .map(key => (
+                                        <th
+                                            key={key}
+                                            className="p-3 capitalize cursor-pointer whitespace-nowrap"
+                                            onClick={() => handleSort(key)}
+                                        >
+                                            {key} {sortConfig?.key === key && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                        </th>
+                                    ))}
+                                <th className="p-3 whitespace-nowrap">Total</th>
+                                <th className="p-3 whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {paginatedExpenses.map(expense => (
                                 <tr key={expense.id} className="border-b border-border hover:bg-input-bg/50">
-                                    {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[]).map(key => (
-                                        <td key={key} className="p-0">
-                                            <input
-                                                type={key === 'date' ? 'date' : key === 'quantity' || key === 'price' ? 'number' : 'text'}
-                                                value={expense[key]}
-                                                onChange={e => handleUpdateExpense(expense.id, { [key]: key === 'quantity' ? parseInt(e.target.value) : key === 'price' ? parseFloat(e.target.value) : e.target.value })}
-                                                className="w-full h-full bg-transparent p-3 focus:bg-background focus:outline-none focus:ring-1 focus:ring-accent-primary"
-                                                step={key === 'price' ? '0.01' : '1'}
-                                            />
-                                        </td>
-                                    ))}
-                                    <td className="p-3 font-mono">${(expense.quantity * expense.price).toFixed(2)}</td>
+                                    {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[])
+                                        .map(key => (
+                                            <td key={key} className="p-0">
+                                                <input
+                                                    type={
+                                                        key === 'date'
+                                                            ? 'date'
+                                                            : key === 'quantity' || key === 'price'
+                                                                ? 'number'
+                                                                : 'text'
+                                                    }
+                                                    value={expense[key]}
+                                                    onChange={e =>
+                                                        handleUpdateExpense(expense.id, {
+                                                            [key]:
+                                                                key === 'quantity'
+                                                                    ? parseInt(e.target.value)
+                                                                    : key === 'price'
+                                                                        ? parseFloat(e.target.value)
+                                                                        : e.target.value,
+                                                        })
+                                                    }
+                                                    className="w-full h-full bg-transparent p-3 focus:bg-background focus:outline-none 
+                               focus:ring-1 focus:ring-accent-primary text-xs lg:text-sm"
+                                                    step={key === 'price' ? '0.01' : '1'}
+                                                />
+                                            </td>
+                                        ))}
+
+                                    <td className="p-3 font-mono text-xs lg:text-sm">
+                                        ${(expense.quantity * expense.price).toFixed(2)}
+                                    </td>
+
                                     <td className="p-3">
                                         <button
                                             onClick={() => handleDeleteExpense(expense.id)}
-                                            className="text-red-500 hover:text-red-700 text-sm"
+                                            className="text-red-500 hover:text-red-700 text-xs lg:text-sm"
                                         >
                                             Delete
                                         </button>
@@ -245,22 +306,51 @@ const ExpenseTracker: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="flex justify-between items-center mt-4 text-sm">
+
+                {/* Pagination */}
+                <div className="flex flex-col gap-3 mt-4 text-xs lg:flex-row lg:items-center lg:justify-between lg:text-sm">
+
+                    {/* Rows Per Page */}
                     <div className="flex items-center gap-2">
                         <span>Rows per page:</span>
-                        <select value={pagination.itemsPerPage} onChange={e => setPagination(p => ({ ...p, itemsPerPage: parseInt(e.target.value), currentPage: 1 }))} className="p-1 rounded-md bg-input-bg border border-border">
+                        <select
+                            value={pagination.itemsPerPage}
+                            onChange={e => setPagination(p => ({
+                                ...p,
+                                itemsPerPage: parseInt(e.target.value),
+                                currentPage: 1,
+                            }))}
+                            className="p-1 rounded-md bg-input-bg border border-border"
+                        >
                             <option value={10}>10</option>
                             <option value={25}>25</option>
                             <option value={50}>50</option>
                         </select>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button onClick={() => setPagination(p => ({ ...p, currentPage: p.currentPage - 1 }))} disabled={pagination.currentPage === 1}>Prev</Button>
-                        <span>Page {pagination.currentPage} of {totalPages}</span>
-                        <Button onClick={() => setPagination(p => ({ ...p, currentPage: p.currentPage + 1 }))} disabled={pagination.currentPage === totalPages}>Next</Button>
+
+                    {/* Pagination Controls */}
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={() => setPagination(p => ({ ...p, currentPage: p.currentPage - 1 }))}
+                            disabled={pagination.currentPage === 1}
+                        >
+                            Prev
+                        </Button>
+
+                        <span>
+                            Page {pagination.currentPage} of {totalPages}
+                        </span>
+
+                        <Button
+                            onClick={() => setPagination(p => ({ ...p, currentPage: p.currentPage + 1 }))}
+                            disabled={pagination.currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
                     </div>
                 </div>
             </Card>
+
         </TrackerWrapper>
     );
 };
