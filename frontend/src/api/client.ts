@@ -93,6 +93,14 @@ class ApiClient {
     delete<T>(endpoint: string, headers?: Record<string, string>) {
         return this.request<T>(endpoint, { method: 'DELETE', headers });
     }
+
+    postFormData<T>(endpoint: string, formData: FormData, headers?: Record<string, string>) {
+        return this.request<T>(endpoint, {
+            method: 'POST',
+            body: formData,
+            headers
+        });
+    }
 }
 
 export const client = new ApiClient(API_BASE_URL);

@@ -1,0 +1,138 @@
+{
+  "planner_data": {
+    "blocks": [
+      {
+        "id": "block-project-planning",
+        "title": "Project Planning",
+        "x": 100,
+        "y": 100,
+        "tasks": [
+          {
+            "id": "task-define-scope",
+            "text": "Define project scope",
+            "completed": true,
+            "order": 0
+          },
+          {
+            "id": "task-create-timeline",
+            "text": "Create timeline",
+            "completed": false,
+            "order": 1
+          },
+          {
+            "id": "task-allocate-resources",
+            "text": "Allocate resources",
+            "completed": false,
+            "order": 2
+          }
+        ]
+      },
+      {
+        "id": "block-research",
+        "title": "Research Phase",
+        "x": 400,
+        "y": 150,
+        "tasks": [
+          {
+            "id": "task-market-analysis",
+            "text": "Market analysis",
+            "completed": true,
+            "order": 0
+          },
+          {
+            "id": "task-competitor-research",
+            "text": "Competitor research",
+            "completed": true,
+            "order": 1
+          },
+          {
+            "id": "task-user-interviews",
+            "text": "User interviews",
+            "completed": false,
+            "order": 2
+          }
+        ]
+      },
+      {
+        "id": "block-development",
+        "title": "Development",
+        "x": 250,
+        "y": 300,
+        "tasks": [
+          {
+            "id": "task-setup-environment",
+            "text": "Setup development environment",
+            "completed": true,
+            "order": 0
+          },
+          {
+            "id": "task-backend-api",
+            "text": "Build backend API",
+            "completed": false,
+            "order": 1
+          },
+          {
+            "id": "task-frontend-ui",
+            "text": "Create frontend UI",
+            "completed": false,
+            "order": 2
+          },
+          {
+            "id": "task-testing",
+            "text": "Testing and QA",
+            "completed": false,
+            "order": 3
+          }
+        ]
+      },
+      {
+        "id": "block-deployment",
+        "title": "Deployment",
+        "x": 500,
+        "y": 350,
+        "tasks": [
+          {
+            "id": "task-server-setup",
+            "text": "Setup production server",
+            "completed": false,
+            "order": 0
+          },
+          {
+            "id": "task-deploy-app",
+            "text": "Deploy application",
+            "completed": false,
+            "order": 1
+          },
+          {
+            "id": "task-monitoring",
+            "text": "Setup monitoring",
+            "completed": false,
+            "order": 2
+          }
+        ]
+      }
+    ],
+    "links": [
+      {
+        "id": "link-planning-to-research",
+        "from": "block-project-planning",
+        "to": "block-research"
+      },
+      {
+        "id": "link-research-to-development",
+        "from": "block-research",
+        "to": "block-development"
+      },
+      {
+        "id": "link-development-to-deployment",
+        "from": "block-development",
+        "to": "block-deployment"
+      }
+    ],
+    "transform": {
+      "scale": 1,
+      "panX": 0,
+      "panY": 0
+    }
+  }
+}

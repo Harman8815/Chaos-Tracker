@@ -1,0 +1,74 @@
+{
+  "expenses": [
+    {
+      "date": "2025-12-21",
+      "item": "Grocery Shopping",
+      "category": "Food",
+      "quantity": 1,
+      "price": 85.50
+    },
+    {
+      "date": "2025-12-20",
+      "item": "Gas Station",
+      "category": "Transport",
+      "quantity": 1,
+      "price": 45.00
+    },
+    {
+      "date": "2025-12-19",
+      "item": "Movie Tickets",
+      "category": "Entertainment",
+      "quantity": 2,
+      "price": 15.00
+    },
+    {
+      "date": "2025-12-18",
+      "item": "Coffee Shop",
+      "category": "Food",
+      "quantity": 1,
+      "price": 5.75
+    },
+    {
+      "date": "2025-12-17",
+      "item": "Online Shopping",
+      "category": "Shopping",
+      "quantity": 3,
+      "price": 25.99
+    },
+    {
+      "date": "2025-12-16",
+      "item": "Pharmacy",
+      "category": "Healthcare",
+      "quantity": 1,
+      "price": 32.40
+    },
+    {
+      "date": "2025-12-15",
+      "item": "Restaurant Dinner",
+      "category": "Food",
+      "quantity": 2,
+      "price": 35.00
+    },
+    {
+      "date": "2025-12-14",
+      "item": "Uber Ride",
+      "category": "Transport",
+      "quantity": 1,
+      "price": 18.50
+    },
+    {
+      "date": "2025-12-13",
+      "item": "Book Purchase",
+      "category": "Education",
+      "quantity": 1,
+      "price": 24.99
+    },
+    {
+      "date": "2025-12-12",
+      "item": "Gym Membership",
+      "category": "Healthcare",
+      "quantity": 1,
+      "price": 50.00
+    }
+  ]
+}

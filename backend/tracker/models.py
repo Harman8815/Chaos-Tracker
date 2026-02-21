@@ -314,3 +314,26 @@ class DailyHabitScore(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.habit.name} - {self.date}: {self.score}"
 
+
+class UserProfile(models.Model):
+    """
+    Extended user profile information
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    bio = models.TextField(blank=True, max_length=500)
+    avatar_url = models.URLField(max_length=500, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    website = models.URLField(max_length=200, blank=True)
+    timezone = models.CharField(max_length=50, default='UTC')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+

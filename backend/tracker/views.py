@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile
 from .serializers import (
     JournalEntrySerializer,
     QuoteSourceSerializer,
@@ -18,7 +18,8 @@ from .serializers import (
     GoalSerializer,
     HabitSerializer,
     ScoringRuleSerializer,
-    DailyHabitScoreSerializer
+    DailyHabitScoreSerializer,
+    UserProfileSerializer
 )
 import datetime
 from datetime import timedelta
@@ -26,6 +27,13 @@ import random
 import uuid
 from difflib import SequenceMatcher
 import urllib.request
+import csv
+import json
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 
 
 class SyncView(views.APIView):
@@ -2130,4 +2138,841 @@ class PlannerBlockDetailView(views.APIView):
             'success': True,
             'message': 'Block deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
+
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    """
+    Get or update user profile
+    GET /user/profile/ - Get current user's profile
+    PUT /user/profile/ - Update user profile
+    PATCH /user/profile/ - Partially update user profile
+    """
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        # Get or create user profile
+        profile, created = UserProfile.objects.get_or_create(
+            user=self.request.user,
+            defaults={
+                'timezone': 'UTC'
+            }
+        )
+        return profile
+
+
+class ExportDataView(views.APIView):
+    """
+    Export user data in different formats
+    GET /export/json/ - Export as JSON
+    GET /export/csv/ - Export as CSV
+    GET /export/pdf/ - Export as PDF
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, format_type):
+        try:
+            # Gather all user data
+            data = self._gather_user_data(request.user)
+            
+            if format_type == 'json':
+                return self._export_json(data)
+            elif format_type == 'csv':
+                return self._export_csv(data)
+            elif format_type == 'pdf':
+                return self._export_pdf(data)
+            else:
+                return Response(
+                    {'error': 'Invalid format. Use json, csv, or pdf'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _gather_user_data(self, user):
+        """Gather all user data for export"""
+        # Journal entries
+        journal_entries = JournalEntry.objects.filter(user=user)
+        journal_data = [
+            {
+                'date': entry.date.strftime('%Y-%m-%d'),
+                'content': entry.content,
+                'created_at': entry.created_at.isoformat(),
+                'updated_at': entry.updated_at.isoformat()
+            }
+            for entry in journal_entries
+        ]
+        
+        # Habits and scores
+        habits = Habit.objects.filter(user=user)
+        habit_data = []
+        for habit in habits:
+            scores = DailyHabitScore.objects.filter(user=user, habit=habit)
+            habit_data.append({
+                'id': habit.id,
+                'name': habit.name,
+                'description': habit.description,
+                'target_value': habit.target_value,
+                'unit': habit.unit,
+                'created_at': habit.created_at.isoformat(),
+                'scores': [
+                    {
+                        'date': score.date.strftime('%Y-%m-%d'),
+                        'score': score.score
+                    }
+                    for score in scores
+                ]
+            })
+        
+        # Expenses
+        expenses = Expense.objects.filter(user=user)
+        expense_data = [
+            {
+                'id': expense.id,
+                'amount': float(expense.amount),
+                'category': expense.category,
+                'description': expense.description,
+                'date': expense.date.strftime('%Y-%m-%d'),
+                'created_at': expense.created_at.isoformat()
+            }
+            for expense in expenses
+        ]
+        
+        # Goals
+        goals = Goal.objects.filter(user=user)
+        goal_data = [
+            {
+                'id': goal.id,
+                'title': goal.title,
+                'description': goal.description,
+                'target_value': goal.target_value,
+                'current_value': goal.current_value,
+                'unit': goal.unit,
+                'deadline': goal.deadline.strftime('%Y-%m-%d') if goal.deadline else None,
+                'status': goal.status,
+                'created_at': goal.created_at.isoformat()
+            }
+            for goal in goals
+        ]
+        
+        # Quotes
+        quote_sources = QuoteSource.objects.filter(user=user).prefetch_related('quotes')
+        quotes_data = []
+        for source in quote_sources:
+            quotes = [
+                {
+                    'id': quote.id,
+                    'text': quote.text,
+                    'author': quote.author,
+                    'page_number': quote.page_number,
+                    'tags': list(quote.tags.values_list('tag', flat=True))
+                }
+                for quote in source.quotes.all()
+            ]
+            quotes_data.append({
+                'id': source.id,
+                'title': source.title,
+                'type': source.type,
+                'cover_image': source.cover_image,
+                'quotes': quotes
+            })
+        
+        return {
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            },
+            'export_date': datetime.datetime.now().isoformat(),
+            'journal_entries': journal_data,
+            'habits': habit_data,
+            'expenses': expense_data,
+            'goals': goal_data,
+            'quotes': quotes_data
+        }
+    
+    def _export_json(self, data):
+        """Export data as JSON"""
+        response = HttpResponse(
+            json.dumps(data, indent=2, ensure_ascii=False),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="tracker_data_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+        return response
+    
+    def _export_csv(self, data):
+        """Export data as CSV (multiple files in a zip)"""
+        import zipfile
+        import io
+        
+        # Create a zip file in memory
+        zip_buffer = io.BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Journal entries CSV
+            if data['journal_entries']:
+                journal_csv = io.StringIO()
+                writer = csv.writer(journal_csv)
+                writer.writerow(['date', 'content', 'created_at', 'updated_at'])
+                for entry in data['journal_entries']:
+                    writer.writerow([entry['date'], entry['content'], entry['created_at'], entry['updated_at']])
+                zip_file.writestr('journal_entries.csv', journal_csv.getvalue())
+            
+            # Expenses CSV
+            if data['expenses']:
+                expense_csv = io.StringIO()
+                writer = csv.writer(expense_csv)
+                writer.writerow(['id', 'amount', 'category', 'description', 'date', 'created_at'])
+                for expense in data['expenses']:
+                    writer.writerow([expense['id'], expense['amount'], expense['category'], expense['description'], expense['date'], expense['created_at']])
+                zip_file.writestr('expenses.csv', expense_csv.getvalue())
+            
+            # Goals CSV
+            if data['goals']:
+                goals_csv = io.StringIO()
+                writer = csv.writer(goals_csv)
+                writer.writerow(['id', 'title', 'description', 'target_value', 'current_value', 'unit', 'deadline', 'status', 'created_at'])
+                for goal in data['goals']:
+                    writer.writerow([goal['id'], goal['title'], goal['description'], goal['target_value'], goal['current_value'], goal['unit'], goal['deadline'], goal['status'], goal['created_at']])
+                zip_file.writestr('goals.csv', goals_csv.getvalue())
+        
+        zip_buffer.seek(0)
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="tracker_data_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.zip"'
+        return response
+    
+    def _export_pdf(self, data):
+        """Export data as PDF report"""
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="tracker_report_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(response, pagesize=letter)
+        styles = getSampleStyleSheet()
+        story = []
+        
+        # Title
+        title_style = styles['Heading1']
+        story.append(Paragraph(f"Tracker Data Report - {data['user']['username']}", title_style))
+        story.append(Spacer(1, 12))
+        
+        # Export date
+        normal_style = styles['Normal']
+        story.append(Paragraph(f"Export Date: {data['export_date']}", normal_style))
+        story.append(Spacer(1, 12))
+        
+        # Summary section
+        story.append(Paragraph("Summary", styles['Heading2']))
+        story.append(Paragraph(f"Journal Entries: {len(data['journal_entries'])}", normal_style))
+        story.append(Paragraph(f"Habits: {len(data['habits'])}", normal_style))
+        story.append(Paragraph(f"Expenses: {len(data['expenses'])}", normal_style))
+        story.append(Paragraph(f"Goals: {len(data['goals'])}", normal_style))
+        story.append(Paragraph(f"Quote Sources: {len(data['quotes'])}", normal_style))
+        story.append(Spacer(1, 12))
+        
+        # Recent journal entries
+        if data['journal_entries']:
+            story.append(Paragraph("Recent Journal Entries", styles['Heading2']))
+            for entry in data['journal_entries'][:5]:  # Show last 5 entries
+                story.append(Paragraph(f"<b>{entry['date']}</b>", normal_style))
+                story.append(Paragraph(entry['content'][:200] + "..." if len(entry['content']) > 200 else entry['content'], normal_style))
+                story.append(Spacer(1, 6))
+        
+        # Recent expenses
+        if data['expenses']:
+            story.append(Paragraph("Recent Expenses", styles['Heading2']))
+            for expense in data['expenses'][:5]:  # Show last 5 expenses
+                story.append(Paragraph(f"<b>{expense['date']}</b> - {expense['category']} - ${expense['amount']:.2f}", normal_style))
+                if expense['description']:
+                    story.append(Paragraph(expense['description'], normal_style))
+                story.append(Spacer(1, 6))
+        
+        # Goals
+        if data['goals']:
+            story.append(Paragraph("Goals", styles['Heading2']))
+            for goal in data['goals']:
+                status_color = "green" if goal['status'] == 'completed' else "orange" if goal['status'] == 'in_progress' else "red"
+                story.append(Paragraph(f"<b>{goal['title']}</b> - <font color='{status_color}'>{goal['status']}</font>", normal_style))
+                story.append(Paragraph(f"Progress: {goal['current_value']}/{goal['target_value']} {goal['unit']}", normal_style))
+                if goal['deadline']:
+                    story.append(Paragraph(f"Deadline: {goal['deadline']}", normal_style))
+                story.append(Spacer(1, 6))
+        
+        doc.build(story)
+        return response
+
+
+class ImportDataView(views.APIView):
+    """
+    Import user data from JSON or CSV files
+    POST /import/json/ - Import from JSON
+    POST /import/csv/ - Import from CSV (zip file)
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, format_type):
+        try:
+            if format_type == 'json':
+                return self._import_json(request)
+            elif format_type == 'csv':
+                return self._import_csv(request)
+            else:
+                return Response(
+                    {'error': 'Invalid format. Use json or csv'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _import_json(self, request):
+        """Import data from JSON file"""
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        file = request.FILES['file']
+        if not file.name.endswith('.json'):
+            return Response(
+                {'error': 'Invalid file format. Please upload a JSON file'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            content = json.loads(file.read().decode('utf-8'))
+            results = self._process_import_data(request.user, content)
+            
+            return Response({
+                'success': True,
+                'message': 'Data imported successfully',
+                'results': results
+            })
+        except json.JSONDecodeError:
+            return Response(
+                {'error': 'Invalid JSON format'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def _import_csv(self, request):
+        """Import data from CSV zip file"""
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        file = request.FILES['file']
+        if not file.name.endswith('.zip'):
+            return Response(
+                {'error': 'Invalid file format. Please upload a ZIP file containing CSV files'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        import zipfile
+        import io
+        
+        try:
+            zip_file = zipfile.ZipFile(file)
+            results = {}
+            
+            # Process journal entries
+            if 'journal_entries.csv' in zip_file.namelist():
+                with zip_file.open('journal_entries.csv') as csv_file:
+                    content = csv_file.read().decode('utf-8')
+                    reader = csv.DictReader(io.StringIO(content))
+                    results['journal_entries'] = self._import_journal_entries(request.user, list(reader))
+            
+            # Process expenses
+            if 'expenses.csv' in zip_file.namelist():
+                with zip_file.open('expenses.csv') as csv_file:
+                    content = csv_file.read().decode('utf-8')
+                    reader = csv.DictReader(io.StringIO(content))
+                    results['expenses'] = self._import_expenses(request.user, list(reader))
+            
+            # Process goals
+            if 'goals.csv' in zip_file.namelist():
+                with zip_file.open('goals.csv') as csv_file:
+                    content = csv_file.read().decode('utf-8')
+                    reader = csv.DictReader(io.StringIO(content))
+                    results['goals'] = self._import_goals(request.user, list(reader))
+            
+            return Response({
+                'success': True,
+                'message': 'Data imported successfully',
+                'results': results
+            })
+        except Exception as e:
+            return Response(
+                {'error': f'Error processing ZIP file: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def _process_import_data(self, user, data):
+        """Process imported JSON data"""
+        results = {}
+        
+        # Import journal entries
+        if 'journal_entries' in data:
+            results['journal_entries'] = self._import_journal_entries(user, data['journal_entries'])
+        
+        # Import expenses
+        if 'expenses' in data:
+            results['expenses'] = self._import_expenses(user, data['expenses'])
+        
+        # Import goals
+        if 'goals' in data:
+            results['goals'] = self._import_goals(user, data['goals'])
+        
+        # Import habits
+        if 'habits' in data:
+            results['habits'] = self._import_habits(user, data['habits'])
+        
+        return results
+    
+    def _import_journal_entries(self, user, entries):
+        """Import journal entries"""
+        imported = 0
+        errors = []
+        
+        for entry_data in entries:
+            try:
+                date_str = entry_data.get('date')
+                if not date_str:
+                    errors.append('Missing date for journal entry')
+                    continue
+                
+                date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                
+                JournalEntry.objects.update_or_create(
+                    user=user,
+                    date=date,
+                    defaults={
+                        'content': entry_data.get('content', '')
+                    }
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f'Error importing journal entry: {str(e)}')
+        
+        return {'imported': imported, 'errors': errors}
+    
+    def _import_expenses(self, user, expenses):
+        """Import expenses"""
+        imported = 0
+        errors = []
+        
+        for expense_data in expenses:
+            try:
+                date_str = expense_data.get('date')
+                if not date_str:
+                    errors.append('Missing date for expense')
+                    continue
+                
+                date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                
+                Expense.objects.create(
+                    user=user,
+                    amount=expense_data.get('amount', 0),
+                    category=expense_data.get('category', 'Other'),
+                    description=expense_data.get('description', ''),
+                    date=date
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f'Error importing expense: {str(e)}')
+        
+        return {'imported': imported, 'errors': errors}
+    
+    def _import_goals(self, user, goals):
+        """Import goals"""
+        imported = 0
+        errors = []
+        
+        for goal_data in goals:
+            try:
+                deadline = None
+                if goal_data.get('deadline'):
+                    deadline = datetime.datetime.strptime(goal_data['deadline'], '%Y-%m-%d').date()
+                
+                Goal.objects.create(
+                    user=user,
+                    title=goal_data.get('title', ''),
+                    description=goal_data.get('description', ''),
+                    target_value=goal_data.get('target_value', 0),
+                    current_value=goal_data.get('current_value', 0),
+                    unit=goal_data.get('unit', ''),
+                    deadline=deadline,
+                    status=goal_data.get('status', 'active')
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f'Error importing goal: {str(e)}')
+        
+        return {'imported': imported, 'errors': errors}
+    
+    def _import_habits(self, user, habits):
+        """Import habits"""
+        imported = 0
+        errors = []
+        
+        for habit_data in habits:
+            try:
+                habit = Habit.objects.create(
+                    user=user,
+                    name=habit_data.get('name', ''),
+                    description=habit_data.get('description', ''),
+                    target_value=habit_data.get('target_value', 1),
+                    unit=habit_data.get('unit', ''),
+                )
+                imported += 1
+                
+                # Import scores if available
+                if 'scores' in habit_data:
+                    for score_data in habit_data['scores']:
+                        try:
+                            date_str = score_data.get('date')
+                            if date_str:
+                                date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                                DailyHabitScore.objects.update_or_create(
+                                    user=user,
+                                    habit=habit,
+                                    date=date,
+                                    defaults={
+                                        'score': score_data.get('score', 0)
+                                    }
+                                )
+                        except Exception as e:
+                            errors.append(f'Error importing habit score: {str(e)}')
+            except Exception as e:
+                errors.append(f'Error importing habit: {str(e)}')
+        
+        return {'imported': imported, 'errors': errors}
+
+
+class AnalyticsView(views.APIView):
+    """
+    Analytics endpoints for monthly and yearly summaries
+    GET /analytics/monthly/ - Get monthly summary
+    GET /analytics/yearly/ - Get yearly summary
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, period):
+        try:
+            if period == 'monthly':
+                return self._get_monthly_analytics(request.user)
+            elif period == 'yearly':
+                return self._get_yearly_analytics(request.user)
+            else:
+                return Response(
+                    {'error': 'Invalid period. Use monthly or yearly'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _get_monthly_analytics(self, user):
+        """Get monthly analytics for current month"""
+        now = datetime.datetime.now()
+        current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Journal entries this month
+        journal_entries = JournalEntry.objects.filter(
+            user=user,
+            date__gte=current_month_start.date(),
+            date__lte=now.date()
+        )
+        
+        # Expenses this month
+        expenses = Expense.objects.filter(
+            user=user,
+            date__gte=current_month_start.date(),
+            date__lte=now.date()
+        )
+        
+        # Goals progress
+        goals = Goal.objects.filter(user=user)
+        active_goals = goals.filter(status='active')
+        completed_goals = goals.filter(status='completed')
+        
+        # Habit scores this month
+        habit_scores = DailyHabitScore.objects.filter(
+            user=user,
+            date__gte=current_month_start.date(),
+            date__lte=now.date()
+        )
+        
+        # Calculate metrics
+        total_expenses = sum(expense.amount for expense in expenses)
+        expense_by_category = {}
+        for expense in expenses:
+            expense_by_category[expense.category] = expense_by_category.get(expense.category, 0) + float(expense.amount)
+        
+        habit_performance = {}
+        for score in habit_scores:
+            habit_name = score.habit.name
+            if habit_name not in habit_performance:
+                habit_performance[habit_name] = {
+                    'total_score': 0,
+                    'days_tracked': 0,
+                    'average_score': 0
+                }
+            habit_performance[habit_name]['total_score'] += score.score
+            habit_performance[habit_name]['days_tracked'] += 1
+        
+        for habit in habit_performance:
+            if habit_performance[habit]['days_tracked'] > 0:
+                habit_performance[habit]['average_score'] = habit_performance[habit]['total_score'] / habit_performance[habit]['days_tracked']
+        
+        return Response({
+            'period': 'monthly',
+            'month': now.strftime('%B %Y'),
+            'journal': {
+                'entries_count': journal_entries.count(),
+                'recent_entries': [
+                    {
+                        'date': entry.date.strftime('%Y-%m-%d'),
+                        'content_preview': entry.content[:100] + '...' if len(entry.content) > 100 else entry.content
+                    }
+                    for entry in journal_entries.order_by('-date')[:5]
+                ]
+            },
+            'expenses': {
+                'total_amount': float(total_expenses),
+                'transaction_count': expenses.count(),
+                'by_category': expense_by_category,
+                'recent_expenses': [
+                    {
+                        'date': expense.date.strftime('%Y-%m-%d'),
+                        'amount': float(expense.amount),
+                        'category': expense.category,
+                        'description': expense.description
+                    }
+                    for expense in expenses.order_by('-date')[:5]
+                ]
+            },
+            'goals': {
+                'total_goals': goals.count(),
+                'active_goals': active_goals.count(),
+                'completed_goals': completed_goals.count(),
+                'completion_rate': (completed_goals.count() / goals.count() * 100) if goals.count() > 0 else 0
+            },
+            'habits': {
+                'performance': habit_performance,
+                'total_days_tracked': habit_scores.values('date').distinct().count()
+            }
+        })
+    
+    def _get_yearly_analytics(self, user):
+        """Get yearly analytics for current year"""
+        now = datetime.datetime.now()
+        current_year_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Monthly data aggregation
+        monthly_data = []
+        for month in range(1, now.month + 1):
+            month_start = now.replace(month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
+            if month == 12:
+                month_end = now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+            else:
+                month_end = now.replace(month=month + 1, day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
+            
+            # Journal entries for this month
+            journal_count = JournalEntry.objects.filter(
+                user=user,
+                date__gte=month_start.date(),
+                date__lte=month_end.date()
+            ).count()
+            
+            # Expenses for this month
+            month_expenses = Expense.objects.filter(
+                user=user,
+                date__gte=month_start.date(),
+                date__lte=month_end.date()
+            )
+            month_total = sum(expense.amount for expense in month_expenses)
+            
+            monthly_data.append({
+                'month': month_start.strftime('%B'),
+                'journal_entries': journal_count,
+                'expenses_total': float(month_total),
+                'expenses_count': month_expenses.count()
+            })
+        
+        # Yearly totals
+        yearly_expenses = Expense.objects.filter(
+            user=user,
+            date__gte=current_year_start.date(),
+            date__lte=now.date()
+        )
+        total_expenses = sum(expense.amount for expense in yearly_expenses)
+        
+        yearly_journal = JournalEntry.objects.filter(
+            user=user,
+            date__gte=current_year_start.date(),
+            date__lte=now.date()
+        )
+        
+        # Goals completed this year
+        yearly_goals = Goal.objects.filter(
+            user=user,
+            created_at__gte=current_year_start
+        )
+        
+        # Top expense categories for the year
+        expense_categories = {}
+        for expense in yearly_expenses:
+            expense_categories[expense.category] = expense_categories.get(expense.category, 0) + float(expense.amount)
+        
+        top_categories = sorted(expense_categories.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        return Response({
+            'period': 'yearly',
+            'year': now.year,
+            'summary': {
+                'total_journal_entries': yearly_journal.count(),
+                'total_expenses': float(total_expenses),
+                'total_transactions': yearly_expenses.count(),
+                'goals_created': yearly_goals.count(),
+                'average_monthly_expenses': float(total_expenses / (now.month if now.month > 0 else 1))
+            },
+            'monthly_breakdown': monthly_data,
+            'top_expense_categories': [
+                {'category': cat, 'amount': amount} for cat, amount in top_categories
+            ]
+        })
+
+
+class TempDataView(views.APIView):
+    """
+    Insert temporary/mock data with current timestamp
+    POST /api/temp-data/
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """
+        Insert temporary data with current date timestamp for past 12 months
+        """
+        from django.utils import timezone
+        import uuid
+        from datetime import timedelta
+        
+        user = request.user
+        current_datetime = timezone.now()
+        current_date = current_datetime.date()
+        
+        # Create data for past 12 months
+        expenses_created = 0
+        goals_created = 0
+        habits_created = 0
+        journal_entries_created = 0
+        
+        expense_categories = ['Food', 'Transport', 'Entertainment', 'Shopping', 'Healthcare', 'Education', 'Utilities']
+        goal_categories = ['daily', 'monthly', 'future']
+        goal_statuses = ['active', 'completed', 'blocked']
+        
+        # Generate data for each of the past 12 months
+        for months_ago in range(12):
+            target_date = current_date - timedelta(days=months_ago * 30)  # Approximate months
+            
+            # Create 5-15 expenses per month
+            num_expenses = random.randint(5, 15)
+            for _ in range(num_expenses):
+                expense_date = target_date - timedelta(days=random.randint(0, 29))
+                expense = Expense.objects.create(
+                    user=user,
+                    date=expense_date,
+                    item=f"Expense {random.choice(['Grocery', 'Gas', 'Entertainment', 'Shopping', 'Bills'])}",
+                    category=random.choice(expense_categories),
+                    quantity=random.randint(1, 3),
+                    price=round(random.uniform(5.0, 200.0), 2)
+                )
+                expenses_created += 1
+            
+            # Create 2-5 goals per month
+            num_goals = random.randint(2, 5)
+            for _ in range(num_goals):
+                goal = Goal.objects.create(
+                    user=user,
+                    text=f"Goal {random.choice(['Exercise', 'Read', 'Save Money', 'Learn', 'Travel'])} - {target_date.strftime('%B %Y')}",
+                    category=random.choice(goal_categories),
+                    status=random.choice(goal_statuses),
+                    tags=[random.choice(['health', 'learning', 'finance', 'personal', 'career'])]
+                )
+                goals_created += 1
+            
+            # Create 1-3 journal entries per month
+            num_entries = random.randint(1, 3)
+            for _ in range(num_entries):
+                entry_date = target_date - timedelta(days=random.randint(0, 29))
+                # Check if journal entry already exists for this date
+                if not JournalEntry.objects.filter(user=user, date=entry_date).exists():
+                    journal_entry = JournalEntry.objects.create(
+                        user=user,
+                        date=entry_date,
+                        content=f"Journal entry from {entry_date.strftime('%B %d, %Y')}. Today was a productive day with various activities and accomplishments."
+                    )
+                    journal_entries_created += 1
+        
+        # Create habits (only once)
+        habit_names = ['Water Intake', 'Exercise', 'Reading', 'Meditation', 'Sleep']
+        for habit_name in habit_names:
+            habit = Habit.objects.create(
+                id=str(uuid.uuid4()),
+                user=user,
+                name=habit_name,
+                target=random.randint(5, 10),
+                range_max=random.randint(10, 15)
+            )
+            habits_created += 1
+            
+            # Create habit scores for past 30 days
+            for days_ago in range(30):
+                score_date = current_date - timedelta(days=days_ago)
+                # Check if habit score already exists for this date and habit
+                if not DailyHabitScore.objects.filter(user=user, date=score_date, habit=habit).exists():
+                    DailyHabitScore.objects.create(
+                        user=user,
+                        date=score_date,
+                        habit=habit,
+                        score=random.randint(0, habit.target)
+                    )
+        
+        # Create some achievements
+        achievement_titles = ['First Goal Completed', '30-Day Streak', 'Savings Target', 'Fitness Milestone']
+        for title in achievement_titles:
+            achievement_date = current_date - timedelta(days=random.randint(1, 365))
+            Achievement.objects.create(
+                user=user,
+                title=title,
+                description=f"Achievement unlocked: {title}",
+                date=achievement_date
+            )
+        
+        return Response({
+            'success': True,
+            'message': '12 months of historical data inserted successfully',
+            'timestamp': current_datetime.isoformat(),
+            'data': {
+                'expenses': expenses_created,
+                'goals': goals_created,
+                'habits': habits_created,
+                'journal_entries': journal_entries_created,
+                'months_generated': 12,
+                'habit_scores_created': habits_created * 30,
+                'achievements_created': len(achievement_titles)
+            }
+        }, status=status.HTTP_201_CREATED)
 

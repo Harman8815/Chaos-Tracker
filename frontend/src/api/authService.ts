@@ -38,6 +38,25 @@ export interface AuthResponse {
 }
 
 /**
+ * Temp data response from backend
+ */
+export interface TempDataResponse {
+    success: boolean;
+    message?: string;
+    timestamp?: string;
+    data?: {
+        expenses: number;
+        goals: number;
+        habits: number;
+        journal_entries: number;
+        months_generated: number;
+        habit_scores_created: number;
+        achievements_created: number;
+    };
+    error?: string;
+}
+
+/**
  * Authentication service for handling user authentication
  */
 export const authService = {
@@ -107,6 +126,26 @@ export const authService = {
         } catch (error) {
             console.warn('Not authenticated or session expired', error);
             return null;
+        }
+    },
+
+    /**
+     * Populate temporary data for testing (12 months of historical data)
+     */
+    populateTempData: async (): Promise<TempDataResponse> => {
+        try {
+            const response = await client.post<any>(ENDPOINTS.TEMP_DATA, {});
+            return {
+                success: response.success || true,
+                message: response.message || 'Temporary data populated successfully',
+                timestamp: response.timestamp,
+                data: response.data
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to populate temporary data'
+            };
         }
     }
 };

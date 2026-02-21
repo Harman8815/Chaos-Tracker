@@ -33,6 +33,11 @@ from .views import (
     PointsAnalyticsTodayDistributionView,
     PointsAnalyticsHabitPerformance7View,
     PointsAnalyticsHabitTrend30View,
+    UserProfileView,
+    ExportDataView,
+    ImportDataView,
+    AnalyticsView,
+    TempDataView,
 )
 
 urlpatterns = [
@@ -61,6 +66,9 @@ urlpatterns = [
     
     # Populate Data endpoint
     path('populate-data/', PopulateDataView.as_view(), name='populate-data'),
+
+    # Temporary Data endpoint
+    path('temp-data/', TempDataView.as_view(), name='temp-data'),
 
     # Achievement endpoints
     path('achievements/', AchievementListCreateView.as_view(), name='achievement-list-create'),
@@ -97,4 +105,16 @@ urlpatterns = [
     path('points/analytics/today-distribution/', PointsAnalyticsTodayDistributionView.as_view(), name='points-analytics-today-distribution'),
     path('points/analytics/habit-performance/7/', PointsAnalyticsHabitPerformance7View.as_view(), name='points-analytics-habit-performance-7'),
     path('points/analytics/habit-trend/30/', PointsAnalyticsHabitTrend30View.as_view(), name='points-analytics-habit-trend-30'),
+
+    # User Profile endpoints
+    path('user/profile/', UserProfileView.as_view(), name='user-profile'),
+
+    # Export endpoints
+    path('export/<str:format_type>/', ExportDataView.as_view(), name='export-data'),
+
+    # Import endpoints
+    path('import/<str:format_type>/', ImportDataView.as_view(), name='import-data'),
+
+    # Analytics endpoints
+    path('analytics/<str:period>/', AnalyticsView.as_view(), name='analytics'),
 ]

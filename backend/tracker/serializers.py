@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile
 
 import base64
 
@@ -253,4 +253,34 @@ class DailyHabitScoreSerializer(serializers.ModelSerializer):
         model = DailyHabitScore
         fields = ['date', 'habit_id', 'score', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    
+    class Meta:
+        model = UserProfile
+        fields = [
+            'username', 'email', 'first_name', 'last_name',
+            'bio', 'avatar_url', 'date_of_birth', 'location', 
+            'website', 'timezone', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    def update(self, instance, validated_data):
+        # Handle nested user fields if needed
+        user_data = {}
+        for field in ['first_name', 'last_name']:
+            if field in validated_data:
+                user_data[field] = validated_data.pop(field)
+        
+        if user_data:
+            for field, value in user_data.items():
+                setattr(instance.user, field, value)
+            instance.user.save()
+        
+        return super().update(instance, validated_data)
 

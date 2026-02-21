@@ -1,0 +1,66 @@
+{
+  "quote_sources": [
+    {
+      "id": "movie-inception-2010",
+      "title": "Inception",
+      "type": "Movie",
+      "cover_image": "https://example.com/inception.jpg"
+    },
+    {
+      "id": "book-alchemist-1988",
+      "title": "The Alchemist",
+      "type": "Book",
+      "cover_image": "https://example.com/alchemist.jpg"
+    },
+    {
+      "id": "series-breaking-bad-2008",
+      "title": "Breaking Bad",
+      "type": "Web Series",
+      "cover_image": "https://example.com/breaking-bad.jpg"
+    }
+  ],
+  "quotes": [
+    {
+      "source_id": "movie-inception-2010",
+      "text": "Dreams feel real while we're in them. It's only when we wake up that we realize something was actually strange.",
+      "author": "Dom Cobb",
+      "image": "https://example.com/inception-quote1.jpg",
+      "tags": ["dreams", "reality", "philosophy"]
+    },
+    {
+      "source_id": "movie-inception-2010",
+      "text": "Your mind is the scene of the crime.",
+      "author": "Dom Cobb",
+      "image": "https://example.com/inception-quote2.jpg",
+      "tags": ["mind", "crime", "psychology"]
+    },
+    {
+      "source_id": "book-alchemist-1988",
+      "text": "When you want something, all the universe conspires in helping you to achieve it.",
+      "author": "Paulo Coelho",
+      "image": "https://example.com/alchemist-quote1.jpg",
+      "tags": ["motivation", "universe", "goals"]
+    },
+    {
+      "source_id": "book-alchemist-1988",
+      "text": "It's the possibility of having a dream come true that makes life interesting.",
+      "author": "Paulo Coelho",
+      "image": "https://example.com/alchemist-quote2.jpg",
+      "tags": ["dreams", "life", "possibility"]
+    },
+    {
+      "source_id": "series-breaking-bad-2008",
+      "text": "I am the one who knocks!",
+      "author": "Walter White",
+      "image": "https://example.com/bb-quote1.jpg",
+      "tags": ["power", "identity", "transformation"]
+    },
+    {
+      "source_id": "series-breaking-bad-2008",
+      "text": "Say my name.",
+      "author": "Walter White",
+      "image": "https://example.com/bb-quote2.jpg",
+      "tags": ["identity", "fame", "recognition"]
+    }
+  ]
+}

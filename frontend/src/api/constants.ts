@@ -10,7 +10,7 @@ export const ENDPOINTS = {
     
     // Application endpoints
     SYNC: '/sync',
-    USER_PROFILE: '/user/profile',
+    USER_PROFILE: '/user/profile/',
     HABITS: '/habits',
     DATA: '/data',
     PLANNER: '/planner',
@@ -20,6 +20,11 @@ export const ENDPOINTS = {
     ACHIEVEMENTS: '/achievements',
     RULES: '/rules',
     JOURNAL: '/journal/',
+    TEMP_DATA: '/temp-data/',
+    
+    // Export/Import endpoints
+    EXPORT_DATA: '/export/',
+    IMPORT_DATA: '/import/',
 };
 
 export const REQUEST_TIMEOUT_MS = 10000;
