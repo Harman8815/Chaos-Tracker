@@ -1,0 +1,52 @@
+{
+  "goals": [
+    {
+      "text": "Exercise for 30 minutes daily",
+      "category": "daily",
+      "status": "active",
+      "tags": ["health", "fitness"]
+    },
+    {
+      "text": "Read 20 pages every day",
+      "category": "daily",
+      "status": "active",
+      "tags": ["learning", "personal"]
+    },
+    {
+      "text": "Meditate for 10 minutes",
+      "category": "daily",
+      "status": "completed",
+      "tags": ["mindfulness", "health"]
+    },
+    {
+      "text": "Complete online course certification",
+      "category": "monthly",
+      "status": "active",
+      "tags": ["career", "learning"]
+    },
+    {
+      "text": "Save $500 for emergency fund",
+      "category": "monthly",
+      "status": "active",
+      "tags": ["finance", "planning"]
+    },
+    {
+      "text": "Learn a new programming language",
+      "category": "future",
+      "status": "active",
+      "tags": ["career", "technology"]
+    },
+    {
+      "text": "Buy a house",
+      "category": "future",
+      "status": "active",
+      "tags": ["finance", "life"]
+    },
+    {
+      "text": "Write a book",
+      "category": "future",
+      "status": "blocked",
+      "tags": ["creative", "personal"]
+    }
+  ]
+}

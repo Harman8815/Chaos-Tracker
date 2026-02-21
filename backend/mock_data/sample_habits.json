@@ -1,0 +1,61 @@
+{
+  "habits": [
+    {
+      "name": "Water Intake",
+      "target": 8,
+      "range_max": 12
+    },
+    {
+      "name": "Steps Count",
+      "target": 10000,
+      "range_max": 15000
+    },
+    {
+      "name": "Sleep Hours",
+      "target": 8,
+      "range_max": 10
+    },
+    {
+      "name": "Meditation Minutes",
+      "target": 15,
+      "range_max": 30
+    },
+    {
+      "name": "Exercise Minutes",
+      "target": 30,
+      "range_max": 60
+    }
+  ],
+  "scoring_rules": [
+    {
+      "activity": "Water Intake",
+      "max_points": 10,
+      "penalty_rule": "Subtract 2 points for each glass below target",
+      "zero_points_condition": "Less than 4 glasses"
+    },
+    {
+      "activity": "Steps Count",
+      "max_points": 15,
+      "penalty_rule": "Subtract 1 point per 1000 steps below target",
+      "zero_points_condition": "Less than 5000 steps"
+    },
+    {
+      "activity": "Sleep Hours",
+      "max_points": 10,
+      "penalty_rule": "Subtract 2 points for each hour below 7 hours",
+      "zero_points_condition": "Less than 5 hours"
+    },
+    {
+      "activity": "Meditation Minutes",
+      "max_points": 8,
+      "penalty_rule": "Subtract 1 point for every 5 minutes below target",
+      "zero_points_condition": "No meditation"
+    },
+    {
+      "activity": "Exercise Minutes",
+      "max_points": 12,
+      "penalty_rule": "Subtract 2 points for every 10 minutes below target",
+      "zero_points_condition": "No exercise"
+    }
+  ]
+}
