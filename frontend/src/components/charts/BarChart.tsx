@@ -25,8 +25,8 @@ const BarChart: React.FC<ChartProps> = ({
     data,
     height = 250,
     totalBars,
-    normalColor = "#8840ff",
-    hoverColor = "#eab308",
+    normalColor = "#6366f1",
+    hoverColor = "#818cf8",
     highlightedBarName,
 }) => {
     // Default to today's date number if not provided
@@ -56,15 +56,15 @@ const BarChart: React.FC<ChartProps> = ({
 
     if (!data || data.length === 0) {
         return (
-            <div className="p-6 text-center text-gray-400">
+            <div className="p-6 text-center text-text-secondary">
                 No data available.
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-transparent rounded-xl p-2">
-            <h2 className="text-xl font-semibold mb-4 text-white tracking-wide">
+        <div className="w-full bg-transparent rounded-lg p-2">
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">
                 {title}
             </h2>
             <ResponsiveContainer width="100%" height={height}>
@@ -73,30 +73,30 @@ const BarChart: React.FC<ChartProps> = ({
                     margin={{ top: 20, right: 0, left: -30, bottom: -40 }}
                     onMouseLeave={() => setHoverIndex(null)}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis
                         dataKey="name"
-                        tick={{ fill: "#ccc", fontSize: 12 }}
+                        tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
                         interval={0}
                         angle={-35}
                         textAnchor="end"
                         height={60}
                     />
                     <YAxis
-                        tick={{ fill: "#eee", fontSize: 12 }}
-                        tickLine={{ stroke: "#444" }}
-                        axisLine={{ stroke: "#444" }}
+                        tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
+                        tickLine={{ stroke: "var(--color-border)" }}
+                        axisLine={{ stroke: "var(--color-border)" }}
                     />
                     <Tooltip
                         formatter={(v: number) => Number(v.toFixed(2))}
                         contentStyle={{
-                            backgroundColor: "#1d2430",
-                            border: "1px solid #333",
-                            borderRadius: "8px",
+                            backgroundColor: "var(--color-card-bg)",
+                            border: "1px solid var(--color-border)",
+                            borderRadius: "6px",
                         }}
-                        cursor={{ fill: "#0000002a" }}
-                        labelStyle={{ color: "#fff" }}
-                        itemStyle={{ color: "#ddd" }}
+                        cursor={{ fill: "var(--color-surface)" }}
+                        labelStyle={{ color: "var(--color-text-primary)" }}
+                        itemStyle={{ color: "var(--color-text-secondary)" }}
                     />
                     <Bar
                         dataKey="value"

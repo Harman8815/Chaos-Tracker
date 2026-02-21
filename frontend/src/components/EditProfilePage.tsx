@@ -2,7 +2,8 @@ import React, { useContext, useState, useEffect } from 'react';
 import { DataContext } from '../context/DataContext';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { profileService, UserProfile, ProfileUpdateData } from '../services/profileService';
+import { profileService, ProfileUpdateData } from '../services/profileService';
+import { UserProfile } from '../types';
 
 const EditProfilePage: React.FC = () => {
     const { userProfile, setUserProfile, setSelectedPage } = useContext(DataContext);
@@ -11,15 +12,12 @@ const EditProfilePage: React.FC = () => {
     const [success, setSuccess] = useState<string | null>(null);
 
     // Initialize local state with userProfile data
-    const [firstName, setFirstName] = useState(userProfile?.first_name || '');
-    const [lastName, setLastName] = useState(userProfile?.last_name || '');
+    const [name, setName] = useState(userProfile?.name || '');
     const [email, setEmail] = useState(userProfile?.email || '');
     const [location, setLocation] = useState(userProfile?.location || '');
     const [bio, setBio] = useState(userProfile?.bio || '');
-    const [avatarUrl, setAvatarUrl] = useState(userProfile?.avatar_url || '');
-    const [website, setWebsite] = useState(userProfile?.website || '');
-    const [timezone, setTimezone] = useState(userProfile?.timezone || 'UTC');
-    const [dateOfBirth, setDateOfBirth] = useState(userProfile?.date_of_birth || '');
+    const [avatarUrl, setAvatarUrl] = useState(userProfile?.avatar || '');
+    const [website, setWebsite] = useState(userProfile?.socials?.website || '');
     
     // Load profile data on mount
     useEffect(() => {
@@ -27,16 +25,25 @@ const EditProfilePage: React.FC = () => {
             try {
                 const profile = await profileService.getProfile();
                 if (profile) {
-                    setUserProfile(profile);
-                    setFirstName(profile.first_name || '');
-                    setLastName(profile.last_name || '');
+                    // Map profileService fields to types.ts UserProfile fields
+                    const mappedProfile: UserProfile = {
+                        name: profile.first_name + ' ' + profile.last_name,
+                        email: profile.email,
+                        joinDate: profile.created_at,
+                        avatar: profile.avatar_url,
+                        bio: profile.bio,
+                        location: profile.location,
+                        socials: {
+                            website: profile.website
+                        }
+                    };
+                    setUserProfile(mappedProfile);
+                    setName(profile.first_name + ' ' + profile.last_name || '');
                     setEmail(profile.email || '');
                     setLocation(profile.location || '');
                     setBio(profile.bio || '');
                     setAvatarUrl(profile.avatar_url || '');
                     setWebsite(profile.website || '');
-                    setTimezone(profile.timezone || 'UTC');
-                    setDateOfBirth(profile.date_of_birth || '');
                 }
             } catch (err) {
                 setError('Failed to load profile data');
@@ -53,25 +60,35 @@ const EditProfilePage: React.FC = () => {
         
         try {
             const updateData: ProfileUpdateData = {
-                first_name: firstName,
-                last_name: lastName,
+                first_name: name,
+                last_name: '', // Since types.ts UserProfile doesn't split name, we'll use empty string
                 bio,
                 avatar_url: avatarUrl,
                 location,
                 website,
-                timezone,
-                date_of_birth: dateOfBirth || null,
             };
             
             const updatedProfile = await profileService.updateProfile(updateData);
             
             if (updatedProfile) {
-                setUserProfile(updatedProfile);
-                setSuccess('Profile updated successfully!');
-                setTimeout(() => {
-                    setSelectedPage('profile');
-                }, 1500);
-            } else {
+                    // Map profileService fields to types.ts UserProfile fields
+                    const mappedProfile: UserProfile = {
+                        name: updatedProfile.first_name + ' ' + updatedProfile.last_name,
+                        email: updatedProfile.email,
+                        joinDate: updatedProfile.created_at,
+                        avatar: updatedProfile.avatar_url,
+                        bio: updatedProfile.bio,
+                        location: updatedProfile.location,
+                        socials: {
+                            website: updatedProfile.website
+                        }
+                    };
+                    setUserProfile(mappedProfile);
+                    setSuccess('Profile updated successfully!');
+                    setTimeout(() => {
+                        setSelectedPage('profile');
+                    }, 1500);
+                } else {
                 setError('Failed to update profile');
             }
         } catch (err) {
@@ -116,7 +133,7 @@ const EditProfilePage: React.FC = () => {
                         <div className="flex flex-col items-center">
                             <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-sidebar-bg shadow-lg">
                                 <img 
-                                    src={avatarUrl || `https://ui-avatars.com/api/?name=${(firstName + ' ' + lastName).replace(' ', '+')}&background=7c3aed&color=fff&size=128`} 
+                                    src={avatarUrl || `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=7c3aed&color=fff&size=128`} 
                                     alt="Preview" 
                                     className="w-full h-full object-cover" 
                                 />
@@ -148,30 +165,6 @@ const EditProfilePage: React.FC = () => {
                                     placeholder="https://mywebsite.com"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs text-text-secondary mb-1">Timezone</label>
-                                <select
-                                    value={timezone}
-                                    onChange={(e) => setTimezone(e.target.value)}
-                                    className="w-full p-2 rounded bg-input-bg border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
-                                >
-                                    <option value="UTC">UTC</option>
-                                    <option value="America/New_York">Eastern Time</option>
-                                    <option value="America/Los_Angeles">Pacific Time</option>
-                                    <option value="Europe/London">London</option>
-                                    <option value="Asia/Tokyo">Tokyo</option>
-                                    <option value="Asia/Kolkata">India</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs text-text-secondary mb-1">Date of Birth</label>
-                                <input
-                                    type="date"
-                                    value={dateOfBirth}
-                                    onChange={(e) => setDateOfBirth(e.target.value)}
-                                    className="w-full p-2 rounded bg-input-bg border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
-                                />
-                            </div>
                         </div>
                     </Card>
                 </div>
@@ -182,20 +175,11 @@ const EditProfilePage: React.FC = () => {
                         <h3 className="font-bold text-lg mb-4">Personal Information</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs text-text-secondary mb-1">First Name</label>
+                                <label className="block text-xs text-text-secondary mb-1">Name</label>
                                 <input
                                     type="text"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                    className="w-full p-2 rounded bg-input-bg border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs text-text-secondary mb-1">Last Name</label>
-                                <input
-                                    type="text"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     className="w-full p-2 rounded bg-input-bg border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                 />
                             </div>

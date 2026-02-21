@@ -9,7 +9,7 @@ import Button from './ui/Button';
 import { Habit, AllData, DailyData } from '../types';
 import { marked } from 'marked';
 
-const CHART_COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#d946ef'];
+const CHART_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#14b8a6'];
 
 const NoData: React.FC = () => <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
 
@@ -747,7 +747,7 @@ const Dashboard: React.FC = () => {
     }, [data]);
 
     return (
-        <div className="p-6 h-full overflow-y-auto animate-fade-in pb-20">
+        <div className="p-6 h-full overflow-y-auto pb-20">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-text-primary">{t('dashboard')}</h1>
                 <div className="text-sm text-text-secondary">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
@@ -832,34 +832,30 @@ const Dashboard: React.FC = () => {
                     )}
                 </Card>
 
-                <Card className="lg:col-span-2 relative overflow-hidden group">
-                    {/* Background visual for gamification */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-accent-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-
-                    <div className="flex flex-col h-full justify-between relative z-10">
+                <Card className="lg:col-span-2">
+                    <div className="flex flex-col h-full">
                         <div className="mb-6">
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="font-bold text-xl">Tracker Rank</h3>
-                                <div className="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-bold uppercase tracking-wider shadow-sm">
+                                <div className="px-3 py-1 rounded-full bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xs font-bold uppercase tracking-wider">
                                     {levelStats.rank}
                                 </div>
                             </div>
 
                             <div className="flex items-end gap-2 mb-2">
-                                <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-primary to-purple-400">
+                                <span className="text-5xl font-black text-accent-primary">
                                     {levelStats.level}
                                 </span>
                                 <span className="text-sm text-text-secondary font-bold mb-2">LEVEL</span>
                             </div>
 
-                            <div className="w-full h-6 bg-input-bg rounded-full overflow-hidden mb-2 relative shadow-inner">
+                            <div className="w-full h-6 bg-input-bg rounded-full overflow-hidden mb-2 relative">
                                 <div
-                                    className="h-full bg-gradient-to-r from-accent-primary to-purple-500 transition-all duration-1000 ease-out relative"
+                                    className="h-full bg-accent-primary transition-all duration-500 ease-out relative"
                                     style={{ width: `${(levelStats.progress / levelStats.needed) * 100}%` }}
                                 >
-                                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
                                 </div>
-                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-text-primary">
                                     {Math.round((levelStats.progress / levelStats.needed) * 100)}% to Lvl {levelStats.level + 1}
                                 </span>
                             </div>
@@ -871,11 +867,11 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 bg-card-bg rounded-lg border border-border shadow-sm text-center">
+                            <div className="p-4 bg-surface rounded-lg border border-border text-center">
                                 <div className="text-2xl font-bold text-text-primary">{levelStats.totalXP.toLocaleString()}</div>
                                 <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Lifetime XP</div>
                             </div>
-                            <div className="p-4 bg-card-bg rounded-lg border border-border shadow-sm text-center">
+                            <div className="p-4 bg-surface rounded-lg border border-border text-center">
                                 <div className="text-2xl font-bold text-text-primary">{Object.keys(data).length}</div>
                                 <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Days Active</div>
                             </div>

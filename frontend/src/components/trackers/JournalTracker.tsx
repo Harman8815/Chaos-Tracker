@@ -313,7 +313,7 @@ const JournalTracker: React.FC = () => {
                             console.log(`Processing entry for date: ${dateKey}, content length: ${entry.content?.length || 0}`);
 
                             if (!newData[dateKey]) {
-                                newData[dateKey] = { journal: entry.content || '', points: 0 };
+                                newData[dateKey] = { journal: entry.content || '' };
                             } else {
                                 newData[dateKey] = { ...newData[dateKey], journal: entry.content || '' };
                             }

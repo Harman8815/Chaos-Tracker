@@ -23,19 +23,19 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Exp
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50" onClick={onClose}>
+            <div className="bg-card-bg p-6 rounded-lg shadow-lg w-full max-w-md border border-border" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6 text-text-primary">Add New Expense</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full p-2 rounded-md bg-input-bg border border-border" required />
-                    <input placeholder="Item" value={item} onChange={e => setItem(e.target.value)} className="w-full p-2 rounded-md bg-input-bg border border-border" required />
-                    <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full p-2 rounded-md bg-input-bg border border-border" required />
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
+                    <input placeholder="Item" value={item} onChange={e => setItem(e.target.value)} className="w-full px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
+                    <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
                     <div className="flex gap-4">
-                        <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-1/2 p-2 rounded-md bg-input-bg border border-border" min="1" required />
-                        <input type="number" placeholder="Price" value={price} onChange={e => setPrice(parseFloat(e.target.value) || 0)} className="w-1/2 p-2 rounded-md bg-input-bg border border-border" step="0.01" min="0.01" required />
+                        <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-1/2 px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" min="1" required />
+                        <input type="number" placeholder="Price" value={price} onChange={e => setPrice(parseFloat(e.target.value) || 0)} className="w-1/2 px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" step="0.01" min="0.01" required />
                     </div>
                     <div className="flex justify-end gap-4 pt-4">
-                        <Button type="button" onClick={onClose} className="bg-input-bg text-text-primary hover:bg-border">Cancel</Button>
+                        <Button type="button" onClick={onClose} className="bg-surface text-text-primary hover:bg-surface-elevated">Cancel</Button>
                         <Button type="submit">Add Expense</Button>
                     </div>
                 </form>

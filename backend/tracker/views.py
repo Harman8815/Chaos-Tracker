@@ -2859,7 +2859,7 @@ class TempDataView(views.APIView):
     Insert temporary/mock data with current timestamp
     POST /api/temp-data/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     def post(self, request):
         """
@@ -2868,8 +2868,18 @@ class TempDataView(views.APIView):
         from django.utils import timezone
         import uuid
         from datetime import timedelta
+        from django.contrib.auth.models import User
         
-        user = request.user
+        # Get or create a default user for temp data
+        user, created = User.objects.get_or_create(
+            username='temp_user',
+            defaults={
+                'email': 'temp@example.com',
+                'first_name': 'Temp',
+                'last_name': 'User'
+            }
+        )
+        
         current_datetime = timezone.now()
         current_date = current_datetime.date()
         

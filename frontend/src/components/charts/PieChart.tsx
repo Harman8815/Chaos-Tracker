@@ -16,10 +16,10 @@ interface PieProps {
 }
 
 const COLORS = [
-    "#38bdf8", "#a855f7", "#f472b6", "#fb923c", "#34d399",
-    "#facc15", "#60a5fa", "#818cf8", "#c084fc", "#e879f9",
-    "#4ade80", "#2dd4bf", "#fcd34d", "#f97316", "#ef4444",
-    "#22d3ee", "#93c5fd", "#bbf7d0", "#fde047", "#fca5a5",
+    "#6366f1", "#8b5cf6", "#3b82f6", "#10b981", "#f59e0b",
+    "#ef4444", "#06b6d4", "#14b8a6", "#22d3ee", "#93c5fd",
+    "#4ade80", "#2dd4bf", "#fcd34d", "#f97316", "#f87171",
+    "#0ea5e9", "#60a5fa", "#86efac", "#fde047", "#fca5a5",
 ];
 
 const PieChart: React.FC<PieProps> = ({
@@ -58,14 +58,14 @@ const PieChart: React.FC<PieProps> = ({
     }, []);
 
     if (!data || data.length === 0) {
-        return <div className="p-6 text-center text-gray-400">No data available.</div>;
+        return <div className="p-6 text-center text-text-secondary">No data available.</div>;
     }
 
     const round2 = (num: number) => Number(num.toFixed(2));
 
     return (
-        <div ref={containerRef} className="w-full bg-transparent rounded-xl p-2">
-            <h2 className="text-xl font-semibold mb-4 text-white tracking-wide">{title}</h2>
+        <div ref={containerRef} className="w-full bg-transparent rounded-lg p-2">
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">{title}</h2>
 
             <ResponsiveContainer width="100%" height={height}>
                 <RechartsPieChart>
@@ -106,12 +106,12 @@ const PieChart: React.FC<PieProps> = ({
 
                     <Tooltip
                         contentStyle={{
-                            backgroundColor: "#1d2430",
-                            border: "1px solid #333",
-                            borderRadius: "8px",
+                            backgroundColor: "var(--color-card-bg)",
+                            border: "1px solid var(--color-border)",
+                            borderRadius: "6px",
                         }} formatter={(value: number) => Number(value.toFixed(2))}
-                        labelStyle={{ color: "#fff" }}
-                        itemStyle={{ color: "#ddd" }}
+                        labelStyle={{ color: "var(--color-text-primary)" }}
+                        itemStyle={{ color: "var(--color-text-secondary)" }}
                     />
                 </RechartsPieChart>
             </ResponsiveContainer>
