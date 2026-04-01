@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useRef, useState, useEffect } from 'react';
+import React, { useContext, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { DataContext } from '../context/DataContext';
@@ -29,12 +29,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const { userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const allPossibleItems = [
         { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
@@ -78,17 +72,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     };
 
     const selectedPage = getActiveId(pathname);
-
-    if (!mounted) {
-        // Return a placeholder that matches server-side render
-        return (
-            <aside className="relative bg-sidebar-bg flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-border">
-                <div className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-text-secondary focus:outline-none mb-4">
-                    <div className="w-6 h-6" />
-                </div>
-            </aside>
-        );
-    }
 
     if (isCollapsed) {
         return (
