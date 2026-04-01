@@ -123,7 +123,7 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
     }, [goals]);
 
     return (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 animate-fade-in p-6 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 z-50 p-6 overflow-y-auto">
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-3xl font-bold">Goals Dashboard</h2>
@@ -176,7 +176,7 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
 
 const GoalItem: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
     return (
-        <div className="flex items-center p-3 rounded-lg hover:bg-input-bg/50 group">
+        <div className="flex items-center p-3 rounded-lg hover:bg-surface group transition-colors duration-200">
             <button onClick={() => onToggle(goal.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-border'}`}>
                 {goal.status === 'completed' && <CheckIcon className="text-white" />}
             </button>
@@ -336,14 +336,14 @@ const GoalTracker: React.FC = () => {
                         value={newGoalText}
                         onChange={e => setNewGoalText(e.target.value)}
                         placeholder={`Add a new ${activeTab} goal...`}
-                        className="flex-grow p-3 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="flex-grow px-3 py-2 rounded-md bg-input-bg border border-input-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     />
                     <input
                         type="text"
                         value={newGoalTags}
                         onChange={e => setNewGoalTags(e.target.value)}
                         placeholder="Tags (comma-separated)"
-                        className="md:w-1/3 p-3 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="md:w-1/3 px-3 py-2 rounded-md bg-input-bg border border-input-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     />
                     <Button type="submit" className="px-6">Add Goal</Button>
                 </form>

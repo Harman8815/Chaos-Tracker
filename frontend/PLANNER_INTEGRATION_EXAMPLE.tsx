@@ -2,14 +2,28 @@
 // This shows how to add backend sync to the existing Planner.tsx
 
 import React, { useState, useContext, useRef, useCallback, useEffect, useMemo } from 'react';
-import { DataContext } from '../../context/DataContext';
-import { TRACKERS } from '../../constants';
-import TrackerWrapper from '../TrackerWrapper';
-import Button from '../ui/Button';
+import { DataContext } from './src/context/DataContext';
+import { TRACKERS } from './src/constants';
+import TrackerWrapper from './src/components/TrackerWrapper';
+import Button from './src/components/ui/Button';
 import { v4 as uuidv4 } from 'uuid';
-import { PlannerData, TodoBlock, Task } from '../../types';
-import { plannerService } from '../../services/plannerService';
-import { debounce } from 'lodash'; // You may need to install lodash: npm install lodash
+import { PlannerData, TodoBlock, Task } from './src/types';
+import { plannerService } from './src/services/plannerService';
+
+// Simple debounce implementation with cancel method
+const debounce = <T extends (...args: any[]) => any>(func: T, wait: number): T & { cancel: () => void } => {
+    let timeout: NodeJS.Timeout;
+    const debounced = ((...args: any[]) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    }) as T & { cancel: () => void };
+    
+    debounced.cancel = () => {
+        clearTimeout(timeout);
+    };
+    
+    return debounced;
+};
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 2;
@@ -274,7 +288,7 @@ const Planner: React.FC = () => {
                         })}
                     </svg>
 
-                    {blocks.map(block => (
+                    {/* blocks.map(block => (
                         <TodoBlockComponent
                             key={block.id}
                             block={block}
@@ -284,7 +298,7 @@ const Planner: React.FC = () => {
                             finishLink={finishLink}
                             isLinking={!!linking}
                         />
-                    ))}
+                    )) */}
                 </div>
                 <style>{`
                     .bg-dots {

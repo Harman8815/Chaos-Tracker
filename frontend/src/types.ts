@@ -8,6 +8,7 @@ export interface Settings {
     theme: Theme;
     timeFormat: TimeFormat;
     language: Language;
+    notifications: boolean;
 }
 
 export interface UserProfile {
@@ -32,6 +33,7 @@ export interface Habit {
     target: number;
     rangeMax?: number;
     completed?: boolean;
+    streak?: number;
 }
 
 export interface DailyData {

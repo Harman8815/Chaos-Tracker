@@ -23,7 +23,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { fetchAppData } from '../api/services';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
-import VantaBackground from './VantaBackground';
 
 const getToday = () => {
     const d = new Date();
@@ -164,6 +163,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         theme: 'dark',
         timeFormat: '24h',
         language: 'en',
+        notifications: true,
     });
 
     const [isAuthenticated, setIsAuthenticated] = useLocalStorage<boolean>('tracker-auth', false);
@@ -240,13 +240,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
-                        <VantaBackground />
                         {!isAuthenticated ? (
-                            <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
-                                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
-                                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none"></div>
-
+                            <div className="w-full h-full flex items-center justify-center relative">
                                 {authView === 'login' ? (
                                     <LoginPage onLogin={login} onSwitchToSignUp={() => setAuthView('signup')} />
                                 ) : (

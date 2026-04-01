@@ -60,7 +60,7 @@ export const getAIPoweredSummary = async (data: AllData, habits: Habit[]): Promi
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.text;
+        return response.text || "Could not generate AI reflection at this time. Keep up the great work!";
     } catch (error) {
         console.error("Error generating AI summary:", error);
         return "Could not generate AI reflection at this time. Keep up the great work!";
