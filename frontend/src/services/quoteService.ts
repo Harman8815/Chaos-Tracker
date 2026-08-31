@@ -25,8 +25,7 @@ export const getAllQuoteSources = async (params?: {
   }
   
   const url = `/quotes/sources/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  const response = await apiClient.get(url);
-  
+  const response = await apiClient.get<{ sources: QuoteSource[] }>(url);
   return response.sources;
 };
 
@@ -34,7 +33,7 @@ export const getAllQuoteSources = async (params?: {
  * Get a specific quote source by ID
  */
 export const getQuoteSource = async (sourceId: string): Promise<QuoteSource> => {
-  const response = await apiClient.get(`/quotes/sources/${sourceId}/`);
+  const response = await apiClient.get<{ source: QuoteSource }>(`/quotes/sources/${sourceId}/`);
   return response.source;
 };
 
@@ -44,7 +43,7 @@ export const getQuoteSource = async (sourceId: string): Promise<QuoteSource> => 
 export const createQuoteSource = async (
   sourceData: Omit<QuoteSource, 'created_at' | 'updated_at'>
 ): Promise<QuoteSource> => {
-  const response = await apiClient.post('/quotes/sources/', {
+  const response = await apiClient.post<{ source: QuoteSource }>('/quotes/sources/', {
     id: sourceData.id,
     title: sourceData.title,
     type: sourceData.type,
@@ -74,7 +73,7 @@ export const updateQuoteSource = async (
   if (updates.type) payload.type = updates.type;
   if (updates.coverImage) payload.cover_image = updates.coverImage;
   
-  const response = await apiClient.put(`/quotes/sources/${sourceId}/`, payload);
+  const response = await apiClient.put<{ source: QuoteSource }>(`/quotes/sources/${sourceId}/`, payload);
   return transformQuoteSourceFromAPI(response.source);
 };
 
@@ -98,7 +97,7 @@ export const getQuotesForSource = async (
     ? `/quotes/sources/${sourceId}/quotes/?tag=${encodeURIComponent(tag)}`
     : `/quotes/sources/${sourceId}/quotes/`;
   
-  const response = await apiClient.get(url);
+  const response = await apiClient.get<{ quotes: Quote[] }>(url);
   return response.quotes.map(transformQuoteFromAPI);
 };
 
@@ -106,7 +105,7 @@ export const getQuotesForSource = async (
  * Get a specific quote by ID
  */
 export const getQuote = async (quoteId: string): Promise<Quote> => {
-  const response = await apiClient.get(`/quotes/${quoteId}/`);
+  const response = await apiClient.get<{ quote: Quote }>(`/quotes/${quoteId}/`);
   return transformQuoteFromAPI(response.quote);
 };
 
@@ -117,7 +116,7 @@ export const createQuote = async (
   sourceId: string,
   quoteData: Omit<Quote, 'created_at' | 'updated_at'>
 ): Promise<Quote> => {
-  const response = await apiClient.post(`/quotes/sources/${sourceId}/quotes/`, {
+  const response = await apiClient.post<{ quote: Quote }>(`/quotes/sources/${sourceId}/quotes/`, {
     id: quoteData.id,
     text: quoteData.text,
     author: quoteData.author,
@@ -142,7 +141,7 @@ export const updateQuote = async (
   if (updates.tags) payload.tags = updates.tags;
   if (updates.image !== undefined) payload.image = updates.image;
   
-  const response = await apiClient.put(`/quotes/${quoteId}/`, payload);
+  const response = await apiClient.put<{ quote: Quote }>(`/quotes/${quoteId}/`, payload);
   return transformQuoteFromAPI(response.quote);
 };
 
@@ -173,7 +172,7 @@ export const fuzzySearchQuotes = async (
     throw new Error('Search query must be at least 2 characters');
   }
   
-  const response = await apiClient.get(
+  const response = await apiClient.get<{ results: SearchResult[] }>(
     `/quotes/search/?q=${encodeURIComponent(query.trim())}&limit=${limit}`
   );
   
@@ -191,7 +190,7 @@ export const fuzzySearchQuotes = async (
  * Get all unique tags used by the user
  */
 export const getAllTags = async (): Promise<string[]> => {
-  const response = await apiClient.get('/quotes/tags/');
+  const response = await apiClient.get<{ tags: string[] }>('/quotes/tags/');
   return response.tags;
 };
 
