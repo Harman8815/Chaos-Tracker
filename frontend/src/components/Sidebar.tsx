@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     aria-label="Open menu"
                     className="flex items-center justify-center
                             w-14 h-14 rounded-lg bg-sidebar-bg border border-border
-                            text-text-secondary hover:text-text-primary hover:border-accent-primary
+                            text-sidebar-icon hover:text-text-primary hover:border-accent-primary
                             transition-colors duration-200"
                 >
                     <MenuIcon className="w-6 h-6" />
@@ -101,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         <aside className="relative bg-sidebar-bg flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-border">
             <button
                 onClick={toggleSidebar}
-                className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-text-secondary hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
+                className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
                 aria-label="Close menu"
             >
                 <MenuIcon className="w-6 h-6" />
@@ -119,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch={false}
                                 className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-200 focus:outline-none z-10
-                                ${isSelected ? 'text-text-inverse bg-accent-primary' : 'text-text-secondary hover:text-text-primary hover:bg-input-bg'}
+                                ${isSelected ? 'text-text-inverse bg-accent-primary' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
                             `}
                                 title={item.name}
                             >
@@ -152,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
                     <button
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="relative flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-text-secondary hover:text-text-primary focus:outline-none hover:bg-input-bg"
+                        className="relative flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
                         aria-label="Settings"
                     >
                         <SettingsIcon className="w-6 h-6" />

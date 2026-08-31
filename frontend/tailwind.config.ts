@@ -23,6 +23,7 @@ export default {
         'text-tertiary': 'var(--color-text-tertiary)',
         'text-disabled': 'var(--color-text-disabled)',
         'text-inverse': 'var(--color-text-inverse)',
+        'sidebar-icon': 'var(--color-sidebar-icon)',
         'accent-primary': 'var(--color-accent-primary)',
         'accent-primary-hover': 'var(--color-accent-primary-hover)',
         'accent-primary-active': 'var(--color-accent-primary-active)',
