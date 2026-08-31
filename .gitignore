@@ -3,6 +3,7 @@
 .vscode/
 .idea/
 *.log
+node_modules/
 
 # Python
 __pycache__/
@@ -66,3 +67,13 @@ dist/
 
 # Vercel
 .vercel/
+
+# Task list (AI-agent working instructions - stays untracked)
+Task.list
+
+# Graphify
+project-graph/
+graphify.config.json
+package.json
+package-lock.json
+scripts/
