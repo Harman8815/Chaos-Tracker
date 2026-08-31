@@ -44,10 +44,6 @@ class QuoteSource(models.Model):
     def __str__(self):
         return f"{self.title} ({self.type})"
 
-    @property
-    def quote_count(self):
-        return self.quotes.count()
-
 
 class Quote(models.Model):
     """
