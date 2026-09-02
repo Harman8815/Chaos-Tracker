@@ -1,19 +1,20 @@
-import React, { useContext, useMemo, useRef } from 'react';
+import React, { useContext, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { TRACKERS } from '../constants';
 import { PageId, Tracker } from '../types';
 
 const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
 );
 const DashboardIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
 );
 const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2 2 2 2 0 0 1 2 2h.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
 );
 const MenuIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -24,11 +25,15 @@ interface SidebarProps {
     toggleSidebar: () => void;
 }
 
+const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const pathname = usePathname();
     const { userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+    const [activeIndex, setActiveIndex] = useState<number>(-1);
+    const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
 
     const allPossibleItems = [
         { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
@@ -72,6 +77,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     };
 
     const selectedPage = getActiveId(pathname);
+
+    const updateIndicator = (index: number) => {
+        if (prefersReducedMotion()) return;
+        const el = itemRefs.current[index];
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const parentRect = el.parentElement?.getBoundingClientRect();
+        if (!parentRect) return;
+        setIndicatorStyle({
+            position: 'absolute',
+            left: rect.left - parentRect.left,
+            top: rect.top - parentRect.top,
+            width: rect.width,
+            height: rect.height,
+        });
+        setActiveIndex(index);
+    };
+
+    React.useEffect(() => {
+        const idx = navItems.findIndex(item => item.id === selectedPage);
+        if (idx >= 0) updateIndicator(idx);
+    }, [selectedPage, navItems]);
 
     if (isCollapsed) {
         return (
@@ -119,11 +146,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch={false}
                                 className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-200 focus:outline-none z-10
-                                ${isSelected ? 'text-text-inverse bg-accent-primary' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
+                                ${isSelected ? 'text-text-inverse' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
                             `}
                                 title={item.name}
+                                onMouseEnter={() => updateIndicator(index)}
                             >
-                                {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0
+                                {isSelected && !prefersReducedMotion() && (
+                                    <motion.div
+                                        layoutId="sidebar-active-indicator"
+                                        className="absolute inset-0 rounded-lg bg-accent-primary"
+                                        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+                                    >
+                                        <motion.div
+                                            className="absolute inset-0 rounded-lg bg-accent-primary/40"
+                                            animate={{ scale: [1, 1.25, 1] }}
+                                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                                        />
+                                    </motion.div>
+                                )}
+                                {isSelected && prefersReducedMotion() && (
+                                    <div className="absolute inset-0 rounded-lg bg-accent-primary" />
+                                )}
+                                {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10
                                 ${isSelected ? '' : ''}`}
                                 />}
                             </Link>
