@@ -144,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 key={item.id}
                                 href={href}
                                 ref={el => { itemRefs.current[index] = el; }}
-                                prefetch={false}
+                        prefetch
                                 className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-200 focus:outline-none z-10
                                 ${isSelected ? 'text-text-inverse' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
                             `}
@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     {/* Profile Avatar Button */}
                     <Link
                         href="/profile"
-                        prefetch={false}
+                        prefetch
                         className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-colors duration-200 focus:outline-none overflow-hidden
                              ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary' : 'hover:ring-2 hover:ring-border'}
                         `}
