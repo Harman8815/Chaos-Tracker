@@ -158,7 +158,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [achievements, setAchievements] = useLocalStorage<Achievement[]>('tracker-achievements', DUMMY_ACHIEVEMENTS);
     const [userProfile, setUserProfile] = useLocalStorage<UserProfile>('tracker-user-profile', DEFAULT_USER_PROFILE);
 
-
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
         theme: 'dark',
         timeFormat: '24h',
@@ -173,8 +172,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
     const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const today = getToday();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const login = () => setIsAuthenticated(true);
     const logout = () => setIsAuthenticated(false);
@@ -240,7 +244,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
                     <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
-                        {!isAuthenticated ? (
+                        {!mounted ? (
+                            <div className="w-full h-full flex items-center justify-center relative">
+                                <div className="text-text-secondary">Loading...</div>
+                            </div>
+                        ) : !isAuthenticated ? (
                             <div className="w-full h-full flex items-center justify-center relative">
                                 {authView === 'login' ? (
                                     <LoginPage onLogin={login} onSwitchToSignUp={() => setAuthView('signup')} />
