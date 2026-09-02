@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { marked } from 'marked';
+import { Send, Sparkles, XCircle, Copy, Check } from 'lucide-react';
 import { DataContext } from '../../context/DataContext';
 import { SettingsContext } from '../../context/SettingsContext';
 
@@ -10,22 +11,11 @@ interface Message {
     content: string;
 }
 
-// --- Icons ---
-const SendIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-);
-const SparkleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 3L9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5z"/></svg>
-);
-const ClearIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 002-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
-);
-const CopyIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
-);
-const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"></polyline></svg>
-);
+const SendIcon = Send;
+const SparkleIcon = Sparkles;
+const ClearIcon = XCircle;
+const CopyIcon = Copy;
+const CheckIcon = Check;
 
 
 const WELCOME_MESSAGE: Message = {
@@ -220,12 +210,12 @@ const ChatTool: React.FC = () => {
                     border-radius: 0.5rem;
                     font-size: 0.8em;
                 }
-                .prose code {
-                    color: #f5f5f5;
-                    background-color: var(--color-input-bg);
-                    padding: 0.1em 0.3em;
-                    border-radius: 0.25rem;
-                }
+                 .prose code {
+                     color: var(--color-text-primary);
+                     background-color: var(--color-input-bg);
+                     padding: 0.1em 0.3em;
+                     border-radius: 0.25rem;
+                 }
                 .prose ul {
                     margin-top: 0.5em;
                     margin-bottom: 0.5em;
