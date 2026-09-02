@@ -2,7 +2,7 @@ import React, { useContext, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, LayoutDashboard, Settings, Menu } from 'lucide-react';
+import { Home, LayoutDashboard, Settings, Menu, Activity, Target, Calendar, Wallet, BookOpen, Smile, Droplets, Footprints, Star, Trophy, Quote } from 'lucide-react';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { TRACKERS } from '../constants';
@@ -30,17 +30,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
     const allPossibleItems = [
         { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
-        { id: 'habits', name: 'Habits', icon: null },
-        { id: 'goals', name: 'Goals', icon: null },
-        { id: 'planner', name: 'Planner', icon: null },
-        { id: 'expense', name: 'Expenses', icon: null },
-        { id: 'journal', name: 'Journal', icon: null },
-        { id: 'mood', name: 'Mood', icon: null },
-        { id: 'water', name: 'Water', icon: null },
-        { id: 'pedometer', name: 'Pedometer', icon: null },
-        { id: 'points', name: 'Points', icon: null },
-        { id: 'achievements', name: 'Achievements', icon: null },
-        { id: 'quotes', name: 'Quotes', icon: null },
+        { id: 'habits', name: 'Habits', icon: Activity },
+        { id: 'goals', name: 'Goals', icon: Target },
+        { id: 'planner', name: 'Planner', icon: Calendar },
+        { id: 'expense', name: 'Expenses', icon: Wallet },
+        { id: 'journal', name: 'Journal', icon: BookOpen },
+        { id: 'mood', name: 'Mood', icon: Smile },
+        { id: 'water', name: 'Water', icon: Droplets },
+        { id: 'pedometer', name: 'Pedometer', icon: Footprints },
+        { id: 'points', name: 'Points', icon: Star },
+        { id: 'achievements', name: 'Achievements', icon: Trophy },
+        { id: 'quotes', name: 'Quotes', icon: Quote },
         { id: 'home', name: 'Home', icon: HomeIcon },
     ];
 
