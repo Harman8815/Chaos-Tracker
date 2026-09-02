@@ -4,8 +4,15 @@ import { Quote, QuoteSource } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import quoteService, { SearchResult } from '../../services/quoteService';
+import { Search, ChevronLeft, Home, Pencil, Trash2, Plus } from 'lucide-react';
 
-// --- Helper Components ---
+const SearchIcon = Search;
+const BackIcon = ChevronLeft;
+const HomeIcon = Home;
+const EditIcon = Pencil;
+const TrashIcon = Trash2;
+const PlusIcon = Plus;
+
 const HighlightText: React.FC<{ text: string; highlight: string }> = ({ text, highlight }) => {
     if (!highlight.trim()) return <>{text}</>;
     const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -20,26 +27,6 @@ const HighlightText: React.FC<{ text: string; highlight: string }> = ({ text, hi
         </>
     );
 };
-
-// --- Icons ---
-const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-);
-const BackIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="15 18 9 12 15 6"></polyline></svg>
-);
-const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-);
-const EditIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-);
-const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-);
-const PlusIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-);
 
 
 // --- Modals ---
@@ -545,7 +532,7 @@ const QuoteCollector: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <style>{`.quote-bg{background:#000;background:radial-gradient(ellipse at bottom,var(--color-background) 0%,#090a0f 100%)}@keyframes animate-stars{from{transform:translateY(0)}to{transform:translateY(-2000px)}}#stars,#stars2,#stars3{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;display:block}#stars{background:transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"><circle cx="100" cy="100" r="1.5" fill="white"/><circle cx="300" cy="400" r="1" fill="white"/><circle cx="600" cy="200" r="1.2" fill="white"/><circle cx="900" cy="500" r="0.8" fill="white"/><circle cx="1200" cy="300" r="1.5" fill="white"/><circle cx="1500" cy="600" r="1" fill="white"/><circle cx="1800" cy="100" r="1.2" fill="white"/></svg>') repeat;animation:animate-stars 50s linear infinite}#stars2{background:transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"><circle cx="200" cy="300" r="1" fill="white"/><circle cx="500" cy="100" r="0.8" fill="white"/><circle cx="800" cy="400" r="1.1" fill="white"/><circle cx="1100" cy="600" r="0.9" fill="white"/><circle cx="1400" cy="200" r="1" fill="white"/><circle cx="1700" cy="500" r="0.8" fill="white"/><circle cx="1900" cy="300" r="1.1" fill="white"/></svg>') repeat;animation:animate-stars 100s linear infinite}#stars3{background:transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"><circle cx="400" cy="500" r="0.6" fill="white"/><circle cx="700" cy="300" r="0.7" fill="white"/><circle cx="1000" cy="100" r="0.5" fill="white"/><circle cx="1300" cy="400" r="0.6" fill="white"/><circle cx="1600" cy="200" r="0.7" fill="white"/><circle cx="1900" cy="600" r="0.5" fill="white"/></svg>') repeat;animation:animate-stars 150s linear infinite}`}</style>
+            <style>{`.quote-bg{background:var(--color-background);background:radial-gradient(ellipse at bottom,var(--color-background) 0%,var(--color-background) 100%)}@keyframes animate-stars{from{transform:translateY(0)}to{transform:translateY(-2000px)}}#stars,#stars2,#stars3{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;display:block}#stars{background:transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"><circle cx="100" cy="100" r="1.5" fill="white"/><circle cx="300" cy="400" r="1" fill="white"/><circle cx="600" cy="200" r="1.2" fill="white"/><circle cx="900" cy="500" r="0.8" fill="white"/><circle cx="1200" cy="300" r="1.5" fill="white"/><circle cx="1500" cy="600" r="1" fill="white"/><circle cx="1800" cy="100" r="1.2" fill="white"/></svg>') repeat;animation:animate-stars 50s linear infinite}#stars2{background:transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"><circle cx="200" cy="300" r="1" fill="white"/><circle cx="500" cy="100" r="0.8" fill="white"/><circle cx="800" cy="400" r="1.1" fill="white"/><circle cx="1100" cy="600" r="0.9" fill="white"/><circle cx="1400" cy="200" r="1" fill="white"/><circle cx="1700" cy="500" r="0.8" fill="white"/><circle cx="1900" cy="300" r="1.1" fill="white"/></svg>') repeat;animation:animate-stars 100s linear infinite}#stars3{background:transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000"><circle cx="400" cy="500" r="0.6" fill="white"/><circle cx="700" cy="300" r="0.7" fill="white"/><circle cx="1000" cy="100" r="0.5" fill="white"/><circle cx="1300" cy="400" r="0.6" fill="white"/><circle cx="1600" cy="200" r="0.7" fill="white"/><circle cx="1900" cy="600" r="0.5" fill="white"/></svg>') repeat;animation:animate-stars 150s linear infinite}`}</style>
         </>
     );
 };
