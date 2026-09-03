@@ -70,7 +70,7 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
     return (
         <div
             ref={modalRef}
-            className="fixed bg-card-bg border border-border rounded-xl shadow-2xl flex flex-col animate-fade-in"
+            className="fixed bg-card-bg/80 backdrop-blur-xl border border-accent-primary/20 rounded-xl shadow-[0_0_30px_rgba(99,102,241,0.15)] flex flex-col animate-fade-in"
             style={{
                 top: position.y,
                 left: position.x,
@@ -81,7 +81,7 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
             onMouseDown={onFocus}
         >
             <div
-                className="h-10 bg-sidebar-bg rounded-t-xl flex items-center justify-between px-4 cursor-move"
+                className="h-10 bg-sidebar-bg/80 backdrop-blur-sm border-b border-border/50 rounded-t-xl flex items-center justify-between px-4 cursor-move"
                 onMouseDown={handleDragStart}
             >
                 <span className="font-bold text-text-primary">{title}</span>
