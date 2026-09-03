@@ -11,7 +11,7 @@ const AnalogClock: React.FC<{ time: Date; onToggleView: () => void }> = ({ time,
 
     return (
         <div 
-            className="w-64 h-64 rounded-full bg-sidebar-bg border-4 border-border relative mx-auto my-4 cursor-pointer select-none"
+            className="w-64 h-64 rounded-full bg-card-bg/80 backdrop-blur-xl border-4 border-accent-primary/20 relative mx-auto my-4 cursor-pointer select-none shadow-[0_0_30px_rgba(99,102,241,0.15)]"
             onClick={onToggleView}
             title="Switch to Digital View"
         >
@@ -67,7 +67,7 @@ const Clock: React.FC = () => {
                 <AnalogClock time={time} onToggleView={toggleView} />
             ) : (
                 <div 
-                    className="font-mono text-6xl tracking-widest cursor-pointer"
+                    className="font-mono text-6xl tracking-widest cursor-pointer bg-card-bg/80 backdrop-blur-xl border border-accent-primary/20 rounded-2xl px-8 py-4 shadow-[0_0_30px_rgba(99,102,241,0.15)]"
                     onClick={toggleView}
                     title="Switch to Analog View"
                 >
