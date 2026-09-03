@@ -140,11 +140,11 @@ const ChatTool: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col text-text-primary bg-background -m-4 relative">
+        <div className="h-full flex flex-col text-text-primary bg-background/80 backdrop-blur-xl -m-4 relative border-x border-accent-primary/10">
             <button 
                 onClick={handleClearChat}
                 title="Clear Chat"
-                className="absolute top-3 right-3 z-10 p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-input-bg transition-colors"
+                className="absolute top-3 right-3 z-10 p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-input-bg/80 backdrop-blur-sm transition-colors"
             >
                 <ClearIcon />
             </button>
@@ -152,19 +152,19 @@ const ChatTool: React.FC = () => {
                 {messages.map((message) => (
                     <div key={message.id} className={`flex items-start gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {message.role === 'model' && (
-                            <div className="w-8 h-8 rounded-full bg-sidebar-bg border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
+                            <div className="w-8 h-8 rounded-full bg-sidebar-bg/80 backdrop-blur-sm border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
                                 <SparkleIcon className="w-5 h-5"/>
                             </div>
                         )}
-                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-sidebar-bg rounded-bl-none'}`}>
+                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-sidebar-bg/80 backdrop-blur-md border border-border/50 rounded-bl-none'}`}>
                            <div 
                              className="prose prose-invert prose-sm max-w-none"
                              dangerouslySetInnerHTML={parsedContent(message.content || ' ')}
-                           />
+                            />
                            {message.role === 'model' && message.id !== 'initial' && (
                                 <button 
                                     onClick={() => handleCopy(message.content, message.id)}
-                                    className="absolute -top-2 -right-2 p-1.5 bg-input-bg rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute -top-2 -right-2 p-1.5 bg-input-bg/80 backdrop-blur-sm rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                     {copiedMessageId === message.id ? <CheckIcon className="text-green-500" /> : <CopyIcon />}
                                 </button>
@@ -174,10 +174,10 @@ const ChatTool: React.FC = () => {
                 ))}
                 {isLoading && messages[messages.length-1]?.role === 'model' && (
                      <div className="flex items-start gap-3 justify-start">
-                        <div className="w-8 h-8 rounded-full bg-sidebar-bg border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
+                        <div className="w-8 h-8 rounded-full bg-sidebar-bg/80 backdrop-blur-sm border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
                             <SparkleIcon className="w-5 h-5"/>
                         </div>
-                        <div className="bg-sidebar-bg rounded-lg rounded-bl-none px-4 py-3">
+                        <div className="bg-sidebar-bg/80 backdrop-blur-md border border-border/50 rounded-lg rounded-bl-none px-4 py-3">
                             <div className="flex items-center justify-center space-x-1">
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
@@ -188,7 +188,7 @@ const ChatTool: React.FC = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t border-border bg-background">
+            <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-xl">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <input
                         type="text"
@@ -196,7 +196,7 @@ const ChatTool: React.FC = () => {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask about your data..."
                         disabled={isLoading || !aiInitialized}
-                        className="flex-grow w-full bg-input-bg rounded-full px-4 py-2 border border-transparent focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="flex-grow w-full bg-input-bg/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     />
                     <button type="submit" disabled={isLoading || !input.trim() || !aiInitialized} className="w-10 h-10 flex items-center justify-center rounded-full bg-accent-primary text-white disabled:bg-gray-600 transition-colors">
                         <SendIcon className="w-5 h-5" />
@@ -204,27 +204,27 @@ const ChatTool: React.FC = () => {
                 </form>
             </div>
              <style>{`
-                .prose pre {
-                    background-color: var(--color-background) !important;
-                    padding: 0.5rem;
-                    border-radius: 0.5rem;
-                    font-size: 0.8em;
-                }
-                 .prose code {
-                     color: var(--color-text-primary);
-                     background-color: var(--color-input-bg);
-                     padding: 0.1em 0.3em;
-                     border-radius: 0.25rem;
+                 .prose pre {
+                     background-color: var(--color-background) !important;
+                     padding: 0.5rem;
+                     border-radius: 0.5rem;
+                     font-size: 0.8em;
                  }
-                .prose ul {
-                    margin-top: 0.5em;
-                    margin-bottom: 0.5em;
-                }
-                .prose p {
-                    margin-top: 0.5em;
-                    margin-bottom: 0.5em;
-                }
-             `}</style>
+                  .prose code {
+                      color: var(--color-text-primary);
+                      background-color: var(--color-input-bg);
+                      padding: 0.1em 0.3em;
+                      border-radius: 0.25rem;
+                  }
+                 .prose ul {
+                     margin-top: 0.5em;
+                     margin-bottom: 0.5em;
+                 }
+                 .prose p {
+                     margin-top: 0.5em;
+                     margin-bottom: 0.5em;
+                 }
+              `}</style>
         </div>
     );
 };
