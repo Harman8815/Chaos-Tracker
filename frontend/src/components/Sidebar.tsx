@@ -118,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     return (
-        <aside className="relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-accent-primary/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+        <aside className="relative bg-[rgba(15,10,30,0.75)] backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-[rgba(139,92,246,0.35)] shadow-[0_0_25px_rgba(124,58,237,0.25)]">
             <button
                 onClick={toggleSidebar}
                 className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
@@ -147,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 {isSelected && !prefersReducedMotion() && (
                                     <motion.div
                                         layoutId="sidebar-active-indicator"
-                                        className="absolute inset-0 rounded-lg bg-accent-primary"
+                                        className="absolute inset-0 rounded-lg bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]"
                                         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
                                     >
                                         <motion.div
@@ -158,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                     </motion.div>
                                 )}
                                 {isSelected && prefersReducedMotion() && (
-                                    <div className="absolute inset-0 rounded-lg bg-accent-primary" />
+                                    <div className="absolute inset-0 rounded-lg bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]" />
                                 )}
                                 {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10
                                 ${isSelected ? '' : ''}`}
@@ -181,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         {userProfile.avatar ? (
                             <img src={userProfile.avatar} alt={userProfile.name} className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-accent-primary flex items-center justify-center text-text-inverse font-bold text-sm">
+                            <div className="w-full h-full bg-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm shadow-[0_0_12px_rgba(139,92,246,0.55)]">
                                 {initials}
                             </div>
                         )}
