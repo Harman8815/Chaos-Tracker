@@ -189,7 +189,7 @@ const Calculator: React.FC = () => {
     );
 
     return (
-        <div className="relative h-full flex flex-col font-mono text-white text-lg bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-2xl shadow-[0_0_25px_rgba(124,58,237,0.35)]">
+        <div className="relative flex flex-col font-mono text-white text-lg bg-[rgba(15,10,30,0.6)] backdrop-blur-sm border border-white/5 rounded-2xl">
              {showHelp && <HelpOverlay />}
              <div className="flex justify-between items-center mb-2 px-3 pt-3">
                 <div className="flex items-center gap-2">
@@ -211,10 +211,10 @@ const Calculator: React.FC = () => {
                 </button>
              </div>
              <div className="px-3 pb-2">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" checked={isFinanceMode} onChange={() => setIsFinanceMode(!isFinanceMode)} className="sr-only peer" />
-                  <div className="w-9 h-5 bg-[rgba(15,10,30,0.6)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-primary"></div>
-                </label>
+                 <label className="relative inline-flex items-center cursor-pointer">
+                   <input type="checkbox" checked={isFinanceMode} onChange={() => setIsFinanceMode(!isFinanceMode)} className="sr-only peer" />
+                   <div className="w-9 h-5 bg-[rgba(15,10,30,0.6)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-primary"></div>
+                 </label>
              </div>
             {isFinanceMode && renderFinanceDisplay()}
             <div className="mx-3 bg-black/80 border border-[rgba(139,92,246,0.25)] rounded-xl p-3 text-right text-3xl mb-3 break-words h-16 flex items-end justify-end text-white shadow-[0_0_15px_rgba(139,92,246,0.2)]">{display}</div>

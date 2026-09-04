@@ -140,7 +140,7 @@ const ChatTool: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col text-white bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-2xl shadow-[0_0_25px_rgba(124,58,237,0.35)] -m-4 relative">
+        <div className="h-full flex flex-col text-white bg-[rgba(15,10,30,0.6)] backdrop-blur-sm border border-white/5 rounded-2xl -m-4 relative">
             <button 
                 onClick={handleClearChat}
                 title="Clear Chat"
