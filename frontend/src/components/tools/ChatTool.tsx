@@ -140,7 +140,7 @@ const ChatTool: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col text-text-primary bg-background/80 backdrop-blur-xl -m-4 relative border-x border-accent-primary/10">
+        <div className="h-full flex flex-col text-text-primary bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-2xl shadow-[0_0_25px_rgba(124,58,237,0.35)] -m-4 relative">
             <button 
                 onClick={handleClearChat}
                 title="Clear Chat"
@@ -156,7 +156,7 @@ const ChatTool: React.FC = () => {
                                 <SparkleIcon className="w-5 h-5"/>
                             </div>
                         )}
-                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-sidebar-bg/80 backdrop-blur-md border border-border/50 rounded-bl-none'}`}>
+                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-[rgba(15,10,30,0.6)] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-bl-none'}`}>
                            <div 
                              className="prose prose-invert prose-sm max-w-none"
                              dangerouslySetInnerHTML={parsedContent(message.content || ' ')}
@@ -177,7 +177,7 @@ const ChatTool: React.FC = () => {
                         <div className="w-8 h-8 rounded-full bg-sidebar-bg/80 backdrop-blur-sm border border-border flex items-center justify-center flex-shrink-0 text-accent-primary">
                             <SparkleIcon className="w-5 h-5"/>
                         </div>
-                        <div className="bg-sidebar-bg/80 backdrop-blur-md border border-border/50 rounded-lg rounded-bl-none px-4 py-3">
+                        <div className="bg-[rgba(15,10,30,0.6)] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-lg rounded-bl-none px-4 py-3">
                             <div className="flex items-center justify-center space-x-1">
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
@@ -188,7 +188,7 @@ const ChatTool: React.FC = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-xl">
+            <div className="p-4 border-t border-[rgba(139,92,246,0.2)] bg-[rgba(15,10,30,0.6)] backdrop-blur-xl">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <input
                         type="text"
@@ -196,9 +196,9 @@ const ChatTool: React.FC = () => {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask about your data..."
                         disabled={isLoading || !aiInitialized}
-                        className="flex-grow w-full bg-input-bg/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="flex-grow w-full bg-[rgba(15,10,30,0.6)] backdrop-blur-sm rounded-full px-4 py-2 border border-[rgba(139,92,246,0.25)] focus:outline-none focus:ring-2 focus:ring-accent-primary text-text-primary placeholder:text-text-secondary"
                     />
-                    <button type="submit" disabled={isLoading || !input.trim() || !aiInitialized} className="w-10 h-10 flex items-center justify-center rounded-full bg-accent-primary text-white disabled:bg-gray-600 transition-colors">
+                    <button type="submit" disabled={isLoading || !input.trim() || !aiInitialized} className="w-10 h-10 flex items-center justify-center rounded-full bg-accent-primary text-white disabled:bg-gray-600 transition-colors shadow-[0_0_15px_rgba(139,92,246,0.5)] hover:shadow-[0_0_20px_rgba(139,92,246,0.7)]">
                         <SendIcon className="w-5 h-5" />
                     </button>
                 </form>
