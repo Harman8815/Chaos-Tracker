@@ -100,9 +100,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     onClick={toggleSidebar}
                     aria-label="Open menu"
                     className="absolute flex items-center justify-center
-                            w-14 h-14 rounded-lg bg-sidebar-bg/80 backdrop-blur-xl border border-accent-primary/20
+                            w-14 h-14 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/10
                             text-[#a1a1aa] hover:text-white hover:border-accent-primary
-                            transition-colors duration-200 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+                            transition-all duration-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:shadow-[0_0_25px_rgba(139,92,246,0.35)]"
                 >
                     <MenuIcon className="w-6 h-6" />
                 </button>
@@ -113,10 +113,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     return (
-        <aside className={`fixed top-6 left-6 z-50 flex flex-col items-center transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-24'} py-4`}>
+        <aside className={`fixed top-6 left-6 z-50 flex flex-col items-center transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-24'} py-4 bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_25px_rgba(124,58,237,0.25)]`}>
             <button
                 onClick={toggleSidebar}
-                className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-[rgba(15,10,30,0.6)]"
+                className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-white/[0.08]"
                 aria-label={isCollapsed ? "Open menu" : "Close menu"}
             >
                 <MenuIcon className="w-5 h-5" />
@@ -133,8 +133,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 href={href}
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
-                                className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 focus:outline-none z-10
-                                ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-[rgba(15,10,30,0.6)]'}
+                                className={`relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200 focus:outline-none z-10
+                                ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.08]'}
                             `}
                                 title={item.name}
                                 onMouseEnter={() => updateIndicator(index)}
@@ -142,18 +142,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 {isSelected && !prefersReducedMotion() && (
                                     <motion.div
                                         layoutId="sidebar-active-indicator"
-                                        className="absolute inset-0 rounded-lg bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]"
+                                        className="absolute inset-0 rounded-xl bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]"
                                         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
                                     >
                                         <motion.div
-                                            className="absolute inset-0 rounded-lg bg-accent-primary/40"
+                                            className="absolute inset-0 rounded-xl bg-accent-primary/40"
                                             animate={{ scale: [1, 1.25, 1] }}
                                             transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
                                         />
                                     </motion.div>
                                 )}
                                 {isSelected && prefersReducedMotion() && (
-                                    <div className="absolute inset-0 rounded-lg bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]" />
+                                    <div className="absolute inset-0 rounded-xl bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]" />
                                 )}
                                 {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10
                                 ${isSelected ? 'text-yellow-400' : ''}`}
@@ -168,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     <Link
                         href="/profile"
                         prefetch
-                        className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-colors duration-200 focus:outline-none overflow-hidden
+                        className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 focus:outline-none overflow-hidden
                              ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary' : 'hover:ring-2 hover:ring-border'}
                         `}
                         title="Profile"
@@ -184,10 +184,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
                     <button
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="relative flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-[rgba(15,10,30,0.6)]"
+                        className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-white/[0.08]"
                         aria-label="Settings"
                     >
-                        <SettingsIcon className="w-6 h-6" />
+                        <SettingsIcon className="w-5 h-5" />
                     </button>
                 </div>
             </div>

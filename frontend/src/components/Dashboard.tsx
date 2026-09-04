@@ -69,7 +69,7 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' 
                     })}
                 </svg>
                 {(hoveredSlice || type === 'donut') && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 bg-[rgba(15,10,30,0.60)] backdrop-blur-sm border border-[rgba(139,92,246,0.35)] rounded-md shadow-lg pointer-events-none text-center z-10">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 bg-white/[0.08] backdrop-blur-sm border border-white/10 rounded-md shadow-lg pointer-events-none text-center z-10">
                         {hoveredSlice ? (
                             <>
                                 <div className="font-bold text-sm">{hoveredSlice.name}</div>
@@ -130,14 +130,14 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
                     <polygon
                         key={levelIndex}
                         points={pointsToString(data.map((_, i) => getPoint(angleSlice * i, maxValue * (levels - levelIndex) / levels)))}
-                        className="stroke-text-disabled fill-transparent opacity-40"
+                        className="stroke-text-disabled fill-transparent opacity-20"
                         strokeWidth="1"
                     />
                 ))}
                 {/* Axes - Rendered on top */}
                 {data.map((_, i) => {
                     const p = getPoint(angleSlice * i, maxValue);
-                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} className="stroke-text-disabled opacity-40" />;
+                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} className="stroke-text-disabled opacity-20" />;
                 })}
 
                 {/* Labels */}
@@ -250,7 +250,7 @@ const MultiLineTrendChart: React.FC<{ data: { date: string, scores: { [habitId: 
                     {Array.from({ length: 6 }, (_, i) => i * (maxY / 5)).map(val => (
                         <g key={val}>
                             <text x={padding - 10} y={getY(val)} dy="0.3em" textAnchor="end" className="text-xs fill-current text-[#e9d5ff]">{val.toFixed(0)}</text>
-                            <line x1={padding} x2={width - padding} y1={getY(val)} y2={getY(val)} className="stroke-current text-[#71717a] opacity-20" />
+                            <line x1={padding} x2={width - padding} y1={getY(val)} y2={getY(val)} className="stroke-current text-[#71717a] opacity-10" />
                         </g>
                     ))}
                     {data.map((d, i) => (i % Math.ceil(data.length / 6) === 0 &&
@@ -760,12 +760,12 @@ const Dashboard: React.FC = () => {
 
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                 {/* Row 1: Highlights */}
-                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '0ms' }}>
                     <StreakHighlight streaks={habitStreaks} />
                 </Card>
 
                 {/* Row 2: Trend Chart */}
-                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                     <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                         <h3 className="font-bold text-xl text-white">Habit Trends (30 Days)</h3>
                         <select
@@ -784,7 +784,7 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 {/* Row 3: Radar Chart - Full Width */}
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4">Habit Performance (7 Days)</h3>
                     <div className="w-full h-[500px]">
                         <RadarChart data={radarData} />
@@ -792,7 +792,7 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                  {/* Row 4: Pie Chart & Weekly Performance */}
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '300ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4">Today's Distribution</h3>
                     <div className="h-64 flex items-center justify-center">
                         <PieChart data={todayPieData} type="pie" />
@@ -800,7 +800,7 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                  {/* Row 5: Habit Streaks & Monthly Average (Neighbors to share height) */}
-                <Card className="xl:col-span-2 flex flex-col justify-between h-full border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 flex flex-col justify-between h-full border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                     <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-xl text-white">Habit Streaks</h3>
@@ -816,7 +816,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="xl:col-span-2 flex flex-col h-full border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 flex flex-col h-full border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '500ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4 flex-shrink-0">Monthly Daily Average</h3>
                     <div className="relative flex-grow min-h-[200px]">
                          <MonthlyAverageTable data={monthlyAverages} />
@@ -824,7 +824,7 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 {/* Row 6: Weekly Performance & Your Journey */}
-                <Card className="xl:col-span-2 flex flex-col border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 flex flex-col border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '600ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4">Weekly Performance</h3>
                     <div className="flex-grow min-h-[200px]">
                         <WeeklyPerformanceChart data={weeklyPerformance} />
@@ -836,7 +836,7 @@ const Dashboard: React.FC = () => {
                     )}
                 </Card>
 
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '700ms' }}>
                     <div className="flex flex-col h-full">
                         <div className="mb-6">
                             <div className="flex justify-between items-start mb-4">
@@ -884,7 +884,7 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 {/* Row 6: AI & Targets */}
-                <Card className="xl:col-span-2 flex flex-col min-h-[300px] border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 flex flex-col min-h-[300px] border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '800ms' }}>
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="font-bold text-xl text-white flex items-center gap-2">
                             AI Daily Reflection
@@ -905,7 +905,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '900ms' }}>
                     <div className="flex flex-col items-center justify-between h-full p-4">
                         <h3 className="font-bold text-xl text-white mb-4 w-full text-left">Monthly Target</h3>
                         <div className="w-full flex-grow flex items-center justify-center">
@@ -943,6 +943,13 @@ const Dashboard: React.FC = () => {
                     padding: 0.5rem 1rem;
                     border-radius: 0.25rem;
                     font-style: italic;
+                }
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(12px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in-up {
+                    animation: fadeInUp 0.5s ease-out forwards;
                 }
              `}</style>
             </div>
