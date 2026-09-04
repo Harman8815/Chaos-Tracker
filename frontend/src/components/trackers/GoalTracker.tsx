@@ -18,7 +18,7 @@ const EyeOffIcon = EyeOff;
 
 const PieChart: React.FC<{ data: { name: string; value: number }[], colors: string[] }> = ({ data, colors }) => {
     const total = data.reduce((sum, d) => sum + d.value, 0);
-    if (total === 0) return <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">No data to display.</div>;
+    if (total === 0) return <div className="text-center text-[#e9d5ff] p-4 h-full flex items-center justify-center">No data to display.</div>;
 
     let startAngle = -90;
     return (
@@ -60,7 +60,7 @@ const BarChart: React.FC<{ data: { label: string; value: number }[], color: stri
                         className="w-full rounded-t-md"
                         style={{ height: `${(item.value / maxValue) * 80}%`, backgroundColor: color }}
                     />
-                    <div className="text-xs text-text-secondary mt-1">{item.label}</div>
+                    <div className="text-xs text-[#e9d5ff] mt-1">{item.label}</div>
                 </div>
             ))}
         </div>
@@ -115,13 +115,13 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-3xl font-bold">Goals Dashboard</h2>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-input-bg"><CloseIcon /></button>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-[rgba(15,10,30,0.6)]"><CloseIcon /></button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <Card><div className="text-2xl font-bold">{stats.completed}</div><div className="text-sm text-text-secondary">Completed</div></Card>
-                    <Card><div className="text-2xl font-bold">{stats.active}</div><div className="text-sm text-text-secondary">Active</div></Card>
-                    <Card><div className="text-2xl font-bold">{stats.blocked}</div><div className="text-sm text-text-secondary">Blocked</div></Card>
-                    <Card><div className="text-2xl font-bold">{stats.trashed}</div><div className="text-sm text-text-secondary">Trashed</div></Card>
+                    <Card><div className="text-2xl font-bold">{stats.completed}</div><div className="text-sm text-[#e9d5ff]">Completed</div></Card>
+                    <Card><div className="text-2xl font-bold">{stats.active}</div><div className="text-sm text-[#e9d5ff]">Active</div></Card>
+                    <Card><div className="text-2xl font-bold">{stats.blocked}</div><div className="text-sm text-[#e9d5ff]">Blocked</div></Card>
+                    <Card><div className="text-2xl font-bold">{stats.trashed}</div><div className="text-sm text-[#e9d5ff]">Trashed</div></Card>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Card>
@@ -145,15 +145,15 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
                     <Card className="flex flex-col justify-center items-center">
                         <h3 className="text-xl font-bold mb-2">Completion Rate</h3>
                         <div className="text-5xl font-bold text-green-400">{stats.completionRate.toFixed(1)}<span className="text-2xl">%</span></div>
-                        <p className="text-sm text-text-secondary mt-1">Of active & completed goals</p>
+                        <p className="text-sm text-[#e9d5ff] mt-1">Of active & completed goals</p>
                     </Card>
                     <Card>
                         <h3 className="text-xl font-bold mb-4">Insights</h3>
-                        <ul className="text-sm space-y-2 text-text-secondary list-disc list-inside">
-                            <li>Total goals tracked: <span className="font-bold text-text-primary">{goals.length}</span></li>
-                            <li>Active goals needing attention: <span className="font-bold text-text-primary">{stats.active}</span></li>
-                            <li>Average time to complete a goal: <span className="font-bold text-text-primary">{stats.avgCompletionTime.toFixed(1)} days</span></li>
-                            <li>Recent weekly completions trend: <span className="font-bold text-text-primary">{weeklyCompletion.map(d => d.value).join(', ')}</span></li>
+                        <ul className="text-sm space-y-2 text-[#e9d5ff] list-disc list-inside">
+                            <li>Total goals tracked: <span className="font-bold text-white">{goals.length}</span></li>
+                            <li>Active goals needing attention: <span className="font-bold text-white">{stats.active}</span></li>
+                            <li>Average time to complete a goal: <span className="font-bold text-white">{stats.avgCompletionTime.toFixed(1)} days</span></li>
+                            <li>Recent weekly completions trend: <span className="font-bold text-white">{weeklyCompletion.map(d => d.value).join(', ')}</span></li>
                         </ul>
                     </Card>
                 </div>
@@ -165,16 +165,16 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
 const GoalItem: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
     return (
         <div className="flex items-center p-3 rounded-lg hover:bg-surface group transition-colors duration-200">
-            <button onClick={() => onToggle(goal.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-border'}`}>
+            <button onClick={() => onToggle(goal.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-[rgba(139,92,246,0.35)]'}`}>
                 {goal.status === 'completed' && <CheckIcon className="text-white" />}
             </button>
-            <span className={`flex-grow text-text-primary ${goal.status === 'completed' ? 'line-through text-text-disabled' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-text-disabled' : ''}`}>
+            <span className={`flex-grow text-white ${goal.status === 'completed' ? 'line-through text-[#71717a]' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-[#71717a]' : ''}`}>
                 {goal.text}
             </span>
             <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1 text-text-secondary hover:text-yellow-500"><BlockIcon /></button>
-                <button onClick={() => onUpdateStatus(goal.id, 'trashed')} title="Trash" className="p-1 text-text-secondary hover:text-red-500"><TrashIcon /></button>
-                <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1 text-text-secondary hover:text-red-700 ml-2"><TrashIcon className="w-6 h-6" /></button>
+                <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1 text-[#e9d5ff] hover:text-yellow-500"><BlockIcon /></button>
+                <button onClick={() => onUpdateStatus(goal.id, 'trashed')} title="Trash" className="p-1 text-[#e9d5ff] hover:text-red-500"><TrashIcon /></button>
+                <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1 text-[#e9d5ff] hover:text-red-700 ml-2"><TrashIcon className="w-6 h-6" /></button>
             </div>
         </div>
     );
@@ -290,7 +290,7 @@ const GoalTracker: React.FC = () => {
         return (
             <TrackerWrapper tracker={trackerInfo}>
                 <div className="flex items-center justify-center h-64">
-                    <div className="text-text-secondary">Loading goals...</div>
+                    <div className="text-[#e9d5ff]">Loading goals...</div>
                 </div>
             </TrackerWrapper>
         );
@@ -301,12 +301,12 @@ const GoalTracker: React.FC = () => {
             {showDashboard && <GoalDashboard goals={goals} onClose={() => setShowDashboard(false)} />}
 
             <div className="flex justify-center mb-6 relative">
-                <div className="flex border-b border-border">
+                <div className="flex border-b border-[rgba(139,92,246,0.35)]">
                     {(['daily', 'monthly', 'future'] as GoalCategory[]).map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === tab ? 'border-b-2 border-accent-primary text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === tab ? 'border-b-2 border-accent-primary text-white' : 'text-[#e9d5ff] hover:text-white'}`}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)} Goals
                         </button>
@@ -324,21 +324,21 @@ const GoalTracker: React.FC = () => {
                         value={newGoalText}
                         onChange={e => setNewGoalText(e.target.value)}
                         placeholder={`Add a new ${activeTab} goal...`}
-                        className="flex-grow px-3 py-2 rounded-md bg-input-bg border border-input-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="flex-grow px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     />
                     <input
                         type="text"
                         value={newGoalTags}
                         onChange={e => setNewGoalTags(e.target.value)}
                         placeholder="Tags (comma-separated)"
-                        className="md:w-1/3 px-3 py-2 rounded-md bg-input-bg border border-input-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="md:w-1/3 px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     />
                     <Button type="submit" className="px-6">Add Goal</Button>
                 </form>
 
-                <div className="flex justify-between items-center mb-4 pb-2 border-b border-border">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-[rgba(139,92,246,0.35)]">
                     <h3 className="text-xl font-bold">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Goals</h3>
-                    <button onClick={() => setShowCompleted(p => !p)} className="p-2 rounded-full hover:bg-input-bg text-text-secondary flex items-center gap-2 text-sm" title={showCompleted ? 'Hide completed' : 'Show completed'}>
+                    <button onClick={() => setShowCompleted(p => !p)} className="p-2 rounded-full hover:bg-[rgba(15,10,30,0.6)] text-[#e9d5ff] flex items-center gap-2 text-sm" title={showCompleted ? 'Hide completed' : 'Show completed'}>
                         {showCompleted ? <EyeIcon /> : <EyeOffIcon />}
                         <span>{showCompleted ? 'Showing' : 'Hiding'} Completed</span>
                     </button>
@@ -364,7 +364,7 @@ const GoalTracker: React.FC = () => {
                                 ))}
                             </div>
                         </Card>
-                    )) : <p className="text-text-secondary text-center py-8">No goals yet. Add one!</p>}
+                    )) : <p className="text-[#e9d5ff] text-center py-8">No goals yet. Add one!</p>}
                 </div>
             </div>
         </TrackerWrapper>
