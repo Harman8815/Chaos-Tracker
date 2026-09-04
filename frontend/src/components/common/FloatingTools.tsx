@@ -26,7 +26,7 @@ const FloatingTools: React.FC = () => {
                         <button
                             key={tool.id}
                             onClick={() => handleToolClick(tool.id)}
-                            className="w-14 h-14 rounded-full bg-card-bg border border-border text-text-primary flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-accent-primary animate-fade-in"
+                            className="w-14 h-14 rounded-full bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] text-text-primary flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.35)] transition-all duration-300 hover:bg-accent-primary hover:shadow-[0_0_25px_rgba(139,92,246,0.55)] animate-fade-in"
                             style={{ animationDelay: `${(tools.length - index) * 50}ms`}}
                             title={tool.label}
                             aria-label={tool.label}
@@ -38,7 +38,7 @@ const FloatingTools: React.FC = () => {
             )}
             <button
                 onClick={() => setIsOpen(prev => !prev)}
-                className="w-16 h-16 rounded-full bg-accent-primary text-white flex items-center justify-center shadow-2xl transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary focus:ring-offset-background"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] text-white flex items-center justify-center shadow-[0_0_18px_rgba(139,92,246,0.65)] transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary focus:ring-offset-background"
                 aria-label={isOpen ? "Close tools menu" : "Open tools menu"}
                 aria-expanded={isOpen}
             >
