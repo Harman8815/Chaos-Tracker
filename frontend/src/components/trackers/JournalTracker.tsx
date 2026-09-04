@@ -87,9 +87,9 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-lg">Editor ({targetDate})</h3>
                     <div className="flex items-center space-x-2">
-                        <button onClick={() => applyMarkdown('bold')} className="px-3 py-1 bg-input-bg rounded font-bold">B</button>
-                        <button onClick={() => applyMarkdown('italic')} className="px-3 py-1 bg-input-bg rounded italic">I</button>
-                        <button onClick={() => applyMarkdown('h3')} className="px-3 py-1 bg-input-bg rounded">H3</button>
+                        <button onClick={() => applyMarkdown('bold')} className="px-3 py-1 bg-[rgba(15,10,30,0.6)] rounded font-bold">B</button>
+                        <button onClick={() => applyMarkdown('italic')} className="px-3 py-1 bg-[rgba(15,10,30,0.6)] rounded italic">I</button>
+                        <button onClick={() => applyMarkdown('h3')} className="px-3 py-1 bg-[rgba(15,10,30,0.6)] rounded">H3</button>
                     </div>
                 </div>
                 <textarea
@@ -97,7 +97,7 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
                     value={text}
                     onChange={e => setText(e.target.value)}
                     rows={15}
-                    className="w-full p-3 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                    className="w-full p-3 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     placeholder="What's on your mind?"
                 />
                 <div className="flex justify-between items-center mt-4">
@@ -108,7 +108,7 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
             <Card>
                 <h3 className="font-bold text-lg mb-4">Preview</h3>
                 <div
-                    className="prose prose-invert prose-sm max-w-none h-[330px] overflow-y-auto p-3 bg-input-bg rounded-md"
+                    className="prose prose-invert prose-sm max-w-none h-[330px] overflow-y-auto p-3 bg-[rgba(15,10,30,0.6)] rounded-md"
                     dangerouslySetInnerHTML={parseMarkdown(text)}
                 />
             </Card>
@@ -127,11 +127,11 @@ const JournalEntryModal: React.FC<{
             onClick={onClose}
         >
             <div
-                className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+                className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold text-xl text-text-primary">
+                    <h4 className="font-bold text-xl text-white">
                         {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </h4>
                     <Button onClick={() => onEdit(entry.date)} className="bg-accent-primary text-white px-4 py-1 text-sm">
@@ -237,14 +237,14 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                         <select
                             value={currentDate.getMonth()}
                             onChange={(e) => handleDateChange(undefined, parseInt(e.target.value))}
-                            className="p-2 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
                         </select>
                         <select
                             value={currentDate.getFullYear()}
                             onChange={(e) => handleDateChange(parseInt(e.target.value), undefined)}
-                            className="p-2 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             {years.map(y => <option key={y} value={y}>{y}</option>)}
                         </select>
@@ -252,7 +252,7 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                     <h3 className="font-bold text-lg hidden md:block">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
                 </div>
                 <div className="grid grid-cols-7 gap-2 text-center">
-                    {DAY_NAMES.map(day => <div key={day} className="font-semibold text-text-secondary text-sm p-2">{day}</div>)}
+                    {DAY_NAMES.map(day => <div key={day} className="font-semibold text-[#e9d5ff] text-sm p-2">{day}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-2">
                     {calendarGrid.map(day => (
@@ -260,12 +260,12 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                             <button
                                 key={day.key}
                                 onClick={() => handleDayClick(day.dateString!)}
-                                className={`h-28 rounded-lg flex flex-col p-2 text-left transition-colors border ${day.entry ? 'bg-card-bg border-border hover:bg-border hover:border-accent-primary cursor-pointer' : 'bg-input-bg/50 border-transparent hover:border-accent-primary cursor-pointer'
+                                className={`h-28 rounded-lg flex flex-col p-2 text-left transition-colors border ${day.entry ? 'bg-[rgba(15,10,30,0.75)] border-[rgba(139,92,246,0.35)] hover:bg-border hover:border-accent-primary cursor-pointer' : 'bg-[rgba(15,10,30,0.6)]/50 border-transparent hover:border-accent-primary cursor-pointer'
                                     }`}
                             >
-                                <span className={`font-semibold ml-auto ${day.entry ? 'text-text-primary' : 'text-text-disabled'}`}>{day.day}</span>
+                                <span className={`font-semibold ml-auto ${day.entry ? 'text-white' : 'text-[#71717a]'}`}>{day.day}</span>
                                 {day.entry && (
-                                    <p className="text-xs text-text-secondary overflow-hidden text-ellipsis mt-1">
+                                    <p className="text-xs text-[#e9d5ff] overflow-hidden text-ellipsis mt-1">
                                         {day.entry?.substring(0, 80)}{(day.entry?.length || 0) > 80 && '...'}
                                     </p>
                                 )}
@@ -336,20 +336,20 @@ const JournalTracker: React.FC = () => {
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <div className="flex border-b border-border mb-6">
+            <div className="flex border-b border-[rgba(139,92,246,0.35)] mb-6">
                 <button
                     onClick={() => {
                         setActiveTab('editor');
                         setTargetDate(today); // Reset to today when clicking tab? Or keep selected? 
                         // Usually "Today's Entry" implies today.
                     }}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'editor' ? 'border-b-2 border-accent-primary text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'editor' ? 'border-b-2 border-accent-primary text-white' : 'text-[#e9d5ff] hover:text-white'}`}
                 >
                     Editor
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'history' ? 'border-b-2 border-accent-primary text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'history' ? 'border-b-2 border-accent-primary text-white' : 'text-[#e9d5ff] hover:text-white'}`}
                 >
                     History
                 </button>
