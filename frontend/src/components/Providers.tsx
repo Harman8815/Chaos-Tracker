@@ -269,7 +269,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         ) : (
                             <>
                                 <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                                <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out relative z-10 ${isSidebarCollapsed ? 'pt-20 pl-14' : ''}`}>
+                                <div className={`flex-1 h-full overflow-hidden relative z-10`}>
                                     {children}
                                 </div>
                                 {isSettingsModalOpen && <SettingsModal />}

@@ -113,13 +113,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     return (
-        <aside className="relative bg-[rgba(15,10,30,0.75)] backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-[rgba(139,92,246,0.35)] shadow-[0_0_25px_rgba(124,58,237,0.25)]">
+        <aside className={`fixed top-6 left-6 z-50 flex flex-col items-center transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-24'} py-4`}>
             <button
                 onClick={toggleSidebar}
-                className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-[rgba(15,10,30,0.6)]"
-                aria-label="Close menu"
+                className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-[rgba(15,10,30,0.6)]"
+                aria-label={isCollapsed ? "Open menu" : "Close menu"}
             >
-                <MenuIcon className="w-6 h-6" />
+                <MenuIcon className="w-5 h-5" />
             </button>
 
             <div className="flex flex-col items-center justify-between h-full w-full">
