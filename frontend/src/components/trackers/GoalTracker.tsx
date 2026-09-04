@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Goal, GoalCategory, GoalStatus } from '../../types';
 import goalService from '../../services/goalService';
-import { Trash2, Ban, Check, X, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp } from 'lucide-react';
 
 const TrashIcon = Trash2;
 const BlockIcon = Ban;
@@ -13,6 +14,12 @@ const CheckIcon = Check;
 const CloseIcon = X;
 const EyeIcon = Eye;
 const EyeOffIcon = EyeOff;
+const SearchIcon = Search;
+const PlusIcon = Plus;
+const FilterIcon = Filter;
+const CalendarIcon = Calendar;
+const TargetIcon = Target;
+const TrendingUpIcon = TrendingUp;
 
 // --- Sub-components ---
 
@@ -162,19 +169,47 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
     );
 };
 
-const GoalItem: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
+const GoalCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
+    const statusColors = {
+        active: 'border-accent-primary/30',
+        completed: 'border-green-500/30',
+        blocked: 'border-yellow-500/30',
+        trashed: 'border-red-500/30'
+    };
+
     return (
-        <div className="flex items-center p-3 rounded-lg hover:bg-surface group transition-colors duration-200">
-            <button onClick={() => onToggle(goal.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-[rgba(139,92,246,0.35)]'}`}>
-                {goal.status === 'completed' && <CheckIcon className="text-white" />}
-            </button>
-            <span className={`flex-grow text-white ${goal.status === 'completed' ? 'line-through text-[#71717a]' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-[#71717a]' : ''}`}>
-                {goal.text}
-            </span>
-            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1 text-[#e9d5ff] hover:text-yellow-500"><BlockIcon /></button>
-                <button onClick={() => onUpdateStatus(goal.id, 'trashed')} title="Trash" className="p-1 text-[#e9d5ff] hover:text-red-500"><TrashIcon /></button>
-                <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1 text-[#e9d5ff] hover:text-red-700 ml-2"><TrashIcon className="w-6 h-6" /></button>
+        <div className={`p-4 rounded-xl border ${statusColors[goal.status]} bg-white/[0.03] backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.05] hover:border-white/20 group`}>
+            <div className="flex items-start gap-3">
+                <button 
+                    onClick={() => onToggle(goal.id)} 
+                    className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-white/20 hover:border-accent-primary'}`}
+                >
+                    {goal.status === 'completed' && <CheckIcon className="text-white w-3 h-3" />}
+                </button>
+                <div className="flex-grow min-w-0">
+                    <p className={`text-white font-medium ${goal.status === 'completed' ? 'line-through text-[#71717a]' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-[#71717a]' : ''}`}>
+                        {goal.text}
+                    </p>
+                    {goal.tags && goal.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                            {goal.tags.map(tag => (
+                                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-[#e9d5ff] border border-white/10">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    {goal.status !== 'completed' && (
+                        <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-[#e9d5ff] hover:text-yellow-500 transition-colors">
+                            <BlockIcon className="w-4 h-4" />
+                        </button>
+                    )}
+                    <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-[#e9d5ff] hover:text-red-500 transition-colors">
+                        <TrashIcon className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -191,6 +226,8 @@ const GoalTracker: React.FC = () => {
     const [showCompleted, setShowCompleted] = useState(true);
     const [newGoalText, setNewGoalText] = useState('');
     const [newGoalTags, setNewGoalTags] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
     const isFutureTab = activeTab === 'future';
 
@@ -261,19 +298,26 @@ const GoalTracker: React.FC = () => {
         }
     };
 
-    const visibleGoals = useMemo(() => {
-        const filteredByCategory = goals.filter(g => g.category === activeTab);
-        const filteredByStatus = filteredByCategory.filter(g => g.status !== 'trashed');
+    const filteredGoals = useMemo(() => {
+        let result = goals.filter(g => g.status !== 'trashed');
 
-        if (showCompleted) {
-            return filteredByStatus;
+        // Filter by active tab/category
+        if (selectedCategory !== 'all') {
+            result = result.filter(g => g.category === selectedCategory);
         }
-        return filteredByStatus.filter(g => g.status !== 'completed');
-    }, [goals, activeTab, showCompleted]);
 
-    const groupedGoals: Record<string, Goal[]> = useMemo(() => {
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(g => 
+                g.text.toLowerCase().includes(query) ||
+                g.tags?.some(tag => tag.toLowerCase().includes(query))
+            );
+        }
+
+        // Group by tags
         const groups: Record<string, Goal[]> = {};
-        visibleGoals.forEach(goal => {
+        result.forEach(goal => {
             const goalTags = goal.tags && goal.tags.length > 0 ? goal.tags : ['uncategorized'];
             goalTags.forEach(tag => {
                 const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
@@ -284,7 +328,15 @@ const GoalTracker: React.FC = () => {
             });
         });
         return groups;
-    }, [visibleGoals]);
+    }, [goals, selectedCategory, searchQuery]);
+
+    const visibleGoals = useMemo(() => {
+        let result = goals.filter(g => g.status !== 'trashed' && g.category === activeTab);
+        if (!showCompleted) {
+            result = result.filter(g => g.status !== 'completed');
+        }
+        return result;
+    }, [goals, activeTab, showCompleted]);
 
     if (loading && goals.length === 0) {
         return (
@@ -300,72 +352,142 @@ const GoalTracker: React.FC = () => {
         <TrackerWrapper tracker={trackerInfo}>
             {showDashboard && <GoalDashboard goals={goals} onClose={() => setShowDashboard(false)} />}
 
-            <div className="flex justify-center mb-6 relative">
-                <div className="flex border-b border-[rgba(139,92,246,0.35)]">
-                    {(['daily', 'monthly', 'future'] as GoalCategory[]).map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === tab ? 'border-b-2 border-accent-primary text-white' : 'text-[#e9d5ff] hover:text-white'}`}
-                        >
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)} Goals
-                        </button>
-                    ))}
+            {/* Header with title and dashboard button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                    <TargetIcon className="w-8 h-8 text-accent-primary" />
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Goals</h2>
+                        <p className="text-sm text-[#e9d5ff]">Track and manage your objectives</p>
+                    </div>
                 </div>
-                <div className="absolute right-0 top-1/2 -translate-y-1/2">
-                    <Button onClick={() => setShowDashboard(true)}>Dashboard</Button>
-                </div>
+                <Button onClick={() => setShowDashboard(true)} className="flex items-center gap-2">
+                    <TrendingUpIcon className="w-4 h-4" />
+                    Dashboard
+                </Button>
             </div>
 
-            <div className="max-h-[calc(100vh-12rem)] flex flex-col">
-                <form onSubmit={handleAddGoal} className="flex flex-col md:flex-row gap-2 mb-4">
-                    <input
-                        type="text"
-                        value={newGoalText}
-                        onChange={e => setNewGoalText(e.target.value)}
-                        placeholder={`Add a new ${activeTab} goal...`}
-                        className="flex-grow px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                    />
-                    <input
-                        type="text"
-                        value={newGoalTags}
-                        onChange={e => setNewGoalTags(e.target.value)}
-                        placeholder="Tags (comma-separated)"
-                        className="md:w-1/3 px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                    />
-                    <Button type="submit" className="px-6">Add Goal</Button>
-                </form>
-
-                <div className="flex justify-between items-center mb-4 pb-2 border-b border-[rgba(139,92,246,0.35)]">
-                    <h3 className="text-xl font-bold">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Goals</h3>
-                    <button onClick={() => setShowCompleted(p => !p)} className="p-2 rounded-full hover:bg-[rgba(15,10,30,0.6)] text-[#e9d5ff] flex items-center gap-2 text-sm" title={showCompleted ? 'Hide completed' : 'Show completed'}>
-                        {showCompleted ? <EyeIcon /> : <EyeOffIcon />}
-                        <span>{showCompleted ? 'Showing' : 'Hiding'} Completed</span>
-                    </button>
-                </div>
-
-                <div className={`overflow-y-auto -mr-3 pr-3 ${isFutureTab ? 'columns-1 md:columns-2 xl:columns-3 gap-6 space-y-6' : 'space-y-6'}`}>
-                    {Object.keys(groupedGoals).length > 0 ? Object.entries(groupedGoals).map(([tag, goalsInGroup], index) => (
-                        <Card
-                            key={tag}
-                            className={`animate-fade-in w-full ${isFutureTab ? 'break-inside-avoid' : ''}`}
-                            style={{ animationDelay: `${index * 50}ms` }}
+            {/* Search and Filter Bar */}
+            <Card className="mb-6 border-white/5 bg-white/[0.03]">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-grow">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#e9d5ff]" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Search goals by name or tag..."
+                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-[#e9d5ff] focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <FilterIcon className="w-4 h-4 text-[#e9d5ff]" />
+                        <select
+                            value={selectedCategory}
+                            onChange={e => setSelectedCategory(e.target.value)}
+                            className="px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
                         >
-                            <h4 className="font-bold text-lg mb-2 text-accent-primary">{tag}</h4>
-                            <div className="space-y-1 divide-y divide-border/50">
-                                {goalsInGroup.map(goal => (
-                                    <GoalItem
-                                        key={goal.id}
-                                        goal={goal}
-                                        onToggle={handleToggleGoal}
-                                        onUpdateStatus={handleUpdateStatus}
-                                        onDelete={handleDeleteGoal}
-                                    />
-                                ))}
-                            </div>
-                        </Card>
-                    )) : <p className="text-[#e9d5ff] text-center py-8">No goals yet. Add one!</p>}
+                            <option value="all">All Categories</option>
+                            <option value="daily">Daily</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="future">Future</option>
+                        </select>
+                    </div>
                 </div>
+            </Card>
+
+            {/* Category Tabs */}
+            <div className="flex border-b border-white/10 mb-6">
+                {(['daily', 'monthly', 'future'] as GoalCategory[]).map(tab => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-6 py-3 text-sm font-semibold transition-all relative ${
+                            activeTab === tab 
+                                ? 'text-white' 
+                                : 'text-[#e9d5ff] hover:text-white'
+                        }`}
+                    >
+                        {tab.charAt(0).toUpperCase() + tab.slice(1)} Goals
+                        {activeTab === tab && (
+                            <motion.div
+                                layoutId="activeTab"
+                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary"
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            />
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* Create New Goal Container */}
+            <Card className="mb-6 border-white/5 bg-white/[0.03]">
+                <form onSubmit={handleAddGoal} className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                        <PlusIcon className="w-5 h-5 text-accent-primary" />
+                        <h3 className="text-lg font-semibold text-white">Create New Goal</h3>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <input
+                            type="text"
+                            value={newGoalText}
+                            onChange={e => setNewGoalText(e.target.value)}
+                            placeholder={`What's your ${activeTab} goal?`}
+                            className="flex-grow px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-[#e9d5ff] focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                            required
+                        />
+                        <input
+                            type="text"
+                            value={newGoalTags}
+                            onChange={e => setNewGoalTags(e.target.value)}
+                            placeholder="Tags (comma-separated)"
+                            className="md:w-64 px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-[#e9d5ff] focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                        />
+                        <Button type="submit" className="flex items-center gap-2">
+                            <PlusIcon className="w-4 h-4" />
+                            Add Goal
+                        </Button>
+                    </div>
+                </form>
+            </Card>
+
+            {/* Goals List */}
+            <div className="space-y-6">
+                {Object.keys(filteredGoals).length > 0 ? Object.entries(filteredGoals).map(([tag, goalsInGroup], index) => (
+                    <Card
+                        key={tag}
+                        className="border-white/5 bg-white/[0.03] animate-fade-in-up"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-2 h-2 rounded-full bg-accent-primary" />
+                            <h4 className="font-bold text-lg text-white">{tag}</h4>
+                            <span className="text-xs text-[#e9d5ff] bg-white/[0.06] px-2 py-0.5 rounded-full border border-white/10">
+                                {goalsInGroup.length} {goalsInGroup.length === 1 ? 'goal' : 'goals'}
+                            </span>
+                        </div>
+                        <div className="space-y-2">
+                            {goalsInGroup.map(goal => (
+                                <GoalCard
+                                    key={goal.id}
+                                    goal={goal}
+                                    onToggle={handleToggleGoal}
+                                    onUpdateStatus={handleUpdateStatus}
+                                    onDelete={handleDeleteGoal}
+                                />
+                            ))}
+                        </div>
+                    </Card>
+                )) : (
+                    <Card className="border-white/5 bg-white/[0.03] text-center py-12">
+                        <TargetIcon className="w-12 h-12 text-[#e9d5ff] mx-auto mb-4 opacity-50" />
+                        <p className="text-[#e9d5ff] text-lg">
+                            {searchQuery || selectedCategory !== 'all' 
+                                ? 'No goals match your search criteria.' 
+                                : 'No goals yet. Create your first goal above!'}
+                        </p>
+                    </Card>
+                )}
             </div>
         </TrackerWrapper>
     );
