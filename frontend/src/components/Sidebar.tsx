@@ -95,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
     if (isCollapsed) {
         return (
-            <div className="fixed top-6 left-6 z-50 w-14">
+            <div className="absolute top-6 left-6 z-50 w-14">
                 <button
                     onClick={toggleSidebar}
                     aria-label="Open menu"
@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     return (
-        <aside className={`fixed top-6 left-6 z-50 flex flex-col items-center transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-24'} py-4 bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_25px_rgba(124,58,237,0.25)]`}>
+        <aside className={`fixed top-0 left-0 z-50 flex flex-col items-center transition-all duration-200 w-24 h-screen py-6 bg-white/[0.04] backdrop-blur-xl border-r border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)]`}>
             <button
                 onClick={toggleSidebar}
                 className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-white/[0.08]"
