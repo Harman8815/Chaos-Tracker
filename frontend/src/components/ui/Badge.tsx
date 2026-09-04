@@ -14,7 +14,7 @@ const Badge: React.FC<BadgeProps> = ({
   className = '' 
 }) => {
   const variantClasses = {
-    default: 'bg-accent-primary text-text-inverse',
+    default: 'bg-[#8b5cf6] text-white',
     success: 'bg-success text-white',
     warning: 'bg-warning text-white',
     error: 'bg-error text-white',
