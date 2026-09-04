@@ -15,7 +15,7 @@ const Select: React.FC<SelectProps> = ({ label, error, options, className = '', 
         </label>
       )}
       <select
-        className={`w-full px-3 py-2 bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-transparent transition-colors duration-200 ${error ? 'border-error' : ''} ${className}`}
+        className={`w-full px-4 py-2.5 bg-white/[0.06] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all duration-200 ${error ? 'border-error' : ''} ${className}`}
         {...props}
       >
         {options.map((option) => (
