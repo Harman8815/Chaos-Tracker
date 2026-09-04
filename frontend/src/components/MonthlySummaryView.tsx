@@ -80,7 +80,7 @@ const MonthlySummaryView: React.FC = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8b5cf6]"></div>
             </div>
         );
     }
@@ -103,14 +103,14 @@ const MonthlySummaryView: React.FC = () => {
     return (
         <div className="p-6 h-full overflow-y-auto animate-fade-in">
             <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-bold text-text-primary">Monthly Summary</h1>
-                <Button onClick={fetchMonthlyAnalytics} className="bg-input-bg text-text-primary hover:bg-border">
+                <h1 className="text-3xl font-bold text-white">Monthly Summary</h1>
+                <Button onClick={fetchMonthlyAnalytics} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-border">
                     Refresh
                 </Button>
             </div>
 
             <div className="mb-6">
-                <h2 className="text-xl font-semibold text-text-primary mb-2">
+                <h2 className="text-xl font-semibold text-white mb-2">
                     {analytics.month}
                 </h2>
             </div>
@@ -119,32 +119,32 @@ const MonthlySummaryView: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-text-secondary mb-1">Journal Entries</h3>
-                        <p className="text-2xl font-bold text-text-primary">
+                        <h3 className="text-sm text-[#e9d5ff] mb-1">Journal Entries</h3>
+                        <p className="text-2xl font-bold text-white">
                             {analytics.journal.entries_count}
                         </p>
                     </div>
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-text-secondary mb-1">Total Expenses</h3>
-                        <p className="text-2xl font-bold text-text-primary">
+                        <h3 className="text-sm text-[#e9d5ff] mb-1">Total Expenses</h3>
+                        <p className="text-2xl font-bold text-white">
                             {formatCurrency(analytics.expenses.total_amount)}
                         </p>
                     </div>
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-text-secondary mb-1">Active Goals</h3>
-                        <p className="text-2xl font-bold text-text-primary">
+                        <h3 className="text-sm text-[#e9d5ff] mb-1">Active Goals</h3>
+                        <p className="text-2xl font-bold text-white">
                             {analytics.goals.active_goals}
                         </p>
                     </div>
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-text-secondary mb-1">Days Tracked</h3>
-                        <p className="text-2xl font-bold text-text-primary">
+                        <h3 className="text-sm text-[#e9d5ff] mb-1">Days Tracked</h3>
+                        <p className="text-2xl font-bold text-white">
                             {analytics.habits.total_days_tracked}
                         </p>
                     </div>
@@ -153,16 +153,16 @@ const MonthlySummaryView: React.FC = () => {
 
             {/* Goals Progress */}
             <Card className="mb-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Goals Progress</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Goals Progress</h3>
                 <div className="space-y-4">
                     <div>
                         <div className="flex justify-between text-sm mb-1">
-                            <span className="text-text-secondary">Completion Rate</span>
-                            <span className="text-text-primary font-medium">
+                            <span className="text-[#e9d5ff]">Completion Rate</span>
+                            <span className="text-white font-medium">
                                 {analytics.goals.completion_rate.toFixed(1)}%
                             </span>
                         </div>
-                        <div className="w-full bg-input-bg rounded-full h-2">
+                        <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-2">
                             <div
                                 className={`h-2 rounded-full transition-all ${getProgressBarColor(analytics.goals.completion_rate)}`}
                                 style={{ width: `${analytics.goals.completion_rate}%` }}
@@ -171,22 +171,22 @@ const MonthlySummaryView: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                            <p className="text-2xl font-bold text-text-primary">
+                            <p className="text-2xl font-bold text-white">
                                 {analytics.goals.total_goals}
                             </p>
-                            <p className="text-xs text-text-secondary">Total</p>
+                            <p className="text-xs text-[#e9d5ff]">Total</p>
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-yellow-500">
                                 {analytics.goals.active_goals}
                             </p>
-                            <p className="text-xs text-text-secondary">Active</p>
+                            <p className="text-xs text-[#e9d5ff]">Active</p>
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-green-500">
                                 {analytics.goals.completed_goals}
                             </p>
-                            <p className="text-xs text-text-secondary">Completed</p>
+                            <p className="text-xs text-[#e9d5ff]">Completed</p>
                         </div>
                     </div>
                 </div>
@@ -194,18 +194,18 @@ const MonthlySummaryView: React.FC = () => {
 
             {/* Expenses by Category */}
             <Card className="mb-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Expenses by Category</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Expenses by Category</h3>
                 <div className="space-y-3">
                     {Object.entries(analytics.expenses.by_category).map(([category, amount]) => (
                         <div key={category} className="flex justify-between items-center">
-                            <span className="text-text-primary capitalize">{category}</span>
-                            <span className="text-text-primary font-medium">
+                            <span className="text-white capitalize">{category}</span>
+                            <span className="text-white font-medium">
                                 {formatCurrency(amount)}
                             </span>
                         </div>
                     ))}
                     {Object.keys(analytics.expenses.by_category).length === 0 && (
-                        <p className="text-text-secondary text-center py-4">
+                        <p className="text-[#e9d5ff] text-center py-4">
                             No expenses this month
                         </p>
                     )}
@@ -214,24 +214,24 @@ const MonthlySummaryView: React.FC = () => {
 
             {/* Habit Performance */}
             <Card className="mb-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Habit Performance</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Habit Performance</h3>
                 <div className="space-y-4">
                     {Object.entries(analytics.habits.performance).map(([habit, performance]) => (
-                        <div key={habit} className="border-b border-border pb-3 last:border-0">
+                        <div key={habit} className="border-b border-[rgba(139,92,246,0.35)] pb-3 last:border-0">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-text-primary font-medium capitalize">
+                                <span className="text-white font-medium capitalize">
                                     {habit}
                                 </span>
-                                <span className="text-sm text-text-secondary">
+                                <span className="text-sm text-[#e9d5ff]">
                                     {performance.days_tracked} days tracked
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-text-secondary">
+                                <span className="text-sm text-[#e9d5ff]">
                                     Avg Score: {performance.average_score.toFixed(1)}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-text-secondary">
+                                    <span className="text-sm text-[#e9d5ff]">
                                         Total: {performance.total_score}
                                     </span>
                                 </div>
@@ -239,7 +239,7 @@ const MonthlySummaryView: React.FC = () => {
                         </div>
                     ))}
                     {Object.keys(analytics.habits.performance).length === 0 && (
-                        <p className="text-text-secondary text-center py-4">
+                        <p className="text-[#e9d5ff] text-center py-4">
                             No habits tracked this month
                         </p>
                     )}
@@ -248,22 +248,22 @@ const MonthlySummaryView: React.FC = () => {
 
             {/* Recent Journal Entries */}
             <Card className="mb-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Recent Journal Entries</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Recent Journal Entries</h3>
                 <div className="space-y-3">
                     {analytics.journal.recent_entries.map((entry, index) => (
-                        <div key={index} className="border-b border-border pb-3 last:border-0">
+                        <div key={index} className="border-b border-[rgba(139,92,246,0.35)] pb-3 last:border-0">
                             <div className="flex justify-between items-start mb-2">
-                                <span className="text-sm text-text-secondary">
+                                <span className="text-sm text-[#e9d5ff]">
                                     {entry.date}
                                 </span>
                             </div>
-                            <p className="text-text-primary text-sm">
+                            <p className="text-white text-sm">
                                 {entry.content_preview}
                             </p>
                         </div>
                     ))}
                     {analytics.journal.recent_entries.length === 0 && (
-                        <p className="text-text-secondary text-center py-4">
+                        <p className="text-[#e9d5ff] text-center py-4">
                             No journal entries this month
                         </p>
                     )}
@@ -272,32 +272,32 @@ const MonthlySummaryView: React.FC = () => {
 
             {/* Recent Expenses */}
             <Card>
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Recent Expenses</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Recent Expenses</h3>
                 <div className="space-y-3">
                     {analytics.expenses.recent_expenses.map((expense, index) => (
-                        <div key={index} className="flex justify-between items-center border-b border-border pb-3 last:border-0">
+                        <div key={index} className="flex justify-between items-center border-b border-[rgba(139,92,246,0.35)] pb-3 last:border-0">
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs px-2 py-1 bg-input-bg rounded text-text-secondary capitalize">
+                                    <span className="text-xs px-2 py-1 bg-[rgba(15,10,30,0.6)] rounded text-[#e9d5ff] capitalize">
                                         {expense.category}
                                     </span>
-                                    <span className="text-sm text-text-secondary">
+                                    <span className="text-sm text-[#e9d5ff]">
                                         {expense.date}
                                     </span>
                                 </div>
                                 {expense.description && (
-                                    <p className="text-text-primary text-sm">
+                                    <p className="text-white text-sm">
                                         {expense.description}
                                     </p>
                                 )}
                             </div>
-                            <span className="text-text-primary font-medium">
+                            <span className="text-white font-medium">
                                 {formatCurrency(expense.amount)}
                             </span>
                         </div>
                     ))}
                     {analytics.expenses.recent_expenses.length === 0 && (
-                        <p className="text-text-secondary text-center py-4">
+                        <p className="text-[#e9d5ff] text-center py-4">
                             No expenses this month
                         </p>
                     )}
