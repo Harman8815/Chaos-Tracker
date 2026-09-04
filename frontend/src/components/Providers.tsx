@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { fetchAppData } from '../api/services';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
+import { Menu } from 'lucide-react';
 
 const getToday = () => {
     const d = new Date();
@@ -182,12 +183,34 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
     const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [sidebarState, setSidebarState] = useState<'expanded' | 'collapsed' | 'mobile'>('expanded');
 
     const today = getToday();
 
     useEffect(() => {
         setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            if (width < 768) {
+                setSidebarState('mobile');
+                setIsMobileMenuOpen(false);
+            } else if (width >= 768 && width < 1280) {
+                setSidebarState('collapsed');
+                setIsMobileMenuOpen(false);
+            } else {
+                setSidebarState('expanded');
+                setIsMobileMenuOpen(false);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const login = () => setIsAuthenticated(true);
@@ -268,17 +291,46 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                             </div>
                         ) : (
                             <>
-                                <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                                <div className={`flex-1 h-full overflow-hidden relative z-10`}>
+                                {sidebarState === 'mobile' && (
+                                    <>
+                                        <button
+                                            onClick={() => setIsMobileMenuOpen(true)}
+                                            aria-label="Open menu"
+                                            className="fixed top-4 left-4 z-50 w-12 h-12 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white hover:border-accent-primary transition-all duration-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] flex items-center justify-center"
+                                        >
+                                            <Menu className="w-6 h-6" />
+                                        </button>
+                                        {isMobileMenuOpen && (
+                                            <>
+                                                <div
+                                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                                                    onClick={() => setIsMobileMenuOpen(false)}
+                                                />
+                                                <div className="fixed inset-y-0 left-0 z-50 w-72 bg-[#0f0f23] border-r border-white/10 shadow-2xl">
+                                                    <Sidebar
+                                                        isCollapsed={false}
+                                                        toggleSidebar={() => setIsMobileMenuOpen(false)}
+                                                        onNavigate={() => setIsMobileMenuOpen(false)}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                {(sidebarState === 'expanded' || sidebarState === 'collapsed') && (
+                                    <Sidebar
+                                        isCollapsed={sidebarState === 'collapsed'}
+                                        toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                    />
+                                )}
+                                <div className={`flex-1 h-full overflow-hidden relative z-10 transition-all duration-300 ${sidebarState === 'mobile' ? 'w-full' : ''}`}>
                                     {children}
                                 </div>
-                                {isSettingsModalOpen && <SettingsModal />}
-                                {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
-                                {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
                             </>
                         )}
-                        {/* ToolManager available on all pages */}
-                        <ToolManager />
+                        {isSettingsModalOpen && <SettingsModal />}
+                        {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+                        {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
                     </div>
                 </ToolsProvider>
             </DataContext.Provider>
