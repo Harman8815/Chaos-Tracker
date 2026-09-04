@@ -101,13 +101,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     aria-label="Open menu"
                     className="flex items-center justify-center
                             w-14 h-14 rounded-lg bg-sidebar-bg/80 backdrop-blur-xl border border-accent-primary/20
-                            text-sidebar-icon hover:text-text-primary hover:border-accent-primary
+                            text-[#a1a1aa] hover:text-white hover:border-accent-primary
                             transition-colors duration-200 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
                 >
                     <MenuIcon className="w-6 h-6" />
                 </button>
                 <div className="bg-sidebar-bg/80 backdrop-blur-xl px-6 py-3 rounded-lg border border-accent-primary/20 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-                    <span className="text-2xl font-bold text-text-primary">
+                    <span className="text-2xl font-bold text-white">
                         Tracker
                     </span>
                 </div>
@@ -121,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         <aside className="relative bg-[rgba(15,10,30,0.75)] backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-[rgba(139,92,246,0.35)] shadow-[0_0_25px_rgba(124,58,237,0.25)]">
             <button
                 onClick={toggleSidebar}
-                className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
+                className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-[rgba(15,10,30,0.6)]"
                 aria-label="Close menu"
             >
                 <MenuIcon className="w-6 h-6" />
@@ -139,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
                                 className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 focus:outline-none z-10
-                                ${isSelected ? 'text-text-inverse' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
+                                ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-[rgba(15,10,30,0.6)]'}
                             `}
                                 title={item.name}
                                 onMouseEnter={() => updateIndicator(index)}
@@ -189,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
                     <button
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="relative flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
+                        className="relative flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-[rgba(15,10,30,0.6)]"
                         aria-label="Settings"
                     >
                         <SettingsIcon className="w-6 h-6" />

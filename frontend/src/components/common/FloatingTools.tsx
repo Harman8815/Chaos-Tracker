@@ -26,7 +26,7 @@ const FloatingTools: React.FC = () => {
                         <button
                             key={tool.id}
                             onClick={() => handleToolClick(tool.id)}
-                            className="w-14 h-14 rounded-full bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] text-text-primary flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.35)] transition-all duration-300 hover:bg-accent-primary hover:shadow-[0_0_25px_rgba(139,92,246,0.55)] animate-fade-in"
+                            className="w-14 h-14 rounded-full bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] text-white flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.35)] transition-all duration-300 hover:bg-accent-primary hover:shadow-[0_0_25px_rgba(139,92,246,0.55)] animate-fade-in"
                             style={{ animationDelay: `${(tools.length - index) * 50}ms`}}
                             title={tool.label}
                             aria-label={tool.label}
