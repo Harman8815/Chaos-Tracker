@@ -57,11 +57,11 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
     return (
         <div className="w-full max-w-md px-4 animate-fade-in relative z-10">
             <div className="text-center mb-8">
-                <h1 className="text-5xl font-bold text-accent-primary mb-2 tracking-tight">Tracker</h1>
-                <p className="text-text-secondary text-lg">Start your journey today.</p>
+                <h1 className="text-5xl font-bold text-[#8b5cf6] mb-2 tracking-tight">Tracker</h1>
+                <p className="text-[#e9d5ff] text-lg">Start your journey today.</p>
             </div>
-            <Card className="w-full p-8 shadow-2xl border-border/50 bg-card-bg/80 backdrop-blur-xl">
-                <h2 className="text-2xl font-bold mb-6 text-text-primary">Create Account</h2>
+            <Card className="w-full p-8 shadow-2xl border-[rgba(139,92,246,0.35)] bg-[rgba(15,10,30,0.75)] backdrop-blur-xl">
+                <h2 className="text-2xl font-bold mb-6 text-white">Create Account</h2>
 
                 {error && (
                     <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 text-sm">
@@ -71,49 +71,49 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1.5">Username</label>
+                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Username</label>
                         <input
                             type="text"
                             value={username}
                             onChange={e => setUsername(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-input-bg border border-border text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none transition-all"
+                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
                             placeholder="johndoe"
                             required
                             autoComplete="username"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
+                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Email</label>
                         <input
                             type="email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-input-bg border border-border text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none transition-all"
+                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
                             placeholder="name@example.com"
                             required
                             autoComplete="email"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
+                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Password</label>
                         <input
                             type="password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-input-bg border border-border text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none transition-all"
+                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
                             placeholder="••••••••"
                             required
                             minLength={8}
                             autoComplete="new-password"
                         />
-                        <p className="text-xs text-text-secondary mt-1">Must be at least 8 characters</p>
+                        <p className="text-xs text-[#e9d5ff] mt-1">Must be at least 8 characters</p>
                     </div>
-                    <Button type="submit" className="w-full py-3 mt-4 shadow-lg shadow-accent-primary/20" disabled={isLoading}>
+                    <Button type="submit" className="w-full py-3 mt-4 shadow-lg shadow-[#8b5cf6]/20" disabled={isLoading}>
                         {isLoading ? 'Creating Account...' : 'Sign Up'}
                     </Button>
                 </form>
-                <div className="mt-8 text-center text-sm text-text-secondary">
-                    Already have an account? <button onClick={onSwitchToLogin} className="text-accent-primary hover:text-accent-primary-dark font-bold hover:underline transition-colors">Log In</button>
+                <div className="mt-8 text-center text-sm text-[#e9d5ff]">
+                    Already have an account? <button onClick={onSwitchToLogin} className="text-[#8b5cf6] hover:text-[#7c3aed] font-bold hover:underline transition-colors">Log In</button>
                 </div>
             </Card>
         </div>
