@@ -62,7 +62,7 @@ const Clock: React.FC = () => {
     const toggleView = () => setIsAnalog(prev => !prev);
 
     return (
-        <div className="h-full flex flex-col items-center justify-center text-text-primary">
+        <div className="h-full flex flex-col items-center justify-center text-white">
             {isAnalog ? (
                 <AnalogClock time={time} onToggleView={toggleView} />
             ) : (
@@ -74,7 +74,7 @@ const Clock: React.FC = () => {
                     {time.toLocaleTimeString()}
                 </div>
             )}
-            <p className="text-lg text-text-secondary mt-4">
+            <p className="text-lg text-[#e9d5ff] mt-4">
                 {time.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
         </div>
