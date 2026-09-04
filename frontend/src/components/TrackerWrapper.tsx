@@ -11,10 +11,12 @@ interface TrackerWrapperProps {
 const TrackerWrapper: React.FC<TrackerWrapperProps> = ({ tracker, children }) => {
     const { t } = useContext(SettingsContext);
     return (
-        <div className="p-6 h-full overflow-y-auto animate-fade-in">
-            <div className="flex items-center mb-6">
-                <tracker.icon className="w-8 h-8 text-[#8b5cf6]" />
-                <h2 className="ml-4 text-3xl font-bold text-white">{t(tracker.id)}</h2>
+        <div className="p-6 lg:p-8 h-full overflow-y-auto animate-fade-in">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-white/[0.06] border border-white/10">
+                    <tracker.icon className="w-6 h-6 text-accent-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-white">{t(tracker.id)}</h2>
             </div>
             {children}
         </div>
