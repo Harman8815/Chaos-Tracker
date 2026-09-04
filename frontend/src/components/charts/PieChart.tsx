@@ -58,14 +58,14 @@ const PieChart: React.FC<PieProps> = ({
     }, []);
 
     if (!data || data.length === 0) {
-        return <div className="p-6 text-center text-text-secondary">No data available.</div>;
+        return <div className="p-6 text-center text-[#e9d5ff]">No data available.</div>;
     }
 
     const round2 = (num: number) => Number(num.toFixed(2));
 
     return (
         <div ref={containerRef} className="w-full bg-transparent rounded-lg p-2">
-            <h2 className="text-xl font-semibold mb-4 text-text-primary">{title}</h2>
+            <h2 className="text-xl font-semibold mb-4 text-white">{title}</h2>
 
             <ResponsiveContainer width="100%" height={height}>
                 <RechartsPieChart>
@@ -106,12 +106,12 @@ const PieChart: React.FC<PieProps> = ({
 
                     <Tooltip
                         contentStyle={{
-                            backgroundColor: "var(--color-card-bg)",
-                            border: "1px solid var(--color-border)",
+                            backgroundColor: "rgba(15,10,30,0.75)",
+                            border: "1px solid rgba(139,92,246,0.35)",
                             borderRadius: "6px",
                         }} formatter={(value: number) => Number(value.toFixed(2))}
-                        labelStyle={{ color: "var(--color-text-primary)" }}
-                        itemStyle={{ color: "var(--color-text-secondary)" }}
+                        labelStyle={{ color: "#ffffff" }}
+                        itemStyle={{ color: "#e9d5ff" }}
                     />
                 </RechartsPieChart>
             </ResponsiveContainer>
