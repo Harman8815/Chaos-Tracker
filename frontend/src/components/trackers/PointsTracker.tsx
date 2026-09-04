@@ -29,9 +29,9 @@ const TrajectoryChart = ({ dailyTotals, daysInMonth }: { dailyTotals: { [day: nu
         .join(' ');
 
     return (
-        <div className="h-16 border-b-2 border-border" style={{ width: `${width}px` }}>
+        <div className="h-16 border-b-2 border-[rgba(139,92,246,0.35)]" style={{ width: `${width}px` }}>
             {!isEmpty && (
-                <svg viewBox={`0 0 ${width} ${height}`} className="h-16 border-b-2 border-border" style={{ minWidth: `${width}px` }}>
+                <svg viewBox={`0 0 ${width} ${height}`} className="h-16 border-b-2 border-[rgba(139,92,246,0.35)]" style={{ minWidth: `${width}px` }}>
                     <path d={linePath} strokeWidth="2.5" fill="none" className="stroke-current text-accent-primary" />
                     {dataPoints.map((point, index) => (
                         <g key={index}>
@@ -262,7 +262,7 @@ const PointsTracker: React.FC = () => {
     return (
         <TrackerWrapper tracker={trackerInfo}>
             <div className="flex justify-between items-center mb-4">
-                <div className="flex space-x-1 bg-input-bg p-1 rounded-lg">
+                <div className="flex space-x-1 bg-[rgba(15,10,30,0.6)] p-1 rounded-lg">
                     {(['daily', 'monthly', 'yearly'] as View[]).map(v => (
                         <button key={v} onClick={() => setView(v)} className={`px-3 py-1 text-sm rounded-md capitalize transition-colors ${view === v ? 'bg-accent-primary text-white' : 'hover:bg-border'}`}>
                             {v}
@@ -282,7 +282,7 @@ const PointsTracker: React.FC = () => {
                         <span>Edit</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" checked={isEditable} onChange={() => setIsEditable(!isEditable)} className="sr-only peer" />
-                            <div className="w-11 h-6 bg-input-bg rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                            <div className="w-11 h-6 bg-[rgba(15,10,30,0.6)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
                         </label>
                     </div>
                 </div>
@@ -295,38 +295,38 @@ const PointsTracker: React.FC = () => {
                     </div>
                     <div className="overflow-x-auto">
                         <div className="grid grid-cols-sticky" style={{ gridTemplateColumns: `12rem repeat(${daysInMonth}, 4rem) 6rem 6rem` }}>
-                            <div className="col-start-1 sticky top-0 left-0 font-bold p-2 bg-sidebar-bg z-30">Habit</div>
+                            <div className="col-start-1 sticky top-0 left-0 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-30">Habit</div>
                             {Array.from({ length: daysInMonth }, (_, i) => (
-                                <div key={i} className="sticky top-0 font-bold text-center p-2 bg-sidebar-bg z-10">{i + 1}</div>
+                                <div key={i} className="sticky top-0 font-bold text-center p-2 bg-[rgba(15,10,30,0.65)] z-10">{i + 1}</div>
                             ))}
-                            <div className="sticky top-0 right-12 font-bold p-2 bg-sidebar-bg z-30">Total</div>
-                            <div className="sticky top-0 right-0 font-bold p-2 bg-sidebar-bg z-30">Target</div>
+                            <div className="sticky top-0 right-12 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-30">Total</div>
+                            <div className="sticky top-0 right-0 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-30">Target</div>
 
                             <div ref={gridBodyRef} className="col-start-1 col-span-full grid grid-cols-sticky" style={{ gridTemplateColumns: `12rem repeat(${daysInMonth}, 4rem) 6rem 6rem` }}>
                                 {habits.map(habit => (
                                     <React.Fragment key={habit.id}>
-                                        <div className="sticky left-0 font-semibold p-2 bg-card-bg flex items-center z-20">{habit.name}</div>
+                                        <div className="sticky left-0 font-semibold p-2 bg-[rgba(15,10,30,0.75)] flex items-center z-20">{habit.name}</div>
                                         {Array.from({ length: daysInMonth }, (_, i) => {
                                             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1).toISOString().split('T')[0];
                                             const score = data[date]?.habitScores?.[habit.id] || 0;
                                             const bgColor = getColor(score, habit.rangeMax ?? 10);
                                             const textColor = getTextColor(bgColor);
                                             return (
-                                                <div key={i} onClick={() => handleScoreClick(date, habit.id)} className={`flex items-center justify-center p-2 text-center border-b border-r border-border ${isEditable ? 'cursor-pointer' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
+                                                <div key={i} onClick={() => handleScoreClick(date, habit.id)} className={`flex items-center justify-center p-2 text-center border-b border-r border-[rgba(139,92,246,0.35)] ${isEditable ? 'cursor-pointer' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
                                                     {score}
                                                 </div>
                                             );
                                         })}
-                                        <div className="sticky right-12 p-2 bg-card-bg flex items-center justify-center font-bold z-20">{monthlyTotals[habit.id]}</div>
-                                        <input type="number" value={habit.target} onChange={(e) => handleTargetChange(habit.id, parseInt(e.target.value))} className="sticky right-0 p-2 bg-input-bg text-center w-full h-full border-none focus:outline-none focus:ring-2 focus:ring-accent-primary z-20" />
+                                        <div className="sticky right-12 p-2 bg-[rgba(15,10,30,0.75)] flex items-center justify-center font-bold z-20">{monthlyTotals[habit.id]}</div>
+                                        <input type="number" value={habit.target} onChange={(e) => handleTargetChange(habit.id, parseInt(e.target.value))} className="sticky right-0 p-2 bg-[rgba(15,10,30,0.6)] text-center w-full h-full border-none focus:outline-none focus:ring-2 focus:ring-accent-primary z-20" />
                                     </React.Fragment>
                                 ))}
-                                <div className="sticky left-0 font-bold p-2 bg-sidebar-bg z-20">Daily Total</div>
+                                <div className="sticky left-0 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-20">Daily Total</div>
                                 {Array.from({ length: daysInMonth }, (_, i) => (
-                                    <div key={i} className="font-bold text-center p-2 bg-sidebar-bg border-r border-border">{dailyTotals[i + 1]}</div>
+                                    <div key={i} className="font-bold text-center p-2 bg-[rgba(15,10,30,0.65)] border-r border-[rgba(139,92,246,0.35)]">{dailyTotals[i + 1]}</div>
                                 ))}
-                                <div className="sticky right-12 p-2 bg-sidebar-bg z-20"></div>
-                                <div className="sticky right-0 p-2 bg-sidebar-bg z-20"></div>
+                                <div className="sticky right-12 p-2 bg-[rgba(15,10,30,0.65)] z-20"></div>
+                                <div className="sticky right-0 p-2 bg-[rgba(15,10,30,0.65)] z-20"></div>
                             </div>
                         </div>
                     </div>
@@ -341,7 +341,7 @@ const PointsTracker: React.FC = () => {
                                             <span>{habit.name}</span>
                                             <span className="text-sm font-semibold">{monthlyTotals[habit.id]} / {habit.target}</span>
                                         </div>
-                                        <div className="w-full bg-input-bg rounded-full h-2.5">
+                                        <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-2.5">
                                             <div className="bg-accent-primary h-2.5 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
                                         </div>
                                     </div>
@@ -364,7 +364,7 @@ const PointsTracker: React.FC = () => {
                                             <span>{habit.name}</span>
                                             <span className="text-sm font-semibold">{monthlyTotals[habit.id]} / {habit.target}</span>
                                         </div>
-                                        <div className="w-full bg-input-bg rounded-full h-2.5">
+                                        <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-2.5">
                                             <div className="bg-accent-primary h-2.5 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
                                         </div>
                                     </div>
@@ -379,7 +379,7 @@ const PointsTracker: React.FC = () => {
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-input-bg">
+                                <thead className="bg-[rgba(15,10,30,0.6)]">
                                     <tr>
                                         <th className="p-2">Activity</th>
                                         <th className="p-2">Max Points</th>
@@ -390,7 +390,7 @@ const PointsTracker: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {scoringRules.map((rule) => (
-                                        <tr key={rule.id} className="border-b border-border">
+                                        <tr key={rule.id} className="border-b border-[rgba(139,92,246,0.35)]">
                                             <td className="p-2 font-semibold">{rule.activity}</td>
                                             <td className="p-2">{rule.maxPoints}</td>
                                             <td className="p-2">{rule.penaltyRule}</td>
@@ -408,7 +408,7 @@ const PointsTracker: React.FC = () => {
                 <Card>
                     <h3 className="font-bold text-lg mb-4">Yearly Summary for {currentDate.getFullYear()}</h3>
                     <table className="w-full text-left">
-                        <thead className="bg-input-bg">
+                        <thead className="bg-[rgba(15,10,30,0.6)]">
                             <tr>
                                 <th className="p-2">Habit</th>
                                 <th className="p-2">Total Score</th>
@@ -421,12 +421,12 @@ const PointsTracker: React.FC = () => {
                                 const yearlyTarget = habit.target * 12;
                                 const progress = yearlyTarget > 0 ? (yearlyTotals[habit.id] / yearlyTarget) * 100 : 0;
                                 return (
-                                    <tr key={habit.id} className="border-b border-border">
+                                    <tr key={habit.id} className="border-b border-[rgba(139,92,246,0.35)]">
                                         <td className="p-2 font-semibold">{habit.name}</td>
                                         <td className="p-2">{yearlyTotals[habit.id]}</td>
                                         <td className="p-2">{yearlyTarget}</td>
                                         <td className="p-2">
-                                            <div className="w-full bg-input-bg rounded-full h-4">
+                                            <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-4">
                                                 <div className="bg-accent-primary h-4 rounded-full text-xs text-white text-center flex items-center justify-center" style={{ width: `${Math.min(progress, 100)}%` }}>
                                                     {progress.toFixed(1)}%
                                                 </div>
