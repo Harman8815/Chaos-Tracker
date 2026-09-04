@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                     <div className="absolute inset-0 rounded-lg bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]" />
                                 )}
                                 {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10
-                                ${isSelected ? '' : ''}`}
+                                ${isSelected ? 'text-yellow-400' : ''}`}
                                 />}
                             </Link>
                         )
