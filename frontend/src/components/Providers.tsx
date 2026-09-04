@@ -243,10 +243,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
-                    <div className={`flex h-screen font-sans text-text-primary bg-background theme-${settings.theme}`}>
+                    <div className={`flex h-screen font-sans text-white bg-[#0f0f23] theme-${settings.theme}`}>
                         {!mounted ? (
                             <div className="w-full h-full flex items-center justify-center relative">
-                                <div className="text-text-secondary">Loading...</div>
+                                <div className="text-[#e9d5ff]">Loading...</div>
                             </div>
                         ) : !isAuthenticated ? (
                             <div className="w-full h-full flex items-center justify-center relative">
