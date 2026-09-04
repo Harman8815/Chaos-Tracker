@@ -151,29 +151,29 @@ const Calculator: React.FC = () => {
 
     const renderStandardButtons = () => (
         <div className="grid grid-cols-4 gap-2">
-            <button title="All Clear: Resets the calculator" onClick={handleClear} className="col-span-2 bg-red-500/50 hover:bg-red-500/70 backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-red-400/30 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]">AC</button>
-            <button title="Backspace: Deletes the last character" onClick={handleBackspace} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">C</button>
-            <button title="Divide" onClick={() => handleOperator('/')} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">/</button>
-            {'789'.split('').map(n => <button key={n} title={`Number ${n}`} onClick={() => handleInput(n)} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">{n}</button>)}
-            <button title="Multiply" onClick={() => handleOperator('*')} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">*</button>
-            {'456'.split('').map(n => <button key={n} title={`Number ${n}`} onClick={() => handleInput(n)} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">{n}</button>)}
-            <button title="Subtract" onClick={() => handleOperator('-')} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">-</button>
-            {'123'.split('').map(n => <button key={n} title={`Number ${n}`} onClick={() => handleInput(n)} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">{n}</button>)}
-            <button title="Add" onClick={() => handleOperator('+')} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">+</button>
-            <button title="Number 0" onClick={() => handleInput('0')} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">0</button>
-            <button title="Decimal Point" onClick={() => handleInput('.')} className="bg-sidebar-bg/60 hover:bg-border backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">.</button>
-            <button title="Equals: Calculate the result" onClick={handleEquals} className="col-span-2 bg-accent-primary hover:bg-accent-primary-dark backdrop-blur-sm border border-accent-primary/50 p-3 rounded-lg transition-all duration-200 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]">=</button>
+            <button title="All Clear: Resets the calculator" onClick={handleClear} className="col-span-2 bg-accent-primary hover:bg-accent-primary-dark text-white border border-accent-primary/50 p-3 rounded-lg transition-all duration-200 shadow-[0_0_15px_rgba(139,92,246,0.4)] font-semibold">AC</button>
+            <button title="Backspace: Deletes the last character" onClick={handleBackspace} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">C</button>
+            <button title="Divide" onClick={() => handleOperator('/')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">/</button>
+            {'789'.split('').map(n => <button key={n} title={`Number ${n}`} onClick={() => handleInput(n)} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">{n}</button>)}
+            <button title="Multiply" onClick={() => handleOperator('*')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">*</button>
+            {'456'.split('').map(n => <button key={n} title={`Number ${n}`} onClick={() => handleInput(n)} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">{n}</button>)}
+            <button title="Subtract" onClick={() => handleOperator('-')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">-</button>
+            {'123'.split('').map(n => <button key={n} title={`Number ${n}`} onClick={() => handleInput(n)} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">{n}</button>)}
+            <button title="Add" onClick={() => handleOperator('+')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">+</button>
+            <button title="Number 0" onClick={() => handleInput('0')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">0</button>
+            <button title="Decimal Point" onClick={() => handleInput('.')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-3 rounded-lg transition-all duration-200">.</button>
+            <button title="Equals: Calculate the result" onClick={handleEquals} className="col-span-2 bg-accent-primary hover:bg-accent-primary-dark text-white border border-accent-primary/50 p-3 rounded-lg transition-all duration-200 shadow-[0_0_20px_rgba(139,92,246,0.5)] font-semibold">=</button>
         </div>
     );
     
     const renderFinanceButtons = () => (
         <div className="grid grid-cols-3 gap-2 text-sm flex-grow">
-            <button title="Number of Periods" onClick={() => handleFinanceKey('N')} className="bg-input-bg hover:bg-border backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">N</button>
-            <button title="Interest Rate per Year" onClick={() => handleFinanceKey('IY')} className="bg-input-bg hover:bg-border backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">I/Y</button>
-            <button title="Present Value" onClick={() => handleFinanceKey('PV')} className="bg-input-bg hover:bg-border backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">PV</button>
-            <button title="Payment per Period" onClick={() => handleFinanceKey('PMT')} className="bg-input-bg hover:bg-border backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">PMT</button>
-            <button title="Future Value" onClick={() => handleFinanceKey('FV')} className="bg-input-bg hover:bg-border backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200 hover:border-accent-primary/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.15)]">FV</button>
-            <button title="Compute: Press this, then the key for the value to solve." onClick={() => setIsComputing(true)} className={`p-2 rounded-lg ${isComputing ? 'bg-green-500 animate-pulse' : 'bg-accent-primary hover:bg-accent-primary-dark backdrop-blur-sm border border-accent-primary/50 transition-all duration-200 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]'}`}>CMPT</button>
+            <button title="Number of Periods" onClick={() => handleFinanceKey('N')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200">N</button>
+            <button title="Interest Rate per Year" onClick={() => handleFinanceKey('IY')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200">I/Y</button>
+            <button title="Present Value" onClick={() => handleFinanceKey('PV')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200">PV</button>
+            <button title="Payment per Period" onClick={() => handleFinanceKey('PMT')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200">PMT</button>
+            <button title="Future Value" onClick={() => handleFinanceKey('FV')} className="bg-[rgba(15,10,30,0.6)] hover:bg-border text-text-primary backdrop-blur-sm border border-white/5 p-2 rounded-lg transition-all duration-200">FV</button>
+            <button title="Compute: Press this, then the key for the value to solve." onClick={() => setIsComputing(true)} className={`p-2 rounded-lg ${isComputing ? 'bg-green-500 animate-pulse text-white' : 'bg-accent-primary hover:bg-accent-primary-dark text-white border border-accent-primary/50 transition-all duration-200 shadow-[0_0_15px_rgba(139,92,246,0.4)]'}`}>CMPT</button>
         </div>
     );
     
@@ -189,25 +189,36 @@ const Calculator: React.FC = () => {
     );
 
     return (
-        <div className="relative h-full flex flex-col font-mono text-text-primary text-lg bg-card-bg/80 backdrop-blur-xl border border-accent-primary/30 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.15)] p-3">
+        <div className="relative h-full flex flex-col font-mono text-text-primary text-lg bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-2xl shadow-[0_0_25px_rgba(124,58,237,0.35)]">
              {showHelp && <HelpOverlay />}
-             <div className="flex justify-end items-center mb-1">
-                <button 
-                    onClick={() => setShowHelp(true)} 
-                    className="w-6 h-6 rounded-full border border-text-secondary text-text-secondary flex items-center justify-center text-sm font-bold hover:bg-border hover:text-text-primary mr-3"
-                    title="Show Help"
+             <div className="flex justify-between items-center mb-2 px-3 pt-3">
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => setShowHelp(true)} 
+                        className="w-5 h-5 rounded-full border border-text-secondary text-text-secondary flex items-center justify-center text-xs font-bold hover:bg-border hover:text-text-primary"
+                        title="Show Help"
+                    >
+                        i
+                    </button>
+                    <span className="text-xs text-text-secondary font-medium">Finance Mode</span>
+                </div>
+                <button
+                    onClick={() => {}}
+                    className="w-6 h-6 rounded-full bg-accent-primary text-white flex items-center justify-center text-xs font-bold hover:bg-accent-primary-dark shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                    aria-label="Close"
                 >
-                    i
+                    ×
                 </button>
-                <span className="text-xs mr-2">Finance Mode</span>
+             </div>
+             <div className="px-3 pb-2">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" checked={isFinanceMode} onChange={() => setIsFinanceMode(!isFinanceMode)} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-input-bg rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                  <div className="w-9 h-5 bg-input-bg rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-primary"></div>
                 </label>
              </div>
             {isFinanceMode && renderFinanceDisplay()}
-            <div className="bg-background/60 backdrop-blur-md border border-accent-primary/20 rounded-xl p-3 text-right text-3xl mb-2 break-words h-16 flex items-end justify-end shadow-[0_0_15px_rgba(99,102,241,0.1)]">{display}</div>
-            <div className="flex-grow flex flex-col">
+            <div className="mx-3 bg-black/80 border border-[rgba(139,92,246,0.25)] rounded-xl p-3 text-right text-3xl mb-3 break-words h-16 flex items-end justify-end text-white shadow-[0_0_15px_rgba(139,92,246,0.2)]">{display}</div>
+            <div className="flex-grow flex flex-col px-3 pb-3">
                 {isFinanceMode ? renderFinanceButtons() : renderStandardButtons()}
             </div>
         </div>
