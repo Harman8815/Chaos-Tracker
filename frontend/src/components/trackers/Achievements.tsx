@@ -117,9 +117,9 @@ const Achievements: React.FC = () => {
             <Card className="mb-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="flex space-x-1 bg-input-bg p-1 rounded-lg">
+                        <div className="flex space-x-1 bg-[rgba(15,10,30,0.6)] p-1 rounded-lg">
                             {(['timeline', 'grid'] as View[]).map(v => (
-                                <button key={v} onClick={() => setView(v)} className={`px-4 py-2 text-sm rounded-md capitalize transition-colors ${view === v ? 'bg-accent-primary text-white shadow' : 'hover:bg-border'}`}>
+                                <button key={v} onClick={() => setView(v)} className={`px-4 py-2 text-sm rounded-md capitalize transition-colors ${view === v ? 'bg-accent-primary text-white shadow' : 'hover:bg-[rgba(139,92,246,0.35)]'}`}>
                                     {v} View
                                 </button>
                             ))}
@@ -128,35 +128,35 @@ const Achievements: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-text-secondary">Sort by Date:</span>
+                        <span className="text-sm font-medium text-[#e9d5ff]">Sort by Date:</span>
                         <select
                             value={sortOrder}
                             onChange={e => setSortOrder(e.target.value as SortOrder)}
-                            className="p-2 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             <option value="desc">Newest First</option>
                             <option value="asc">Oldest First</option>
                         </select>
                     </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-border">
+                <div className="mt-4 pt-4 border-t border-[rgba(139,92,246,0.35)]">
                     <div className="flex flex-wrap gap-2 items-center">
-                        <span className="text-sm font-medium text-text-secondary mr-2">Filter by Tag:</span>
+                        <span className="text-sm font-medium text-[#e9d5ff] mr-2">Filter by Tag:</span>
                         {allTags.length > 0 ? (
                             allTags.map(tag => (
                                 <button
                                     key={tag}
                                     onClick={() => handleTagClick(tag)}
-                                    className={`px-3 py-1 text-xs rounded-full capitalize border transition-colors ${selectedTags.includes(tag) ? 'bg-accent-primary border-accent-primary text-white' : 'bg-input-bg border-border hover:bg-border'}`}
+                                    className={`px-3 py-1 text-xs rounded-full capitalize border transition-colors ${selectedTags.includes(tag) ? 'bg-accent-primary border-accent-primary text-white' : 'bg-[rgba(15,10,30,0.6)] border-[rgba(139,92,246,0.35)] hover:bg-[rgba(139,92,246,0.35)]'}`}
                                 >
                                     {tag}
                                 </button>
                             ))
                         ) : (
-                            <span className="text-xs text-text-secondary italic">No tags available</span>
+                            <span className="text-xs text-[#e9d5ff] italic">No tags available</span>
                         )}
                         {selectedTags.length > 0 && (
-                            <button onClick={() => setSelectedTags([])} className="text-xs text-text-secondary hover:text-text-primary underline">Clear</button>
+                            <button onClick={() => setSelectedTags([])} className="text-xs text-[#e9d5ff] hover:text-white underline">Clear</button>
                         )}
                     </div>
                 </div>
