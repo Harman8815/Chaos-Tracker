@@ -54,10 +54,10 @@ const TimelineView: React.FC<TimelineViewProps> = ({ achievements, onImageClick,
                         {/* Dot on timeline */}
                         <div className={`absolute top-1/2 w-4 h-4 bg-accent-primary rounded-full border-4 border-background -translate-y-1/2 ${isLeft ? 'right-0 -mr-[9px]' : 'left-0 -ml-[9px]'}`}></div>
                         
-                        <div className={`bg-card-bg p-4 rounded-lg shadow-lg border border-border w-[calc(100%-2rem)] relative ${isLeft ? 'mr-auto' : 'ml-auto'}`}>
+                        <div className={`bg-[rgba(15,10,30,0.75)] p-4 rounded-lg shadow-lg border border-[rgba(139,92,246,0.35)] w-[calc(100%-2rem)] relative ${isLeft ? 'mr-auto' : 'ml-auto'}`}>
                              <button 
                                 onClick={() => onEdit(achievement)}
-                                className="absolute top-2 right-2 p-1.5 bg-input-bg rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 p-1.5 bg-[rgba(15,10,30,0.6)] rounded-full text-[#e9d5ff] hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
                                 aria-label="Edit Achievement"
                             >
                                 <EditIcon />
@@ -75,10 +75,10 @@ const TimelineView: React.FC<TimelineViewProps> = ({ achievements, onImageClick,
                             </div>
                             <span className="text-sm font-bold text-accent-primary">{new Date(achievement.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                             <h3 className="text-xl font-bold mt-1">{achievement.title}</h3>
-                            <p className="text-sm text-text-secondary mt-2">{achievement.description}</p>
+                            <p className="text-sm text-[#e9d5ff] mt-2">{achievement.description}</p>
                              <div className="flex flex-wrap gap-2 mt-3">
                                 {achievement.tags.map(tag => (
-                                    <span key={tag} className="px-2 py-0.5 text-xs bg-input-bg rounded-full capitalize">{tag}</span>
+                                    <span key={tag} className="px-2 py-0.5 text-xs bg-[rgba(15,10,30,0.6)] rounded-full capitalize">{tag}</span>
                                 ))}
                             </div>
                         </div>
