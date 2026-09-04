@@ -93,6 +93,16 @@ const translations: Record<Language, Record<string, string>> = {
 const ToolManager: React.FC = () => {
     const { openTools, closeTool, focusTool } = useTools();
 
+    useEffect(() => {
+        const handleResize = () => {
+            if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                openTools.forEach(id => closeTool(id));
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [openTools, closeTool]);
+
     return (
         <>
             <FloatingTools />
@@ -107,7 +117,7 @@ const ToolManager: React.FC = () => {
                                 onClose={() => closeTool(toolId)}
                                 zIndex={zIndex}
                                 onFocus={() => focusTool(toolId)}
-                                initialSize={{ width: 320, height: 480 }}
+                                initialSize={{ width: 320, height: 560 }}
                             >
                                 <Calculator />
                             </DraggableResizableModal>
