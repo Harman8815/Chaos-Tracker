@@ -17,13 +17,12 @@ const HomePage: React.FC = () => {
                 minHeight: 200.0,
                 minWidth: 200.0,
 
-                // ⭐ FIXED COLORS (all numeric hex)
-                skyColor: 0x0A0F1F,
-                cloudColor: 0x4C5B70,
-                cloudShadowColor: 0x1B2330,
-                sunColor: 0x6F7FA6,
-                sunGlareColor: 0xAAB8FF,
-                sunlightColor: 0x8FA3FF,
+                skyColor: 0x0b041a,
+                cloudColor: 0x8b5cf6,
+                cloudShadowColor: 0x150a2a,
+                sunColor: 0x38bdf8,
+                sunGlareColor: 0xa855f7,
+                sunlightColor: 0x38bdf8,
 
                 THREE: THREE
             });
@@ -48,14 +47,14 @@ const HomePage: React.FC = () => {
 
             {/* Content Layer - Centered relative to the layout container */}
             <div className="relative z-10 w-full h-full flex items-center justify-center text-white pointer-events-none">
-                <div className="text-center p-4 pointer-events-auto select-none">
+                <div className="text-center p-8 pointer-events-auto select-none bg-[rgba(15,10,30,0.65)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.35)]">
                     <motion.h1
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.9, ease: "easeOut" }}
                         className="text-6xl md:text-8xl font-extrabold 
-        bg-gradient-to-r from-cyan-400 to-purple-500 
-        bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]"
+                bg-gradient-to-r from-[#38bdf8] to-[#a855f7]
+                bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                     >
                         Welcome
                     </motion.h1>
@@ -63,8 +62,9 @@ const HomePage: React.FC = () => {
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-                        className="text-xl md:text-2xl max-w-md mx-auto mt-5 text-gray-300 leading-relaxed"
+                        transition={{ duration: 1, delay: 0.3, ease: "easeOut" }
+                        }
+                        className="text-xl md:text-2xl max-w-md mx-auto mt-5 text-[#e9d5ff] leading-relaxed"
                     >
                         Your daily companion for tracking habits, measuring progress,
                         and building a better you.
