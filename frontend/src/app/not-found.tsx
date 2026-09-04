@@ -30,7 +30,7 @@ export default function NotFound() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-3xl md:text-4xl font-bold text-text-primary mb-4"
+                    className="text-3xl md:text-4xl font-bold text-white mb-4"
                 >
                     Page Not Found
                 </motion.h1>
@@ -39,7 +39,7 @@ export default function NotFound() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="text-text-secondary max-w-md mx-auto mb-8 text-lg"
+                    className="text-[#e9d5ff] max-w-md mx-auto mb-8 text-lg"
                 >
                     The page you are looking for doesn&apos;t exist or has been moved.
                 </motion.p>
@@ -52,13 +52,13 @@ export default function NotFound() {
                 >
                     <Link
                         href="/"
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-accent-primary hover:bg-accent-primary-hover text-text-inverse font-semibold transition-colors duration-200"
+                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-semibold transition-colors duration-200"
                     >
                         Go Home
                     </Link>
                     <Link
                         href="/dashboard"
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-input-bg hover:bg-border text-text-primary font-semibold transition-colors duration-200"
+                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)] text-white font-semibold transition-colors duration-200"
                     >
                         Dashboard
                     </Link>

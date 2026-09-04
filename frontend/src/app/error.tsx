@@ -30,7 +30,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-3xl md:text-4xl font-bold text-text-primary mb-4"
+                    className="text-3xl md:text-4xl font-bold text-white mb-4"
                 >
                     Internal Server Error
                 </motion.h1>
@@ -39,7 +39,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="text-text-secondary max-w-md mx-auto mb-8 text-lg"
+                    className="text-[#e9d5ff] max-w-md mx-auto mb-8 text-lg"
                 >
                     Something went wrong on our end. Please try again or return to a safe page.
                 </motion.p>
@@ -52,13 +52,13 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                 >
                     <button
                         onClick={reset}
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-accent-primary hover:bg-accent-primary-hover text-text-inverse font-semibold transition-colors duration-200"
+                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-semibold transition-colors duration-200"
                     >
                         Try Again
                     </button>
                     <Link
                         href="/"
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-input-bg hover:bg-border text-text-primary font-semibold transition-colors duration-200"
+                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)] text-white font-semibold transition-colors duration-200"
                     >
                         Go Home
                     </Link>
@@ -69,9 +69,9 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8 }}
-                        className="mt-8 p-4 rounded-lg bg-card-bg border border-border text-left text-sm text-text-secondary max-w-lg mx-auto"
+                        className="mt-8 p-4 rounded-lg bg-[rgba(15,10,30,0.75)] border border-[rgba(139,92,246,0.35)] text-left text-sm text-[#e9d5ff] max-w-lg mx-auto"
                     >
-                        <p className="font-bold text-text-primary mb-2">Development Error Details</p>
+                        <p className="font-bold text-white mb-2">Development Error Details</p>
                         <p className="break-words">{error.message}</p>
                         {error.digest && <p className="mt-2 text-xs opacity-70">Digest: {error.digest}</p>}
                     </motion.div>
