@@ -24,18 +24,18 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Exp
 
     return (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50" onClick={onClose}>
-            <div className="bg-card-bg p-6 rounded-lg shadow-lg w-full max-w-md border border-border" onClick={e => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold mb-6 text-text-primary">Add New Expense</h2>
+            <div className="bg-[rgba(15,10,30,0.75)] p-6 rounded-lg shadow-lg w-full max-w-md border border-[rgba(139,92,246,0.35)]" onClick={e => e.stopPropagation()}>
+                <h2 className="text-2xl font-bold mb-6 text-white">Add New Expense</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
-                    <input placeholder="Item" value={item} onChange={e => setItem(e.target.value)} className="w-full px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
-                    <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
+                    <input placeholder="Item" value={item} onChange={e => setItem(e.target.value)} className="w-full px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
+                    <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] focus:outline-none focus:ring-2 focus:ring-accent-primary" required />
                     <div className="flex gap-4">
-                        <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-1/2 px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" min="1" required />
-                        <input type="number" placeholder="Price" value={price} onChange={e => setPrice(parseFloat(e.target.value) || 0)} className="w-1/2 px-3 py-2 rounded-md bg-input-bg border border-input-border focus:outline-none focus:ring-2 focus:ring-accent-primary" step="0.01" min="0.01" required />
+                        <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-1/2 px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] focus:outline-none focus:ring-2 focus:ring-accent-primary" min="1" required />
+                        <input type="number" placeholder="Price" value={price} onChange={e => setPrice(parseFloat(e.target.value) || 0)} className="w-1/2 px-3 py-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] focus:outline-none focus:ring-2 focus:ring-accent-primary" step="0.01" min="0.01" required />
                     </div>
                     <div className="flex justify-end gap-4 pt-4">
-                        <Button type="button" onClick={onClose} className="bg-surface text-text-primary hover:bg-surface-elevated">Cancel</Button>
+                        <Button type="button" onClick={onClose} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(15,10,30,0.6)]-elevated">Cancel</Button>
                         <Button type="submit">Add Expense</Button>
                     </div>
                 </form>
@@ -173,7 +173,7 @@ const ExpenseTracker: React.FC = () => {
         return (
             <TrackerWrapper tracker={trackerInfo}>
                 <div className="flex items-center justify-center h-64">
-                    <div className="text-text-secondary">Loading expenses...</div>
+                    <div className="text-[#e9d5ff]">Loading expenses...</div>
                 </div>
             </TrackerWrapper>
         );
@@ -213,7 +213,7 @@ const ExpenseTracker: React.FC = () => {
                         <select
                             value={date.month}
                             onChange={e => setDate(d => ({ ...d, month: parseInt(e.target.value) }))}
-                            className="p-2 rounded-md bg-input-bg border border-border text-sm lg:text-base"
+                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-sm lg:text-base"
                         >
                             {months.map(m => (
                                 <option key={m.value} value={m.value}>{m.name}</option>
@@ -223,7 +223,7 @@ const ExpenseTracker: React.FC = () => {
                         <select
                             value={date.year}
                             onChange={e => setDate(d => ({ ...d, year: parseInt(e.target.value) }))}
-                            className="p-2 rounded-md bg-input-bg border border-border text-sm lg:text-base"
+                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-sm lg:text-base"
                         >
                             {years.map(y => (
                                 <option key={y} value={y}>{y}</option>
@@ -240,7 +240,7 @@ const ExpenseTracker: React.FC = () => {
                 {/* Table Section */}
                 <div className="overflow-x-auto">
                     <table className="w-full text-xs lg:text-sm text-left">
-                        <thead className="bg-input-bg">
+                        <thead className="bg-[rgba(15,10,30,0.6)]">
                             <tr>
                                 {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[])
                                     .map(key => (
@@ -259,7 +259,7 @@ const ExpenseTracker: React.FC = () => {
 
                         <tbody>
                             {paginatedExpenses.map(expense => (
-                                <tr key={expense.id} className="border-b border-border hover:bg-input-bg/50">
+                                <tr key={expense.id} className="border-b border-[rgba(139,92,246,0.35)] hover:bg-[rgba(15,10,30,0.6)]/50">
                                     {(['date', 'item', 'category', 'quantity', 'price'] as (keyof Expense)[])
                                         .map(key => (
                                             <td key={key} className="p-0">
@@ -320,7 +320,7 @@ const ExpenseTracker: React.FC = () => {
                                 itemsPerPage: parseInt(e.target.value),
                                 currentPage: 1,
                             }))}
-                            className="p-1 rounded-md bg-input-bg border border-border"
+                            className="p-1 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)]"
                         >
                             <option value={10}>10</option>
                             <option value={25}>25</option>
