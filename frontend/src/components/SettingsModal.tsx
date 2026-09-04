@@ -21,24 +21,24 @@ const SettingsModal: React.FC = () => {
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 animate-fade-in"
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 animate-fade-in"
             onClick={() => setIsSettingsModalOpen(false)}
         >
             <div
-                className="bg-card-bg p-8 rounded-xl shadow-2xl w-full max-w-md"
+                className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-md"
                 onClick={e => e.stopPropagation()}
             >
-                <h2 className="text-2xl font-bold mb-6 text-text-primary">{t('settings')}</h2>
+                <h2 className="text-2xl font-bold mb-6 text-white">{t('settings')}</h2>
 
                 {/* Theme Setting */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Theme')}</label>
+                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">{t('Theme')}</label>
                     <div className="flex space-x-2">
                         {(['light', 'dark'] as Theme[]).map(theme => (
                             <button
                                 key={theme}
                                 onClick={() => handleThemeChange(theme)}
-                                className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-accent-primary text-white' : 'bg-input-bg hover:bg-border'}`}
+                                className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-[#8b5cf6] text-white' : 'bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)]'}`}
                             >
                                 {t(theme)}
                             </button>
@@ -48,13 +48,13 @@ const SettingsModal: React.FC = () => {
 
                 {/* Time Format Setting */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Time Format')}</label>
+                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">{t('Time Format')}</label>
                     <div className="flex space-x-2">
                         {(['12h', '24h'] as TimeFormat[]).map(format => (
                             <button
                                 key={format}
                                 onClick={() => handleTimeFormatChange(format)}
-                                className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-accent-primary text-white' : 'bg-input-bg hover:bg-border'}`}
+                                className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-[#8b5cf6] text-white' : 'bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)]'}`}
                             >
                                 {format === '12h' ? t('12-Hour') : t('24-Hour')}
                             </button>
@@ -64,11 +64,11 @@ const SettingsModal: React.FC = () => {
 
                 {/* Language Setting */}
                 <div className="mb-8">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Language (UI Only)')}</label>
+                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">{t('Language (UI Only)')}</label>
                     <select
                         value={settings.language}
                         onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                        className="w-full p-2 rounded-md bg-input-bg border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                     >
                         <option value="en">{t('English')}</option>
                         <option value="es">{t('Español')}</option>
@@ -77,8 +77,8 @@ const SettingsModal: React.FC = () => {
                 </div>
 
                 {/* Debug Actions */}
-                <div className="mb-6 pt-4 border-t border-border">
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Debug Actions</label>
+                <div className="mb-6 pt-4 border-t border-[rgba(139,92,246,0.35)]">
+                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">Debug Actions</label>
                     <button
                         onClick={async () => {
                             if (confirm('This will generate dummy data for expenses, goals, etc. Continue?')) {
@@ -93,7 +93,7 @@ const SettingsModal: React.FC = () => {
                                 }
                             }
                         }}
-                        className="w-full py-2 rounded-md text-sm font-semibold text-accent-primary bg-accent-primary/10 hover:bg-accent-primary/20 transition-colors"
+                        className="w-full py-2 rounded-md text-sm font-semibold text-[#8b5cf6] bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 transition-colors"
                     >
                         Populate Dummy Data
                     </button>
@@ -101,12 +101,12 @@ const SettingsModal: React.FC = () => {
 
                 <button
                     onClick={() => setIsSettingsModalOpen(false)}
-                    className="w-full py-2 rounded-md font-semibold text-white bg-accent-primary hover:bg-accent-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary mb-4"
+                    className="w-full py-2 rounded-md font-semibold text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] mb-4"
                 >
                     {t('Close')}
                 </button>
 
-                <div className="pt-4 border-t border-border">
+                <div className="pt-4 border-t border-[rgba(139,92,246,0.35)]">
                     <button
                         onClick={() => {
                             setIsSettingsModalOpen(false);
