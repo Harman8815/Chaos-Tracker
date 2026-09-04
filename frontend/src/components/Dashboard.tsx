@@ -11,7 +11,7 @@ import { marked } from 'marked';
 
 const CHART_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#14b8a6'];
 
-const NoData: React.FC = () => <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
+const NoData: React.FC = () => <div className="text-center text-[#e9d5ff] p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
 
 const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' | 'donut' }> = ({ data, type }) => {
     const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null);
@@ -69,12 +69,12 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' 
                     })}
                 </svg>
                 {(hoveredSlice || type === 'donut') && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 bg-card-bg/80 backdrop-blur-sm border border-border rounded-md shadow-lg pointer-events-none text-center z-10">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 bg-[rgba(15,10,30,0.60)] backdrop-blur-sm border border-[rgba(139,92,246,0.35)] rounded-md shadow-lg pointer-events-none text-center z-10">
                         {hoveredSlice ? (
                             <>
                                 <div className="font-bold text-sm">{hoveredSlice.name}</div>
                                 <div className="text-xs">{hoveredSlice.value.toFixed(1)} points</div>
-                                <div className="text-xs text-text-secondary">({((hoveredSlice.value / total) * 100).toFixed(0)}%)</div>
+                                <div className="text-xs text-[#e9d5ff]">({((hoveredSlice.value / total) * 100).toFixed(0)}%)</div>
                             </>
                         ) : type === 'donut' ? (
                             <>
@@ -178,11 +178,11 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
             </svg>
             {hoveredPoint && (
                 <div
-                    className="absolute p-3 bg-card-bg/95 backdrop-blur-sm border border-border rounded-lg shadow-xl text-sm pointer-events-none z-20"
+                    className="absolute p-3 bg-[rgba(15,10,30,0.71)] backdrop-blur-sm border border-[rgba(139,92,246,0.35)] rounded-lg shadow-xl text-sm pointer-events-none z-20"
                     style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${hoveredPoint.x - center}px), calc(-50% + ${hoveredPoint.y - center}px - 50px))` }}
                 >
                     <div className="font-bold text-accent-primary text-base mb-1">{hoveredPoint.axis}</div>
-                    <div className="text-text-primary font-mono">Avg Score: {hoveredPoint.value.toFixed(2)}</div>
+                    <div className="text-white font-mono">Avg Score: {hoveredPoint.value.toFixed(2)}</div>
                 </div>
             )}
         </div>
@@ -249,12 +249,12 @@ const MultiLineTrendChart: React.FC<{ data: { date: string, scores: { [habitId: 
                     {/* Axes and Grid */}
                     {Array.from({ length: 6 }, (_, i) => i * (maxY / 5)).map(val => (
                         <g key={val}>
-                            <text x={padding - 10} y={getY(val)} dy="0.3em" textAnchor="end" className="text-xs fill-current text-text-secondary">{val.toFixed(0)}</text>
-                            <line x1={padding} x2={width - padding} y1={getY(val)} y2={getY(val)} className="stroke-current text-text-disabled opacity-20" />
+                            <text x={padding - 10} y={getY(val)} dy="0.3em" textAnchor="end" className="text-xs fill-current text-[#e9d5ff]">{val.toFixed(0)}</text>
+                            <line x1={padding} x2={width - padding} y1={getY(val)} y2={getY(val)} className="stroke-current text-[#71717a] opacity-20" />
                         </g>
                     ))}
                     {data.map((d, i) => (i % Math.ceil(data.length / 6) === 0 &&
-                        <text key={i} x={getX(i)} y={height - padding + 15} textAnchor="middle" className="text-xs fill-current text-text-secondary">
+                        <text key={i} x={getX(i)} y={height - padding + 15} textAnchor="middle" className="text-xs fill-current text-[#e9d5ff]">
                             {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </text>
                     ))}
@@ -276,7 +276,7 @@ const MultiLineTrendChart: React.FC<{ data: { date: string, scores: { [habitId: 
                 </svg>
             </div>
             {tooltip && (
-                <div className="absolute p-2 bg-card-bg/90 backdrop-blur-sm border border-border rounded-md shadow-lg text-xs pointer-events-none z-10"
+                <div className="absolute p-2 bg-[rgba(15,10,30,0.68)] backdrop-blur-sm border border-[rgba(139,92,246,0.35)] rounded-md shadow-lg text-xs pointer-events-none z-10"
                     style={{
                         top: `10px`,
                         left: `${(tooltip.x / width) * 100}%`,
@@ -317,7 +317,7 @@ const StreakHighlight: React.FC<{ streaks: { name: string, streak: number }[] }>
                 <div key={s.name} className={`p-4 rounded-lg flex items-center space-x-4 border ${colors[i].bg} ${colors[i].border}`}>
                     <TrophyIcon className={`w-8 h-8 ${colors[i].text}`} />
                     <div className="min-w-0 flex-1">
-                        <div className="text-xs text-text-secondary uppercase tracking-wider">{i === 0 ? 'Longest' : i === 1 ? '2nd' : '3rd'}</div>
+                        <div className="text-xs text-[#e9d5ff] uppercase tracking-wider">{i === 0 ? 'Longest' : i === 1 ? '2nd' : '3rd'}</div>
                         <div className="font-bold text-lg truncate">{s.name}</div>
                     </div>
                     <div className={`text-2xl font-bold ${colors[i].text}`}>{s.streak}<span className="text-sm ml-0.5">d</span></div>
@@ -352,16 +352,16 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
 
     return (
         <div className="absolute inset-0 flex flex-col">
-            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border pb-2 pr-2 select-none bg-card-bg sticky top-0 z-10">
+            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-[#e9d5ff] uppercase tracking-wider border-b border-[rgba(139,92,246,0.35)] pb-2 pr-2 select-none bg-[rgba(15,10,30,0.75)] sticky top-0 z-10">
                  <div 
-                    className="col-span-2 cursor-pointer flex items-center hover:text-text-primary transition-colors" 
+                    className="col-span-2 cursor-pointer flex items-center hover:text-white transition-colors" 
                     onClick={() => requestSort('name')}
                     title="Sort by Name"
                  >
                     Habit {sortConfig.key === 'name' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
                  </div>
                  <div 
-                    className="col-span-1 text-right cursor-pointer flex items-center justify-end hover:text-text-primary transition-colors" 
+                    className="col-span-1 text-right cursor-pointer flex items-center justify-end hover:text-white transition-colors" 
                     onClick={() => requestSort('avg')}
                     title="Sort by Average Score"
                  >
@@ -371,9 +371,9 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
             
             <div className="overflow-y-auto flex-grow custom-scrollbar">
                 {sortedData.map(item => (
-                    <div key={item.name} className="grid grid-cols-3 gap-2 text-sm p-3 hover:bg-input-bg/50 rounded border-b border-border/30 last:border-0 transition-colors">
-                        <div className="col-span-2 truncate font-medium text-text-primary" title={item.name}>{item.name}</div>
-                        <div className="col-span-1 text-right font-mono text-accent-primary bg-input-bg/30 rounded px-2 py-0.5">{item.avg.toFixed(2)}</div>
+                    <div key={item.name} className="grid grid-cols-3 gap-2 text-sm p-3 hover:bg-[rgba(15,10,30,0.30)] rounded border-b border-[rgba(139,92,246,0.35)] last:border-0 transition-colors">
+                        <div className="col-span-2 truncate font-medium text-white" title={item.name}>{item.name}</div>
+                        <div className="col-span-1 text-right font-mono text-accent-primary bg-[rgba(15,10,30,0.18)] rounded px-2 py-0.5">{item.avg.toFixed(2)}</div>
                     </div>
                 ))}
             </div>
@@ -394,8 +394,8 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
             <div className={`space-y-4 transition-all duration-300 ease-in-out`}>
                 {displayData.map((item) => (
                     <div key={item.name} className="flex items-center gap-3 text-sm">
-                        <span className="w-24 truncate text-right text-text-secondary" title={item.name}>{item.name}</span>
-                        <div className="flex-grow bg-input-bg rounded-full h-3 relative overflow-hidden">
+                        <span className="w-24 truncate text-right text-[#e9d5ff]" title={item.name}>{item.name}</span>
+                        <div className="flex-grow bg-[rgba(15,10,30,0.6)] rounded-full h-3 relative overflow-hidden">
                             <div
                                 className="bg-gradient-to-r from-accent-primary-dark to-accent-primary h-full rounded-full absolute top-0 left-0 transition-all duration-500"
                                 style={{ width: `${(item.streak / maxStreak) * 100}%` }}
@@ -409,7 +409,7 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
             {data.length > 5 && (
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-border border-dashed transition-colors focus:outline-none uppercase font-bold tracking-wide"
+                    className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-[rgba(139,92,246,0.35)] border-dashed transition-colors focus:outline-none uppercase font-bold tracking-wide"
                 >
                     {expanded ? 'Show Less' : `+ ${data.length - 5} More`}
                 </button>
@@ -426,17 +426,17 @@ const StreakStats: React.FC<{ streaks: { name: string, streak: number }[] }> = (
 
     return (
         <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="p-2 bg-input-bg/30 rounded">
+            <div className="p-2 bg-[rgba(15,10,30,0.18)] rounded">
                 <div className="text-lg font-bold text-accent-primary">{active}/{total}</div>
-                <div className="text-[10px] uppercase tracking-wider text-text-secondary">Active</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#e9d5ff]">Active</div>
             </div>
-            <div className="p-2 bg-input-bg/30 rounded">
+            <div className="p-2 bg-[rgba(15,10,30,0.18)] rounded">
                 <div className="text-lg font-bold text-green-500">{best}</div>
-                <div className="text-[10px] uppercase tracking-wider text-text-secondary">Best Streak</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#e9d5ff]">Best Streak</div>
             </div>
-            <div className="p-2 bg-input-bg/30 rounded">
+            <div className="p-2 bg-[rgba(15,10,30,0.18)] rounded">
                 <div className="text-lg font-bold text-blue-500">{avg.toFixed(1)}</div>
-                <div className="text-[10px] uppercase tracking-wider text-text-secondary">Avg Streak</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#e9d5ff]">Avg Streak</div>
             </div>
         </div>
     );
@@ -454,14 +454,14 @@ const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] 
                     const isBest = item.day === bestDay.day;
                     return (
                         <div key={item.day} className="flex flex-col items-center justify-end h-full w-full max-w-[40px] group relative">
-                            <div className="absolute -top-8 text-xs bg-card-bg px-2 py-1 rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-md">
+                            <div className="absolute -top-8 text-xs bg-[rgba(15,10,30,0.75)] px-2 py-1 rounded border border-[rgba(139,92,246,0.35)] opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-md">
                                 {item.score.toFixed(1)} avg
                             </div>
                             <div
                                 className={`w-full rounded-t-md transition-all duration-300 ${isBest ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.6)]' : 'bg-accent-primary opacity-90 hover:opacity-100 hover:brightness-110'}`}
                                 style={{ height: `${(item.score / maxScore) * 100}%`, minHeight: '4px' }}
                             />
-                            <div className={`text-[10px] mt-2 font-medium ${isBest ? 'text-yellow-500 font-bold' : 'text-text-secondary'}`}>{item.day}</div>
+                            <div className={`text-[10px] mt-2 font-medium ${isBest ? 'text-yellow-500 font-bold' : 'text-[#e9d5ff]'}`}>{item.day}</div>
                         </div>
                     )
                 })}
@@ -749,8 +749,8 @@ const Dashboard: React.FC = () => {
     return (
         <div className="p-6 h-full overflow-y-auto pb-20">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-text-primary">{t('dashboard')}</h1>
-                <div className="text-sm text-text-secondary">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <h1 className="text-3xl font-bold text-white">{t('dashboard')}</h1>
+                <div className="text-sm text-[#e9d5ff]">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -766,7 +766,7 @@ const Dashboard: React.FC = () => {
                         <select
                             value={selectedTrend}
                             onChange={e => setSelectedTrend(e.target.value)}
-                            className="bg-input-bg border border-border rounded-md px-2 py-1 text-sm focus:ring-accent-primary focus:border-accent-primary"
+                            className="bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] rounded-md px-2 py-1 text-sm focus:ring-accent-primary focus:border-accent-primary"
                         >
                             <option value="all">All Habits</option>
                             <option value="total">Avg Daily Score</option>
@@ -799,14 +799,14 @@ const Dashboard: React.FC = () => {
                     <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-xl">Habit Streaks</h3>
-                            <span className="text-xs text-text-secondary">Current</span>
+                            <span className="text-xs text-[#e9d5ff]">Current</span>
                         </div>
                         <div className="mb-4">
                             <StreakBarChart data={habitStreaks} />
                         </div>
                     </div>
-                    <div className="pt-4 border-t border-border mt-auto">
-                        <h4 className="text-xs font-bold text-text-secondary uppercase mb-2">Analytics</h4>
+                    <div className="pt-4 border-t border-[rgba(139,92,246,0.35)] mt-auto">
+                        <h4 className="text-xs font-bold text-[#e9d5ff] uppercase mb-2">Analytics</h4>
                         <StreakStats streaks={habitStreaks} />
                     </div>
                 </Card>
@@ -826,8 +826,8 @@ const Dashboard: React.FC = () => {
                         <WeeklyPerformanceChart data={weeklyPerformance} />
                     </div>
                     {bestDay && (
-                        <div className="mt-4 pt-4 border-t border-border text-center">
-                            <p className="text-sm text-text-secondary">Your most productive day is <span className="text-yellow-500 font-bold text-lg">{bestDay.day}</span></p>
+                        <div className="mt-4 pt-4 border-t border-[rgba(139,92,246,0.35)] text-center">
+                            <p className="text-sm text-[#e9d5ff]">Your most productive day is <span className="text-yellow-500 font-bold text-lg">{bestDay.day}</span></p>
                         </div>
                     )}
                 </Card>
@@ -846,34 +846,34 @@ const Dashboard: React.FC = () => {
                                 <span className="text-5xl font-black text-accent-primary">
                                     {levelStats.level}
                                 </span>
-                                <span className="text-sm text-text-secondary font-bold mb-2">LEVEL</span>
+                                <span className="text-sm text-[#e9d5ff] font-bold mb-2">LEVEL</span>
                             </div>
 
-                            <div className="w-full h-6 bg-input-bg rounded-full overflow-hidden mb-2 relative">
+                            <div className="w-full h-6 bg-[rgba(15,10,30,0.6)] rounded-full overflow-hidden mb-2 relative">
                                 <div
                                     className="h-full bg-accent-primary transition-all duration-500 ease-out relative"
                                     style={{ width: `${(levelStats.progress / levelStats.needed) * 100}%` }}
                                 >
                                 </div>
-                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-text-primary">
+                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
                                     {Math.round((levelStats.progress / levelStats.needed) * 100)}% to Lvl {levelStats.level + 1}
                                 </span>
                             </div>
 
-                            <div className="flex justify-between text-xs text-text-secondary font-mono">
+                            <div className="flex justify-between text-xs text-[#e9d5ff] font-mono">
                                 <span>{levelStats.progress} XP</span>
                                 <span>{levelStats.needed} XP</span>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 bg-surface rounded-lg border border-border text-center">
-                                <div className="text-2xl font-bold text-text-primary">{levelStats.totalXP.toLocaleString()}</div>
-                                <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Lifetime XP</div>
+                            <div className="p-4 bg-[rgba(15,10,30,0.75)] rounded-lg border border-[rgba(139,92,246,0.35)] text-center">
+                                <div className="text-2xl font-bold text-white">{levelStats.totalXP.toLocaleString()}</div>
+                                <div className="text-[10px] text-[#e9d5ff] uppercase tracking-widest mt-1">Lifetime XP</div>
                             </div>
-                            <div className="p-4 bg-surface rounded-lg border border-border text-center">
-                                <div className="text-2xl font-bold text-text-primary">{Object.keys(data).length}</div>
-                                <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Days Active</div>
+                            <div className="p-4 bg-[rgba(15,10,30,0.75)] rounded-lg border border-[rgba(139,92,246,0.35)] text-center">
+                                <div className="text-2xl font-bold text-white">{Object.keys(data).length}</div>
+                                <div className="text-[10px] text-[#e9d5ff] uppercase tracking-widest mt-1">Days Active</div>
                             </div>
                         </div>
                     </div>
@@ -887,7 +887,7 @@ const Dashboard: React.FC = () => {
                             <span className="text-xs font-normal bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full">Beta</span>
                         </h3>
                     </div>
-                    <div className="text-text-secondary mb-4 flex-grow overflow-y-auto max-h-96 p-2 bg-input-bg/20 rounded-lg border border-border/50">
+                    <div className="text-[#e9d5ff] mb-4 flex-grow overflow-y-auto max-h-96 p-2 bg-[rgba(15,10,30,0.12)] rounded-lg border border-[rgba(139,92,246,0.35)]">
                         {isLoading ? (
                             <Loader />
                         ) : (
@@ -907,8 +907,8 @@ const Dashboard: React.FC = () => {
                         <div className="w-full flex-grow flex items-center justify-center">
                             <PieChart data={overallProgressData} type="donut" />
                         </div>
-                        <div className="text-center mt-4 pt-4 border-t border-border w-full">
-                            <h3 className="font-bold text-sm text-text-secondary uppercase tracking-wide mb-2">Current Time</h3>
+                        <div className="text-center mt-4 pt-4 border-t border-[rgba(139,92,246,0.35)] w-full">
+                            <h3 className="font-bold text-sm text-[#e9d5ff] uppercase tracking-wide mb-2">Current Time</h3>
                             <p className="text-4xl font-mono font-bold text-accent-primary tracking-tight">
                                 {time.toLocaleTimeString('en-US', {
                                     hour: '2-digit',
