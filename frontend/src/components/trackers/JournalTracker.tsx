@@ -83,13 +83,13 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="border-white/5 bg-white/[0.03]">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg">Editor ({targetDate})</h3>
+                    <h3 className="font-bold text-lg text-white">Editor ({targetDate})</h3>
                     <div className="flex items-center space-x-2">
-                        <button onClick={() => applyMarkdown('bold')} className="px-3 py-1 bg-[rgba(15,10,30,0.6)] rounded font-bold">B</button>
-                        <button onClick={() => applyMarkdown('italic')} className="px-3 py-1 bg-[rgba(15,10,30,0.6)] rounded italic">I</button>
-                        <button onClick={() => applyMarkdown('h3')} className="px-3 py-1 bg-[rgba(15,10,30,0.6)] rounded">H3</button>
+                        <button onClick={() => applyMarkdown('bold')} className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] rounded font-bold text-white border border-white/10 transition-all">B</button>
+                        <button onClick={() => applyMarkdown('italic')} className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] rounded italic text-white border border-white/10 transition-all">I</button>
+                        <button onClick={() => applyMarkdown('h3')} className="px-3 py-1 bg-white/[0.06] hover:bg-white/[0.1] rounded text-white border border-white/10 transition-all">H3</button>
                     </div>
                 </div>
                 <textarea
@@ -97,18 +97,18 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
                     value={text}
                     onChange={e => setText(e.target.value)}
                     rows={15}
-                    className="w-full p-3 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                    className="w-full p-4 rounded-lg bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all resize-none"
                     placeholder="What's on your mind?"
                 />
                 <div className="flex justify-between items-center mt-4">
-                    <span className={`text-sm h-5 ${feedback.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>{feedback}</span>
+                    <span className={`text-sm h-5 ${feedback.includes('Failed') ? 'text-red-400' : 'text-green-400'}`}>{feedback}</span>
                     <Button onClick={handleSave}>Save</Button>
                 </div>
             </Card>
-            <Card>
-                <h3 className="font-bold text-lg mb-4">Preview</h3>
+            <Card className="border-white/5 bg-white/[0.03]">
+                <h3 className="font-bold text-lg text-white mb-4">Preview</h3>
                 <div
-                    className="prose prose-invert prose-sm max-w-none h-[330px] overflow-y-auto p-3 bg-[rgba(15,10,30,0.6)] rounded-md"
+                    className="prose prose-invert prose-sm max-w-none h-[330px] overflow-y-auto p-4 bg-white/[0.06] rounded-lg border border-white/5"
                     dangerouslySetInnerHTML={parseMarkdown(text)}
                 />
             </Card>
@@ -123,11 +123,11 @@ const JournalEntryModal: React.FC<{
 }> = ({ entry, onClose, onEdit }) => {
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 animate-fade-in"
+            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in"
             onClick={onClose}
         >
             <div
-                className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+                className="bg-white/[0.03] backdrop-blur-xl p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-white/10"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-4">

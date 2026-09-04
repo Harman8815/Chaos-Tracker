@@ -261,28 +261,28 @@ const PointsTracker: React.FC = () => {
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex space-x-1 bg-[rgba(15,10,30,0.6)] p-1 rounded-lg">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                <div className="flex items-center bg-white/[0.06] p-1 rounded-lg border border-white/10">
                     {(['daily', 'monthly', 'yearly'] as View[]).map(v => (
-                        <button key={v} onClick={() => setView(v)} className={`px-3 py-1 text-sm rounded-md capitalize transition-colors ${view === v ? 'bg-accent-primary text-white' : 'hover:bg-border'}`}>
+                        <button key={v} onClick={() => setView(v)} className={`px-4 py-1.5 text-sm rounded-md capitalize transition-all ${view === v ? 'bg-accent-primary text-white shadow-[0_0_10px_rgba(139,92,246,0.4)]' : 'text-[#e9d5ff] hover:text-white hover:bg-white/[0.08]'}`}>
                             {v}
                         </button>
                     ))}
                 </div>
 
-                <div className="flex items-center space-x-4">
-                    <button onClick={() => handleMonthChange(-1)}>&lt;</button>
-                    <span className="font-semibold w-32 text-center">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => handleMonthChange(1)}>&gt;</button>
+                <div className="flex items-center gap-4">
+                    <button onClick={() => handleMonthChange(-1)} className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white flex items-center justify-center transition-all">&lt;</button>
+                    <span className="font-semibold text-white w-40 text-center">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                    <button onClick={() => handleMonthChange(1)} className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white flex items-center justify-center transition-all">&gt;</button>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-4">
                     <Button onClick={() => setIsEditHabitsModalOpen(true)}>Manage Habits</Button>
-                    <div className="flex items-center space-x-2">
-                        <span>Edit</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[#e9d5ff] text-sm">Edit</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" checked={isEditable} onChange={() => setIsEditable(!isEditable)} className="sr-only peer" />
-                            <div className="w-11 h-6 bg-[rgba(15,10,30,0.6)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                            <div className="w-11 h-6 bg-white/[0.06] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
                         </label>
                     </div>
                 </div>
@@ -295,54 +295,54 @@ const PointsTracker: React.FC = () => {
                     </div>
                     <div className="overflow-x-auto">
                         <div className="grid grid-cols-sticky" style={{ gridTemplateColumns: `12rem repeat(${daysInMonth}, 4rem) 6rem 6rem` }}>
-                            <div className="col-start-1 sticky top-0 left-0 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-30">Habit</div>
+                            <div className="col-start-1 sticky top-0 left-0 font-bold p-2 bg-white/[0.04] z-30 text-white">Habit</div>
                             {Array.from({ length: daysInMonth }, (_, i) => (
-                                <div key={i} className="sticky top-0 font-bold text-center p-2 bg-[rgba(15,10,30,0.65)] z-10">{i + 1}</div>
+                                <div key={i} className="sticky top-0 font-bold text-center p-2 bg-white/[0.04] z-10 text-[#e9d5ff]">{i + 1}</div>
                             ))}
-                            <div className="sticky top-0 right-12 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-30">Total</div>
-                            <div className="sticky top-0 right-0 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-30">Target</div>
+                            <div className="sticky top-0 right-12 font-bold p-2 bg-white/[0.04] z-30 text-white">Total</div>
+                            <div className="sticky top-0 right-0 font-bold p-2 bg-white/[0.04] z-30 text-white">Target</div>
 
                             <div ref={gridBodyRef} className="col-start-1 col-span-full grid grid-cols-sticky" style={{ gridTemplateColumns: `12rem repeat(${daysInMonth}, 4rem) 6rem 6rem` }}>
                                 {habits.map(habit => (
                                     <React.Fragment key={habit.id}>
-                                        <div className="sticky left-0 font-semibold p-2 bg-[rgba(15,10,30,0.75)] flex items-center z-20">{habit.name}</div>
+                                        <div className="sticky left-0 font-semibold p-2 bg-white/[0.06] flex items-center z-20 text-white">{habit.name}</div>
                                         {Array.from({ length: daysInMonth }, (_, i) => {
                                             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1).toISOString().split('T')[0];
                                             const score = data[date]?.habitScores?.[habit.id] || 0;
                                             const bgColor = getColor(score, habit.rangeMax ?? 10);
                                             const textColor = getTextColor(bgColor);
                                             return (
-                                                <div key={i} onClick={() => handleScoreClick(date, habit.id)} className={`flex items-center justify-center p-2 text-center border-b border-r border-[rgba(139,92,246,0.35)] ${isEditable ? 'cursor-pointer' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
+                                                <div key={i} onClick={() => handleScoreClick(date, habit.id)} className={`flex items-center justify-center p-2 text-center border-b border-r border-white/5 ${isEditable ? 'cursor-pointer' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
                                                     {score}
                                                 </div>
                                             );
                                         })}
-                                        <div className="sticky right-12 p-2 bg-[rgba(15,10,30,0.75)] flex items-center justify-center font-bold z-20">{monthlyTotals[habit.id]}</div>
-                                        <input type="number" value={habit.target} onChange={(e) => handleTargetChange(habit.id, parseInt(e.target.value))} className="sticky right-0 p-2 bg-[rgba(15,10,30,0.6)] text-center w-full h-full border-none focus:outline-none focus:ring-2 focus:ring-accent-primary z-20" />
+                                        <div className="sticky right-12 p-2 bg-white/[0.06] flex items-center justify-center font-bold z-20 text-white">{monthlyTotals[habit.id]}</div>
+                                        <input type="number" value={habit.target} onChange={(e) => handleTargetChange(habit.id, parseInt(e.target.value))} className="sticky right-0 p-2 bg-white/[0.06] text-center w-full h-full border-none focus:outline-none focus:ring-2 focus:ring-accent-primary z-20 text-white" />
                                     </React.Fragment>
                                 ))}
-                                <div className="sticky left-0 font-bold p-2 bg-[rgba(15,10,30,0.65)] z-20">Daily Total</div>
+                                <div className="sticky left-0 font-bold p-2 bg-white/[0.04] z-20 text-white">Daily Total</div>
                                 {Array.from({ length: daysInMonth }, (_, i) => (
-                                    <div key={i} className="font-bold text-center p-2 bg-[rgba(15,10,30,0.65)] border-r border-[rgba(139,92,246,0.35)]">{dailyTotals[i + 1]}</div>
+                                    <div key={i} className="font-bold text-center p-2 bg-white/[0.04] border-r border-white/5 text-[#e9d5ff]">{dailyTotals[i + 1]}</div>
                                 ))}
-                                <div className="sticky right-12 p-2 bg-[rgba(15,10,30,0.65)] z-20"></div>
-                                <div className="sticky right-0 p-2 bg-[rgba(15,10,30,0.65)] z-20"></div>
+                                <div className="sticky right-12 p-2 bg-white/[0.04] z-20"></div>
+                                <div className="sticky right-0 p-2 bg-white/[0.04] z-20"></div>
                             </div>
                         </div>
                     </div>
-                    <Card className="mt-6">
-                        <h3 className="font-bold text-lg mb-4">Monthly Progress</h3>
+                    <Card className="mt-6 border-white/5 bg-white/[0.03]">
+                        <h3 className="font-bold text-lg text-white mb-4">Monthly Progress</h3>
                         <div className="space-y-4">
                             {habits.map(habit => {
                                 const progress = habit.target > 0 ? (monthlyTotals[habit.id] / habit.target) * 100 : 0;
                                 return (
                                     <div key={habit.id}>
                                         <div className="flex justify-between items-center mb-1">
-                                            <span>{habit.name}</span>
-                                            <span className="text-sm font-semibold">{monthlyTotals[habit.id]} / {habit.target}</span>
+                                            <span className="text-white">{habit.name}</span>
+                                            <span className="text-sm font-semibold text-[#e9d5ff]">{monthlyTotals[habit.id]} / {habit.target}</span>
                                         </div>
-                                        <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-2.5">
-                                            <div className="bg-accent-primary h-2.5 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+                                        <div className="w-full bg-white/[0.06] rounded-full h-2.5">
+                                            <div className="bg-accent-primary h-2.5 rounded-full transition-all duration-500" style={{ width: `${Math.min(progress, 100)}%` }}></div>
                                         </div>
                                     </div>
                                 )
@@ -353,49 +353,49 @@ const PointsTracker: React.FC = () => {
             )}
             {view === 'monthly' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                        <h3 className="font-bold text-lg mb-4">Monthly Progress Summary</h3>
+                    <Card className="border-white/5 bg-white/[0.03]">
+                        <h3 className="font-bold text-lg text-white mb-4">Monthly Progress Summary</h3>
                         <div className="space-y-4">
                             {habits.map(habit => {
                                 const progress = habit.target > 0 ? (monthlyTotals[habit.id] / habit.target) * 100 : 0;
                                 return (
                                     <div key={habit.id}>
                                         <div className="flex justify-between items-center mb-1">
-                                            <span>{habit.name}</span>
-                                            <span className="text-sm font-semibold">{monthlyTotals[habit.id]} / {habit.target}</span>
+                                            <span className="text-white">{habit.name}</span>
+                                            <span className="text-sm font-semibold text-[#e9d5ff]">{monthlyTotals[habit.id]} / {habit.target}</span>
                                         </div>
-                                        <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-2.5">
-                                            <div className="bg-accent-primary h-2.5 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+                                        <div className="w-full bg-white/[0.06] rounded-full h-2.5">
+                                            <div className="bg-accent-primary h-2.5 rounded-full transition-all duration-500" style={{ width: `${Math.min(progress, 100)}%` }}></div>
                                         </div>
                                     </div>
                                 )
                             })}
                         </div>
                     </Card>
-                    <Card>
+                    <Card className="border-white/5 bg-white/[0.03]">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-lg">Scoring Rules</h3>
+                            <h3 className="font-bold text-lg text-white">Scoring Rules</h3>
                             <button onClick={() => setIsEditRulesModalOpen(true)} className="text-sm text-accent-primary hover:underline">Edit</button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-[rgba(15,10,30,0.6)]">
+                                <thead className="bg-white/[0.04]">
                                     <tr>
-                                        <th className="p-2">Activity</th>
-                                        <th className="p-2">Max Points</th>
-                                        <th className="p-2">Penalty Rule</th>
-                                        <th className="p-2">0 Points Condition</th>
-                                        <th className="p-2">Scoring Logic / Notes</th>
+                                        <th className="p-2 text-[#e9d5ff]">Activity</th>
+                                        <th className="p-2 text-[#e9d5ff]">Max Points</th>
+                                        <th className="p-2 text-[#e9d5ff]">Penalty Rule</th>
+                                        <th className="p-2 text-[#e9d5ff]">0 Points Condition</th>
+                                        <th className="p-2 text-[#e9d5ff]">Scoring Logic / Notes</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {scoringRules.map((rule) => (
-                                        <tr key={rule.id} className="border-b border-[rgba(139,92,246,0.35)]">
-                                            <td className="p-2 font-semibold">{rule.activity}</td>
-                                            <td className="p-2">{rule.maxPoints}</td>
-                                            <td className="p-2">{rule.penaltyRule}</td>
-                                            <td className="p-2">{rule.zeroPointsCondition}</td>
-                                            <td className="p-2">{rule.scoringLogic}</td>
+                                        <tr key={rule.id} className="border-b border-white/5">
+                                            <td className="p-2 font-semibold text-white">{rule.activity}</td>
+                                            <td className="p-2 text-[#e9d5ff]">{rule.maxPoints}</td>
+                                            <td className="p-2 text-[#e9d5ff]">{rule.penaltyRule}</td>
+                                            <td className="p-2 text-[#e9d5ff]">{rule.zeroPointsCondition}</td>
+                                            <td className="p-2 text-[#e9d5ff]">{rule.scoringLogic}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -405,15 +405,15 @@ const PointsTracker: React.FC = () => {
                 </div>
             )}
             {view === 'yearly' && (
-                <Card>
-                    <h3 className="font-bold text-lg mb-4">Yearly Summary for {currentDate.getFullYear()}</h3>
+                <Card className="border-white/5 bg-white/[0.03]">
+                    <h3 className="font-bold text-lg text-white mb-4">Yearly Summary for {currentDate.getFullYear()}</h3>
                     <table className="w-full text-left">
-                        <thead className="bg-[rgba(15,10,30,0.6)]">
+                        <thead className="bg-white/[0.04]">
                             <tr>
-                                <th className="p-2">Habit</th>
-                                <th className="p-2">Total Score</th>
-                                <th className="p-2">Yearly Target</th>
-                                <th className="p-2">Progress</th>
+                                <th className="p-2 text-[#e9d5ff]">Habit</th>
+                                <th className="p-2 text-[#e9d5ff]">Total Score</th>
+                                <th className="p-2 text-[#e9d5ff]">Yearly Target</th>
+                                <th className="p-2 text-[#e9d5ff]">Progress</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -421,13 +421,13 @@ const PointsTracker: React.FC = () => {
                                 const yearlyTarget = habit.target * 12;
                                 const progress = yearlyTarget > 0 ? (yearlyTotals[habit.id] / yearlyTarget) * 100 : 0;
                                 return (
-                                    <tr key={habit.id} className="border-b border-[rgba(139,92,246,0.35)]">
-                                        <td className="p-2 font-semibold">{habit.name}</td>
-                                        <td className="p-2">{yearlyTotals[habit.id]}</td>
-                                        <td className="p-2">{yearlyTarget}</td>
+                                    <tr key={habit.id} className="border-b border-white/5">
+                                        <td className="p-2 font-semibold text-white">{habit.name}</td>
+                                        <td className="p-2 text-[#e9d5ff]">{yearlyTotals[habit.id]}</td>
+                                        <td className="p-2 text-[#e9d5ff]">{yearlyTarget}</td>
                                         <td className="p-2">
-                                            <div className="w-full bg-[rgba(15,10,30,0.6)] rounded-full h-4">
-                                                <div className="bg-accent-primary h-4 rounded-full text-xs text-white text-center flex items-center justify-center" style={{ width: `${Math.min(progress, 100)}%` }}>
+                                            <div className="w-full bg-white/[0.06] rounded-full h-4">
+                                                <div className="bg-accent-primary h-4 rounded-full text-xs text-white text-center flex items-center justify-center transition-all duration-500" style={{ width: `${Math.min(progress, 100)}%` }}>
                                                     {progress.toFixed(1)}%
                                                 </div>
                                             </div>
