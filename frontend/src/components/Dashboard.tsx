@@ -178,7 +178,7 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
             </svg>
             {hoveredPoint && (
                 <div
-                    className="absolute p-3 bg-[rgba(15,10,30,0.71)] backdrop-blur-sm border border-[rgba(139,92,246,0.35)] rounded-lg shadow-xl text-sm pointer-events-none z-20"
+                    className="absolute p-3 bg-white/[0.08] backdrop-blur-sm border border-white/10 rounded-lg shadow-xl text-sm pointer-events-none z-20"
                     style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${hoveredPoint.x - center}px), calc(-50% + ${hoveredPoint.y - center}px - 50px))` }}
                 >
                     <div className="font-bold text-accent-primary text-base mb-1">{hoveredPoint.axis}</div>
@@ -276,7 +276,7 @@ const MultiLineTrendChart: React.FC<{ data: { date: string, scores: { [habitId: 
                 </svg>
             </div>
             {tooltip && (
-                <div className="absolute p-2 bg-[rgba(15,10,30,0.68)] backdrop-blur-sm border border-[rgba(139,92,246,0.35)] rounded-md shadow-lg text-xs pointer-events-none z-10"
+                <div className="absolute p-2 bg-white/[0.08] backdrop-blur-sm border border-white/10 rounded-md shadow-lg text-xs pointer-events-none z-10"
                     style={{
                         top: `10px`,
                         left: `${(tooltip.x / width) * 100}%`,
@@ -303,9 +303,9 @@ const MultiLineTrendChart: React.FC<{ data: { date: string, scores: { [habitId: 
 
 const StreakHighlight: React.FC<{ streaks: { name: string, streak: number }[] }> = ({ streaks }) => {
     const colors = [
-        { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/30' },
-        { bg: 'bg-gray-400/10', text: 'text-gray-300', border: 'border-gray-400/30' },
-        { bg: 'bg-orange-600/10', text: 'text-orange-500', border: 'border-orange-600/30' },
+        { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/30', icon: '🏆' },
+        { bg: 'bg-gray-400/10', text: 'text-gray-300', border: 'border-gray-400/30', icon: '🥈' },
+        { bg: 'bg-orange-600/10', text: 'text-orange-500', border: 'border-orange-600/30', icon: '🥉' },
     ];
     const TrophyIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 2L9 5H3v6l4 4-1 5 4-2 4 2-1-5 4-4V5h-6z" /></svg>
@@ -314,11 +314,11 @@ const StreakHighlight: React.FC<{ streaks: { name: string, streak: number }[] }>
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {streaks.slice(0, 3).map((s, i) => (
-                <div key={s.name} className={`p-4 rounded-lg flex items-center space-x-4 border ${colors[i].bg} ${colors[i].border}`}>
-                    <TrophyIcon className={`w-8 h-8 ${colors[i].text}`} />
+                <div key={s.name} className={`p-5 rounded-xl flex items-center space-x-4 border backdrop-blur-sm ${colors[i].bg} ${colors[i].border}`}>
+                    <div className={`text-3xl ${colors[i].text}`}>{colors[i].icon}</div>
                     <div className="min-w-0 flex-1">
-                        <div className="text-xs text-[#e9d5ff] uppercase tracking-wider">{i === 0 ? 'Longest' : i === 1 ? '2nd' : '3rd'}</div>
-                        <div className="font-bold text-lg truncate">{s.name}</div>
+                        <div className="text-xs text-[#e9d5ff] uppercase tracking-wider font-medium">{i === 0 ? 'Longest' : i === 1 ? '2nd' : '3rd'} Streak</div>
+                        <div className="font-bold text-lg truncate text-white">{s.name}</div>
                     </div>
                     <div className={`text-2xl font-bold ${colors[i].text}`}>{s.streak}<span className="text-sm ml-0.5">d</span></div>
                 </div>
@@ -352,7 +352,7 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
 
     return (
         <div className="absolute inset-0 flex flex-col">
-            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-[#e9d5ff] uppercase tracking-wider border-b border-[rgba(139,92,246,0.35)] pb-2 pr-2 select-none bg-[rgba(15,10,30,0.75)] sticky top-0 z-10">
+            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-[#e9d5ff] uppercase tracking-wider border-b border-white/10 pb-2 pr-2 select-none bg-white/[0.04] sticky top-0 z-10">
                  <div 
                     className="col-span-2 cursor-pointer flex items-center hover:text-white transition-colors" 
                     onClick={() => requestSort('name')}
@@ -371,9 +371,9 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
             
             <div className="overflow-y-auto flex-grow custom-scrollbar">
                 {sortedData.map(item => (
-                    <div key={item.name} className="grid grid-cols-3 gap-2 text-sm p-3 hover:bg-[rgba(15,10,30,0.30)] rounded border-b border-[rgba(139,92,246,0.35)] last:border-0 transition-colors">
+                    <div key={item.name} className="grid grid-cols-3 gap-2 text-sm p-3 hover:bg-white/[0.04] rounded border-b border-white/5 last:border-0 transition-colors">
                         <div className="col-span-2 truncate font-medium text-white" title={item.name}>{item.name}</div>
-                        <div className="col-span-1 text-right font-mono text-accent-primary bg-[rgba(15,10,30,0.18)] rounded px-2 py-0.5">{item.avg.toFixed(2)}</div>
+                        <div className="col-span-1 text-right font-mono text-accent-primary bg-white/[0.04] rounded px-2 py-0.5">{item.avg.toFixed(2)}</div>
                     </div>
                 ))}
             </div>
@@ -395,13 +395,13 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
                 {displayData.map((item) => (
                     <div key={item.name} className="flex items-center gap-3 text-sm">
                         <span className="w-24 truncate text-right text-[#e9d5ff]" title={item.name}>{item.name}</span>
-                        <div className="flex-grow bg-[rgba(15,10,30,0.6)] rounded-full h-3 relative overflow-hidden">
+                        <div className="flex-grow bg-white/[0.06] rounded-full h-3 relative overflow-hidden">
                             <div
                                 className="bg-gradient-to-r from-accent-primary-dark to-accent-primary h-full rounded-full absolute top-0 left-0 transition-all duration-500"
                                 style={{ width: `${(item.streak / maxStreak) * 100}%` }}
                             />
                         </div>
-                        <span className="w-8 font-bold text-right">{item.streak}</span>
+                        <span className="w-8 font-bold text-right text-white">{item.streak}</span>
                     </div>
                 ))}
             </div>
@@ -409,7 +409,7 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
             {data.length > 5 && (
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-[rgba(139,92,246,0.35)] border-dashed transition-colors focus:outline-none uppercase font-bold tracking-wide"
+                    className="w-full text-xs text-center text-accent-primary hover:text-accent-primary-dark pt-2 border-t border-white/10 border-dashed transition-colors focus:outline-none uppercase font-bold tracking-wide"
                 >
                     {expanded ? 'Show Less' : `+ ${data.length - 5} More`}
                 </button>
@@ -426,15 +426,15 @@ const StreakStats: React.FC<{ streaks: { name: string, streak: number }[] }> = (
 
     return (
         <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="p-2 bg-[rgba(15,10,30,0.18)] rounded">
+            <div className="p-2 bg-white/[0.04] rounded-lg border border-white/10">
                 <div className="text-lg font-bold text-accent-primary">{active}/{total}</div>
                 <div className="text-[10px] uppercase tracking-wider text-[#e9d5ff]">Active</div>
             </div>
-            <div className="p-2 bg-[rgba(15,10,30,0.18)] rounded">
+            <div className="p-2 bg-white/[0.04] rounded-lg border border-white/10">
                 <div className="text-lg font-bold text-green-500">{best}</div>
                 <div className="text-[10px] uppercase tracking-wider text-[#e9d5ff]">Best Streak</div>
             </div>
-            <div className="p-2 bg-[rgba(15,10,30,0.18)] rounded">
+            <div className="p-2 bg-white/[0.04] rounded-lg border border-white/10">
                 <div className="text-lg font-bold text-blue-500">{avg.toFixed(1)}</div>
                 <div className="text-[10px] uppercase tracking-wider text-[#e9d5ff]">Avg Streak</div>
             </div>
@@ -454,7 +454,7 @@ const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] 
                     const isBest = item.day === bestDay.day;
                     return (
                         <div key={item.day} className="flex flex-col items-center justify-end h-full w-full max-w-[40px] group relative">
-                            <div className="absolute -top-8 text-xs bg-[rgba(15,10,30,0.75)] px-2 py-1 rounded border border-[rgba(139,92,246,0.35)] opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-md">
+                            <div className="absolute -top-8 text-xs bg-white/[0.08] backdrop-blur-sm px-2 py-1 rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap shadow-md text-white">
                                 {item.score.toFixed(1)} avg
                             </div>
                             <div
@@ -747,26 +747,31 @@ const Dashboard: React.FC = () => {
     }, [data]);
 
     return (
-        <div className="p-6 h-full overflow-y-auto pb-20">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">{t('dashboard')}</h1>
-                <div className="text-sm text-[#e9d5ff]">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-            </div>
+        <div className="relative h-full overflow-y-auto pb-20">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0f0f23] via-[#13112b] to-[#0a0818] -z-20" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[rgba(99,102,241,0.15)] via-transparent to-transparent -z-10" />
+            <div className="p-6 lg:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-4xl font-black tracking-tight text-white">{t('dashboard')}</h1>
+                        <p className="text-sm text-[#e9d5ff]">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                 {/* Row 1: Highlights */}
-                <Card className="lg:col-span-4">
+                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03]">
                     <StreakHighlight streaks={habitStreaks} />
                 </Card>
 
                 {/* Row 2: Trend Chart */}
-                <Card className="lg:col-span-4">
+                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03]">
                     <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <h3 className="font-bold text-xl">Habit Trends (30 Days)</h3>
+                        <h3 className="font-bold text-xl text-white">Habit Trends (30 Days)</h3>
                         <select
                             value={selectedTrend}
                             onChange={e => setSelectedTrend(e.target.value)}
-                            className="bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] rounded-md px-2 py-1 text-sm focus:ring-accent-primary focus:border-accent-primary"
+                            className="bg-white/[0.06] border border-white/10 rounded-md px-3 py-1.5 text-sm focus:ring-accent-primary focus:border-accent-primary text-white"
                         >
                             <option value="all">All Habits</option>
                             <option value="total">Avg Daily Score</option>
@@ -779,64 +784,63 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 {/* Row 3: Radar Chart - Full Width */}
-                <Card className="lg:col-span-2">
-                    <h3 className="font-bold text-xl mb-4">Habit Performance (7 Days)</h3>
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
+                    <h3 className="font-bold text-xl text-white mb-4">Habit Performance (7 Days)</h3>
                     <div className="w-full h-[500px]">
                         <RadarChart data={radarData} />
                     </div>
                 </Card>
 
                  {/* Row 4: Pie Chart & Weekly Performance */}
-                <Card className="lg:col-span-2">
-                    <h3 className="font-bold text-xl mb-4">Today's Distribution</h3>
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
+                    <h3 className="font-bold text-xl text-white mb-4">Today's Distribution</h3>
                     <div className="h-64 flex items-center justify-center">
                         <PieChart data={todayPieData} type="pie" />
                     </div>
                 </Card>
 
                  {/* Row 5: Habit Streaks & Monthly Average (Neighbors to share height) */}
-                <Card className="lg:col-span-2 flex flex-col justify-between h-full">
+                <Card className="xl:col-span-2 flex flex-col justify-between h-full border-white/5 bg-white/[0.03]">
                     <div>
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-xl">Habit Streaks</h3>
-                            <span className="text-xs text-[#e9d5ff]">Current</span>
+                            <h3 className="font-bold text-xl text-white">Habit Streaks</h3>
+                            <span className="text-xs text-[#e9d5ff] uppercase tracking-wider">Current</span>
                         </div>
                         <div className="mb-4">
                             <StreakBarChart data={habitStreaks} />
                         </div>
                     </div>
-                    <div className="pt-4 border-t border-[rgba(139,92,246,0.35)] mt-auto">
-                        <h4 className="text-xs font-bold text-[#e9d5ff] uppercase mb-2">Analytics</h4>
+                    <div className="pt-4 border-t border-white/10 mt-auto">
+                        <h4 className="text-xs font-bold text-[#e9d5ff] uppercase tracking-wider mb-2">Analytics</h4>
                         <StreakStats streaks={habitStreaks} />
                     </div>
                 </Card>
 
-                <Card className="lg:col-span-2 flex flex-col h-full">
-                    <h3 className="font-bold text-xl mb-4 flex-shrink-0">Monthly Daily Average</h3>
-                    {/* Wrapper with relative positioning and flex-grow allows the absolute child to fill available space without pushing parent height, effectively depending on neighbor's height in the grid row. */}
+                <Card className="xl:col-span-2 flex flex-col h-full border-white/5 bg-white/[0.03]">
+                    <h3 className="font-bold text-xl text-white mb-4 flex-shrink-0">Monthly Daily Average</h3>
                     <div className="relative flex-grow min-h-[200px]">
                          <MonthlyAverageTable data={monthlyAverages} />
                     </div>
                 </Card>
 
                 {/* Row 6: Weekly Performance & Your Journey */}
-                <Card className="lg:col-span-2 flex flex-col">
-                    <h3 className="font-bold text-xl mb-4">Weekly Performance</h3>
+                <Card className="xl:col-span-2 flex flex-col border-white/5 bg-white/[0.03]">
+                    <h3 className="font-bold text-xl text-white mb-4">Weekly Performance</h3>
                     <div className="flex-grow min-h-[200px]">
                         <WeeklyPerformanceChart data={weeklyPerformance} />
                     </div>
                     {bestDay && (
-                        <div className="mt-4 pt-4 border-t border-[rgba(139,92,246,0.35)] text-center">
+                        <div className="mt-4 pt-4 border-t border-white/10 text-center">
                             <p className="text-sm text-[#e9d5ff]">Your most productive day is <span className="text-yellow-500 font-bold text-lg">{bestDay.day}</span></p>
                         </div>
                     )}
                 </Card>
 
-                <Card className="lg:col-span-2">
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
                     <div className="flex flex-col h-full">
                         <div className="mb-6">
                             <div className="flex justify-between items-start mb-4">
-                                <h3 className="font-bold text-xl">Tracker Rank</h3>
+                                <h3 className="font-bold text-xl text-white">Tracker Rank</h3>
                                 <div className="px-3 py-1 rounded-full bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xs font-bold uppercase tracking-wider">
                                     {levelStats.rank}
                                 </div>
@@ -849,9 +853,9 @@ const Dashboard: React.FC = () => {
                                 <span className="text-sm text-[#e9d5ff] font-bold mb-2">LEVEL</span>
                             </div>
 
-                            <div className="w-full h-6 bg-[rgba(15,10,30,0.6)] rounded-full overflow-hidden mb-2 relative">
+                            <div className="w-full h-6 bg-white/[0.06] rounded-full overflow-hidden mb-2 relative">
                                 <div
-                                    className="h-full bg-accent-primary transition-all duration-500 ease-out relative"
+                                    className="h-full bg-gradient-to-r from-accent-primary-dark to-accent-primary transition-all duration-500 ease-out relative"
                                     style={{ width: `${(levelStats.progress / levelStats.needed) * 100}%` }}
                                 >
                                 </div>
@@ -867,11 +871,11 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 bg-[rgba(15,10,30,0.75)] rounded-lg border border-[rgba(139,92,246,0.35)] text-center">
+                            <div className="p-4 bg-white/[0.04] rounded-lg border border-white/10 text-center">
                                 <div className="text-2xl font-bold text-white">{levelStats.totalXP.toLocaleString()}</div>
                                 <div className="text-[10px] text-[#e9d5ff] uppercase tracking-widest mt-1">Lifetime XP</div>
                             </div>
-                            <div className="p-4 bg-[rgba(15,10,30,0.75)] rounded-lg border border-[rgba(139,92,246,0.35)] text-center">
+                            <div className="p-4 bg-white/[0.04] rounded-lg border border-white/10 text-center">
                                 <div className="text-2xl font-bold text-white">{Object.keys(data).length}</div>
                                 <div className="text-[10px] text-[#e9d5ff] uppercase tracking-widest mt-1">Days Active</div>
                             </div>
@@ -880,14 +884,14 @@ const Dashboard: React.FC = () => {
                 </Card>
 
                 {/* Row 6: AI & Targets */}
-                <Card className="lg:col-span-2 flex flex-col min-h-[300px]">
+                <Card className="xl:col-span-2 flex flex-col min-h-[300px] border-white/5 bg-white/[0.03]">
                     <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-xl flex items-center gap-2">
+                        <h3 className="font-bold text-xl text-white flex items-center gap-2">
                             AI Daily Reflection
                             <span className="text-xs font-normal bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full">Beta</span>
                         </h3>
                     </div>
-                    <div className="text-[#e9d5ff] mb-4 flex-grow overflow-y-auto max-h-96 p-2 bg-[rgba(15,10,30,0.12)] rounded-lg border border-[rgba(139,92,246,0.35)]">
+                    <div className="text-[#e9d5ff] mb-4 flex-grow overflow-y-auto max-h-96 p-2 bg-white/[0.04] rounded-lg border border-white/10">
                         {isLoading ? (
                             <Loader />
                         ) : (
@@ -901,13 +905,13 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="lg:col-span-2">
+                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03]">
                     <div className="flex flex-col items-center justify-between h-full p-4">
-                        <h3 className="font-bold text-xl mb-4 w-full text-left">Monthly Target</h3>
+                        <h3 className="font-bold text-xl text-white mb-4 w-full text-left">Monthly Target</h3>
                         <div className="w-full flex-grow flex items-center justify-center">
                             <PieChart data={overallProgressData} type="donut" />
                         </div>
-                        <div className="text-center mt-4 pt-4 border-t border-[rgba(139,92,246,0.35)] w-full">
+                        <div className="text-center mt-4 pt-4 border-t border-white/10 w-full">
                             <h3 className="font-bold text-sm text-[#e9d5ff] uppercase tracking-wide mb-2">Current Time</h3>
                             <p className="text-4xl font-mono font-bold text-accent-primary tracking-tight">
                                 {time.toLocaleTimeString('en-US', {
@@ -941,6 +945,7 @@ const Dashboard: React.FC = () => {
                     font-style: italic;
                 }
              `}</style>
+            </div>
         </div>
     );
 };
