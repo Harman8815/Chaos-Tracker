@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { GripVertical } from 'lucide-react';
 
 interface DraggableResizableModalProps {
     title: string;
@@ -81,10 +82,11 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
             onMouseDown={onFocus}
         >
             <div
-                className="h-10 bg-[rgba(15,10,30,0.65)] backdrop-blur-sm border-b border-[rgba(139,92,246,0.35)] rounded-t-xl flex items-center justify-between px-4 cursor-move"
+                className="h-12 bg-[rgba(15,10,30,0.65)] backdrop-blur-sm border-b border-[rgba(139,92,246,0.35)] rounded-t-xl flex items-center gap-2 px-4 cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleDragStart}
             >
-                <span className="font-bold text-white">{title}</span>
+                <GripVertical className="w-4 h-4 text-[#e9d5ff]" />
+                <span className="font-bold text-white flex-1">{title}</span>
                 <button
                     onClick={onClose}
                     className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold hover:bg-red-600"
