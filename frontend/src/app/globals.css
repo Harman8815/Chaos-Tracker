@@ -502,3 +502,33 @@ input[type="date"]::-moz-calendar-picker-indicator {
         stroke-dashoffset: -440;
     }
 }
+
+@keyframes neonPulse {
+    0%, 100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.8)) drop-shadow(0 0 12px rgba(234, 179, 8, 0.4));
+    }
+    50% {
+        opacity: 0.85;
+        filter: drop-shadow(0 0 10px rgba(234, 179, 8, 1)) drop-shadow(0 0 20px rgba(234, 179, 8, 0.6));
+    }
+}
+
+@keyframes neonFlicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.9)) drop-shadow(0 0 16px rgba(234, 179, 8, 0.5));
+    }
+    20%, 24%, 55% {
+        opacity: 0.6;
+        filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.4)) drop-shadow(0 0 8px rgba(234, 179, 8, 0.2));
+    }
+}
+
+.animate-neon-pulse {
+    animation: neonPulse 2s ease-in-out infinite;
+}
+
+.animate-neon-flicker {
+    animation: neonFlicker 3s linear infinite;
+}

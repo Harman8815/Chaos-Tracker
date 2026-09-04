@@ -16,17 +16,19 @@ const MenuIcon = Menu;
 interface SidebarProps {
     isCollapsed: boolean;
     toggleSidebar: () => void;
+    onNavigate?: () => void;
 }
 
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigate }) => {
     const pathname = usePathname();
     const { userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
     const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
+    const [hoveredIndex, setHoveredIndex] = useState<number>(-1);
 
     const allPossibleItems = [
         { id: 'dashboard', name: 'Dashboard', icon: DashboardIcon },
@@ -93,37 +95,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         if (idx >= 0) updateIndicator(idx);
     }, [selectedPage, navItems]);
 
-    if (isCollapsed) {
-        return (
-            <div className="absolute top-6 left-6 z-50 w-14">
-                <button
-                    onClick={toggleSidebar}
-                    aria-label="Open menu"
-                    className="absolute flex items-center justify-center
-                            w-14 h-14 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/10
-                            text-[#a1a1aa] hover:text-white hover:border-accent-primary
-                            transition-all duration-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:shadow-[0_0_25px_rgba(139,92,246,0.35)]"
-                >
-                    <MenuIcon className="w-6 h-6" />
-                </button>
-            </div>
-        );
-    }
-
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
-    return (
-        <aside className={`fixed top-0 left-0 z-50 flex flex-col items-center transition-all duration-200 w-24 h-screen py-6 bg-white/[0.04] backdrop-blur-xl border-r border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)]`}>
-            <button
-                onClick={toggleSidebar}
-                className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none mb-4 hover:bg-white/[0.08]"
-                aria-label={isCollapsed ? "Open menu" : "Close menu"}
-            >
-                <MenuIcon className="w-5 h-5" />
-            </button>
+    const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
 
-            <div className="flex flex-col items-center justify-between h-full w-full">
-                <div className="relative flex flex-col items-center justify-center space-y-3 flex-grow w-full">
+    return (
+        <aside className={`${sidebarWidth} h-screen flex flex-col items-center transition-all duration-300 bg-white/[0.04] backdrop-blur-xl border-r border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] flex-shrink-0 relative z-50`}>
+            <div className="flex items-center justify-between w-full px-4 py-4">
+                <button
+                    onClick={toggleSidebar}
+                    className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-white/[0.08]"
+                    aria-label={isCollapsed ? "Open menu" : "Close menu"}
+                >
+                    <MenuIcon className="w-5 h-5" />
+                </button>
+            </div>
+
+            <div className="flex flex-col items-center justify-between h-full w-full px-2 pb-4">
+                <div className="relative flex flex-col items-center justify-center space-y-2 flex-grow w-full">
                     {navItems.map((item, index) => {
                         const isSelected = selectedPage === item.id;
                         const href = item.id === 'home' ? '/' : `/${item.id}`;
@@ -133,11 +122,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 href={href}
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
-                                className={`relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200 focus:outline-none z-10
+                                onClick={onNavigate}
+                                className={`relative flex items-center justify-center w-full rounded-xl transition-all duration-200 focus:outline-none z-10 group
                                 ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.08]'}
+                                ${isCollapsed ? 'h-12' : 'h-12 px-3'}
                             `}
-                                title={item.name}
-                                onMouseEnter={() => updateIndicator(index)}
+                                title={isCollapsed ? item.name : undefined}
+                                onMouseEnter={() => { updateIndicator(index); setHoveredIndex(index); }}
+                                onMouseLeave={() => setHoveredIndex(-1)}
                             >
                                 {isSelected && !prefersReducedMotion() && (
                                     <motion.div
@@ -155,9 +147,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 {isSelected && prefersReducedMotion() && (
                                     <div className="absolute inset-0 rounded-xl bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)]" />
                                 )}
-                                {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10
-                                ${isSelected ? 'text-yellow-400' : ''}`}
-                                />}
+                                {!isSelected && hoveredIndex === index && !prefersReducedMotion() && (
+                                    <motion.div
+                                        className="absolute inset-0 rounded-xl bg-white/[0.08]"
+                                        layoutId="sidebar-hover-indicator"
+                                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                    />
+                                )}
+                                {item.icon && (
+                                    <div className="relative z-10 flex items-center justify-center">
+                                        <item.icon className={`w-6 h-6 flex-shrink-0 transition-all duration-200
+                                            ${isSelected ? 'text-yellow-400 animate-neon-pulse' : ''}
+                                            ${hoveredIndex === index && !isSelected ? 'text-white scale-110 animate-neon-flicker' : ''}
+                                        `}
+                                        />
+                                        {isSelected && (
+                                            <span className="absolute inset-0 rounded-full bg-yellow-400/20 blur-md -z-10 animate-pulse" />
+                                        )}
+                                    </div>
+                                )}
+                                {!isCollapsed && (
+                                    <span className={`ml-3 font-medium transition-all duration-200 truncate
+                                        ${isSelected ? 'text-white' : 'text-[#e9d5ff] group-hover:text-white'}
+                                    `}>
+                                        {item.name}
+                                    </span>
+                                )}
                             </Link>
                         )
                     })}
@@ -168,8 +183,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     <Link
                         href="/profile"
                         prefetch
+                        onClick={onNavigate}
                         className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 focus:outline-none overflow-hidden
-                             ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary' : 'hover:ring-2 hover:ring-border'}
+                             ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary shadow-[0_0_15px_rgba(139,92,246,0.5)]' : 'hover:ring-2 hover:ring-border'}
                         `}
                         title="Profile"
                     >
