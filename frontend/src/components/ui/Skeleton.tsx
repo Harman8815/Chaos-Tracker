@@ -9,3 +9,4 @@ const Skeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
 
 export { Skeleton }
 export default Skeleton
+

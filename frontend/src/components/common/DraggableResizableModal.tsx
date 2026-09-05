@@ -71,7 +71,7 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
     return (
         <div
             ref={modalRef}
-            className="fixed bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] flex flex-col animate-fade-in"
+            className="fixed bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-accent-primary/35 rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] flex flex-col animate-fade-in"
             style={{
                 top: position.y,
                 left: position.x,
@@ -82,10 +82,10 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
             onMouseDown={onFocus}
         >
             <div
-                className="h-12 bg-[rgba(15,10,30,0.65)] backdrop-blur-sm border-b border-[rgba(139,92,246,0.35)] rounded-t-xl flex items-center gap-2 px-4 cursor-grab active:cursor-grabbing select-none"
+                className="h-12 bg-[rgba(15,10,30,0.65)] backdrop-blur-sm border-b border-accent-primary/35 rounded-t-xl flex items-center gap-2 px-4 cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleDragStart}
             >
-                <GripVertical className="w-4 h-4 text-[#e9d5ff]" />
+                <GripVertical className="w-4 h-4 text-text-secondary" />
                 <span className="font-bold text-white flex-1">{title}</span>
                 <button
                     onClick={onClose}
@@ -103,3 +103,4 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
 };
 
 export default DraggableResizableModal;
+

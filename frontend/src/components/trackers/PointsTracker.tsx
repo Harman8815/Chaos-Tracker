@@ -444,3 +444,4 @@ const PointsTracker: React.FC = () => {
 };
 
 export default PointsTracker;
+

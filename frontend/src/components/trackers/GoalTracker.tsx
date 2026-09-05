@@ -444,3 +444,4 @@ const GoalTracker: React.FC = () => {
 };
 
 export default GoalTracker;
+

@@ -11,3 +11,4 @@ const Separator = ({ className, orientation = "horizontal", ...props }: React.HT
 
 export { Separator }
 export default Separator
+

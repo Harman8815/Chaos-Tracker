@@ -58,7 +58,7 @@ const SheetTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingEle
 )
 
 const SheetDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-sm text-[#e9d5ff]", className)} {...props} />
+  <p className={cn("text-sm text-text-secondary", className)} {...props} />
 )
 
 const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -67,3 +67,4 @@ const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 
 export { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter }
 export default Sheet
+

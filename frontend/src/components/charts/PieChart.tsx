@@ -93,3 +93,4 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], type?: 'pie'
 
 export { PieChart, NoData };
 export default PieChart;
+

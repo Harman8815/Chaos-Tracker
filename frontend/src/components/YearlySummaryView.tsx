@@ -67,7 +67,7 @@ const YearlySummaryView: React.FC = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8b5cf6]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary"></div>
             </div>
         );
     }
@@ -91,7 +91,7 @@ const YearlySummaryView: React.FC = () => {
         <div className="p-6 h-full overflow-y-auto animate-fade-in">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-3xl font-bold text-white">Yearly Summary</h1>
-                <Button onClick={fetchYearlyAnalytics} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)]">
+                <Button onClick={fetchYearlyAnalytics} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">
                     Refresh
                 </Button>
             </div>
@@ -100,14 +100,14 @@ const YearlySummaryView: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white mb-2">
                     {analytics.year}
                 </h2>
-                <p className="text-[#e9d5ff]">Annual Overview</p>
+                <p className="text-text-secondary">Annual Overview</p>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-[#e9d5ff] mb-1">Journal Entries</h3>
+                        <h3 className="text-sm text-text-secondary mb-1">Journal Entries</h3>
                         <p className="text-2xl font-bold text-white">
                             {analytics.summary.total_journal_entries}
                         </p>
@@ -115,7 +115,7 @@ const YearlySummaryView: React.FC = () => {
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-[#e9d5ff] mb-1">Total Expenses</h3>
+                        <h3 className="text-sm text-text-secondary mb-1">Total Expenses</h3>
                         <p className="text-2xl font-bold text-white">
                             {formatCurrency(analytics.summary.total_expenses)}
                         </p>
@@ -123,7 +123,7 @@ const YearlySummaryView: React.FC = () => {
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-[#e9d5ff] mb-1">Transactions</h3>
+                        <h3 className="text-sm text-text-secondary mb-1">Transactions</h3>
                         <p className="text-2xl font-bold text-white">
                             {analytics.summary.total_transactions}
                         </p>
@@ -131,7 +131,7 @@ const YearlySummaryView: React.FC = () => {
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-[#e9d5ff] mb-1">Goals Created</h3>
+                        <h3 className="text-sm text-text-secondary mb-1">Goals Created</h3>
                         <p className="text-2xl font-bold text-white">
                             {analytics.summary.goals_created}
                         </p>
@@ -139,7 +139,7 @@ const YearlySummaryView: React.FC = () => {
                 </Card>
                 <Card>
                     <div className="text-center">
-                        <h3 className="text-sm text-[#e9d5ff] mb-1">Avg Monthly</h3>
+                        <h3 className="text-sm text-text-secondary mb-1">Avg Monthly</h3>
                         <p className="text-2xl font-bold text-white">
                             {formatCurrency(analytics.summary.average_monthly_expenses)}
                         </p>
@@ -154,13 +154,13 @@ const YearlySummaryView: React.FC = () => {
                     {analytics.monthly_breakdown.map((month, index) => (
                         <div key={month.month} className="flex items-center gap-4">
                             <div className="w-24">
-                                <span className="text-sm text-[#e9d5ff] capitalize">
+                                <span className="text-sm text-text-secondary capitalize">
                                     {month.month.slice(0, 3)}
                                 </span>
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <div className="flex-1 bg-[rgba(15,10,30,0.6)] rounded-full h-4">
+                                    <div className="flex-1 bg-white/[0.06] rounded-full h-4">
                                         <div
                                             className={`h-4 rounded-full ${getMonthColor(index)}`}
                                             style={{ 
@@ -172,7 +172,7 @@ const YearlySummaryView: React.FC = () => {
                                         {formatCurrency(month.expenses_total)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between text-xs text-[#e9d5ff]">
+                                <div className="flex justify-between text-xs text-text-secondary">
                                     <span>{month.journal_entries} entries</span>
                                     <span>{month.expenses_count} transactions</span>
                                 </div>
@@ -197,7 +197,7 @@ const YearlySummaryView: React.FC = () => {
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <div className="flex-1 bg-[rgba(15,10,30,0.6)] rounded-full h-3">
+                                        <div className="flex-1 bg-white/[0.06] rounded-full h-3">
                                             <div
                                                 className={`h-3 rounded-full ${getMonthColor(index)}`}
                                                 style={{ width: `${percentage}%` }}
@@ -207,7 +207,7 @@ const YearlySummaryView: React.FC = () => {
                                             {formatCurrency(category.amount)}
                                         </span>
                                     </div>
-                                    <div className="text-xs text-[#e9d5ff]">
+                                    <div className="text-xs text-text-secondary">
                                         {percentage.toFixed(1)}% of total
                                     </div>
                                 </div>
@@ -215,7 +215,7 @@ const YearlySummaryView: React.FC = () => {
                         );
                     })}
                     {analytics.top_expense_categories.length === 0 && (
-                        <p className="text-[#e9d5ff] text-center py-4">
+                        <p className="text-text-secondary text-center py-4">
                             No expenses this year
                         </p>
                     )}
@@ -230,19 +230,19 @@ const YearlySummaryView: React.FC = () => {
                         <h4 className="text-sm font-medium text-white mb-3">Financial Summary</h4>
                         <div className="space-y-2">
                             <div className="flex justify-between">
-                                <span className="text-sm text-[#e9d5ff]">Total Spent</span>
+                                <span className="text-sm text-text-secondary">Total Spent</span>
                                 <span className="text-sm font-medium text-white">
                                     {formatCurrency(analytics.summary.total_expenses)}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-[#e9d5ff]">Monthly Average</span>
+                                <span className="text-sm text-text-secondary">Monthly Average</span>
                                 <span className="text-sm font-medium text-white">
                                     {formatCurrency(analytics.summary.average_monthly_expenses)}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-[#e9d5ff]">Transaction Count</span>
+                                <span className="text-sm text-text-secondary">Transaction Count</span>
                                 <span className="text-sm font-medium text-white">
                                     {analytics.summary.total_transactions}
                                 </span>
@@ -253,19 +253,19 @@ const YearlySummaryView: React.FC = () => {
                         <h4 className="text-sm font-medium text-white mb-3">Activity Summary</h4>
                         <div className="space-y-2">
                             <div className="flex justify-between">
-                                <span className="text-sm text-[#e9d5ff]">Journal Entries</span>
+                                <span className="text-sm text-text-secondary">Journal Entries</span>
                                 <span className="text-sm font-medium text-white">
                                     {analytics.summary.total_journal_entries}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-[#e9d5ff]">Goals Created</span>
+                                <span className="text-sm text-text-secondary">Goals Created</span>
                                 <span className="text-sm font-medium text-white">
                                     {analytics.summary.goals_created}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-sm text-[#e9d5ff]">Months Tracked</span>
+                                <span className="text-sm text-text-secondary">Months Tracked</span>
                                 <span className="text-sm font-medium text-white">
                                     {analytics.monthly_breakdown.length}
                                 </span>

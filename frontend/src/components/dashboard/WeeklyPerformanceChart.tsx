@@ -27,3 +27,4 @@ const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] 
 };
 
 export { WeeklyPerformanceChart };
+

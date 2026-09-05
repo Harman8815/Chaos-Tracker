@@ -30,7 +30,7 @@ const CommandList = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 )
 
 const CommandEmpty = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("py-6 text-center text-sm text-[#e9d5ff]", className)} {...props} />
+  <div className={cn("py-6 text-center text-sm text-text-secondary", className)} {...props} />
 )
 
 const CommandGroup = ({ className, heading, children, ...props }: React.HTMLAttributes<HTMLDivElement> & { heading?: string }) => (
@@ -66,3 +66,4 @@ const CommandSeparator = ({ className, ...props }: React.HTMLAttributes<HTMLDivE
 
 export { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator }
 export default Command
+

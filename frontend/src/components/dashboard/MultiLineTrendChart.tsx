@@ -112,3 +112,4 @@ const MultiLineTrendChart: React.FC<{ data: { date: string, scores: { [habitId: 
 };
 
 export { MultiLineTrendChart };
+

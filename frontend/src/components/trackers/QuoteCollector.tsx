@@ -52,15 +52,15 @@ const SourceModal: React.FC<{ source?: QuoteSource | null; onClose: () => void; 
             <div className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6">{source ? 'Edit' : 'Add'} Source</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35" required />
-                    <select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35">
+                    <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
+                    <select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35">
                         <option>Movie</option>
                         <option>Web Series</option>
                         <option>Book</option>
                     </select>
-                    <input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35" required />
+                    <input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
                     <div className="flex justify-end gap-4 pt-4">
-                        <Button type="button" onClick={onClose} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
+                        <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button type="submit">Save Source</Button>
                     </div>
                 </form>
@@ -92,12 +92,12 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
             <div className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6">{quote ? 'Edit' : 'Add'} Quote</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35 h-24" required />
-                    <input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35" required />
-                    <input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35" />
-                    <input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-accent-primary/35" />
+                    <textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 h-24" required />
+                    <input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
+                    <input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" />
+                    <input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" />
                     <div className="flex justify-end gap-4 pt-4">
-                        <Button type="button" onClick={onClose} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
+                        <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button type="submit">Save Quote</Button>
                     </div>
                 </form>
@@ -373,8 +373,8 @@ const QuoteCollector: React.FC = () => {
                 )}
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <Button onClick={resetToHome} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)] mr-2 !p-0 w-12 h-12 flex items-center justify-center"><HomeIcon className="w-6 h-6" /></Button>
-                        <Button onClick={() => setSelectedSource(null)} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)]">
+                        <Button onClick={resetToHome} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)] mr-2 !p-0 w-12 h-12 flex items-center justify-center"><HomeIcon className="w-6 h-6" /></Button>
+                        <Button onClick={() => setSelectedSource(null)} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">
                             <BackIcon className="inline-block -ml-1 mr-2 w-5 h-5" />
                             Back to Results
                         </Button>
@@ -387,7 +387,7 @@ const QuoteCollector: React.FC = () => {
                         <p className="text-text-secondary mb-4">{selectedSource.type}</p>
                         <div className="flex gap-2">
                             <Button onClick={() => setModalState({ quote: null })} className="flex items-center"><PlusIcon className="mr-2" /> Add Quote</Button>
-                            <Button onClick={() => setModalState({ source: selectedSource })} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)]">Edit Source</Button>
+                            <Button onClick={() => setModalState({ source: selectedSource })} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Edit Source</Button>
                             <Button onClick={() => handleDeleteSource(selectedSource.id)} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete Source</Button>
                         </div>
                     </div>
@@ -401,8 +401,8 @@ const QuoteCollector: React.FC = () => {
                                 {quotes.map(quote => (
                                     <blockquote key={quote.id} className="p-4 border-l-4 border-accent-primary/35 bg-[rgba(15,10,30,0.75)] rounded-r-lg shadow-sm group relative">
                                         <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setModalState({ quote })} className="p-1 rounded bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)]"><EditIcon /></button>
-                                            <button onClick={() => handleDeleteQuote(quote.id)} className="p-1 rounded bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)] text-red-400"><TrashIcon /></button>
+                                            <button onClick={() => setModalState({ quote })} className="p-1 rounded bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)]"><EditIcon /></button>
+                                            <button onClick={() => handleDeleteQuote(quote.id)} className="p-1 rounded bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)] text-red-400"><TrashIcon /></button>
                                         </div>
                                         {quote.image && <img src={quote.image} alt={`Visual for "${quote.text}"`} className="w-full h-auto max-h-64 object-contain rounded-lg mb-4" />}
                                         <p className="text-lg italic text-white">"{quote.text}"</p>
@@ -431,7 +431,7 @@ const QuoteCollector: React.FC = () => {
                     </Button>
                     <form onSubmit={handleSearch} className="flex-grow ml-4">
                         <div className="relative">
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search again..." className="w-full p-3 pl-12 rounded-lg bg-[rgba(15,10,30,0.6)] border border-accent-primary/35" />
+                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search again..." className="w-full p-3 pl-12 rounded-lg bg-white/[0.06] border border-accent-primary/35" />
                             <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-text-secondary" />
                         </div>
                     </form>
@@ -498,7 +498,7 @@ const QuoteCollector: React.FC = () => {
                                         <div
                                             key={index}
                                             onClick={() => handleSuggestionClick(result)}
-                                            className="p-3 hover:bg-[rgba(15,10,30,0.6)] cursor-pointer border-b border-accent-primary/35 last:border-0 transition-colors flex items-start gap-3"
+                                            className="p-3 hover:bg-white/[0.06] cursor-pointer border-b border-accent-primary/35 last:border-0 transition-colors flex items-start gap-3"
                                         >
                                             <img src={result.source.coverImage} alt="" className="w-12 h-16 object-cover rounded-md shadow-sm flex-shrink-0" />
                                             <div className="flex-grow min-w-0">
@@ -537,3 +537,4 @@ const QuoteCollector: React.FC = () => {
 };
 
 export default QuoteCollector;
+

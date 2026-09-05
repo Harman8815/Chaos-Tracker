@@ -65,39 +65,39 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
             onClick={onClose}
         >
             <div 
-                className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[80vh] flex flex-col"
+                className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-accent-primary/35 rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[80vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 <h2 className="text-2xl font-bold mb-6 text-white">Manage Habits</h2>
                 
                 <div className="overflow-y-auto pr-4 -mr-4 space-y-4">
                     {localHabits.map(habit => (
-                        <div key={habit.id} className="grid grid-cols-12 gap-4 items-center p-3 bg-[rgba(15,10,30,0.6)] rounded-lg">
+                        <div key={habit.id} className="grid grid-cols-12 gap-4 items-center p-3 bg-white/[0.06] rounded-lg">
                             <div className="col-span-5">
-                                <label className="text-xs text-[#e9d5ff]">Name</label>
+                                <label className="text-xs text-text-secondary">Name</label>
                                 <input
                                     type="text"
                                     value={habit.name}
                                     onChange={e => handleHabitChange(habit.id, 'name', e.target.value)}
-                                    className="w-full mt-1 p-2 rounded-md bg-[#0f0f23] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                                 />
                             </div>
                             <div className="col-span-3">
-                                <label className="text-xs text-[#e9d5ff]">Daily Range Max</label>
+                                <label className="text-xs text-text-secondary">Daily Range Max</label>
                                 <input
                                     type="number"
                                     value={habit.rangeMax ?? 10}
                                     onChange={e => handleHabitChange(habit.id, 'rangeMax', parseInt(e.target.value))}
-                                    className="w-full mt-1 p-2 rounded-md bg-[#0f0f23] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                                 />
                             </div>
                             <div className="col-span-3">
-                                <label className="text-xs text-[#e9d5ff]">Monthly Target</label>
+                                <label className="text-xs text-text-secondary">Monthly Target</label>
                                 <input
                                     type="number"
                                     value={habit.target}
                                     onChange={e => handleHabitChange(habit.id, 'target', parseInt(e.target.value))}
-                                    className="w-full mt-1 p-2 rounded-md bg-[#0f0f23] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                                 />
                             </div>
                             <div className="col-span-1 flex items-end">
@@ -109,10 +109,10 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
                     ))}
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-[rgba(139,92,246,0.35)] flex justify-between">
-                    <Button onClick={handleAddHabit} className="bg-transparent border border-[#8b5cf6] text-[#8b5cf6] hover:bg-[#8b5cf6] hover:text-white">Add Habit</Button>
+                <div className="mt-6 pt-6 border-t border-accent-primary/35 flex justify-between">
+                    <Button onClick={handleAddHabit} className="bg-transparent border border-accent-primary text-accent-primary hover:bg-accent-primary hover:text-white">Add Habit</Button>
                     <div className="flex space-x-4">
-                        <Button onClick={onClose} className="bg-[rgba(15,10,30,0.6)] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
+                        <Button onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button onClick={handleSave}>Save Changes</Button>
                     </div>
                 </div>
@@ -122,3 +122,4 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
 };
 
 export default EditHabitsModal;
+

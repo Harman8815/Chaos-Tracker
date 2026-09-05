@@ -15,7 +15,7 @@ const TableBody = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectio
 )
 
 const TableFooter = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
-  <tfoot className={cn("bg-white/[0.02] font-medium text-[#e9d5ff] [&_tr]:last:border-b-0", className)} {...props} />
+  <tfoot className={cn("bg-white/[0.02] font-medium text-text-secondary [&_tr]:last:border-b-0", className)} {...props} />
 )
 
 const TableRow = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
@@ -23,7 +23,7 @@ const TableRow = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElem
 )
 
 const TableHead = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-  <th className={cn("h-12 px-4 text-left align-middle font-medium text-[#e9d5ff] [&:has([role=checkbox])]:pr-0", className)} {...props} />
+  <th className={cn("h-12 px-4 text-left align-middle font-medium text-text-secondary [&:has([role=checkbox])]:pr-0", className)} {...props} />
 )
 
 const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
@@ -31,8 +31,9 @@ const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCell
 )
 
 const TableCaption = ({ className, ...props }: React.HTMLAttributes<HTMLTableCaptionElement>) => (
-  <caption className={cn("mt-4 text-sm text-[#e9d5ff]", className)} {...props} />
+  <caption className={cn("mt-4 text-sm text-text-secondary", className)} {...props} />
 )
 
 export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption }
 export default Table
+

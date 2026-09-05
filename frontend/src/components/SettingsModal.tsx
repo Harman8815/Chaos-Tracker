@@ -25,20 +25,20 @@ const SettingsModal: React.FC = () => {
             onClick={() => setIsSettingsModalOpen(false)}
         >
             <div
-                className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-[rgba(139,92,246,0.35)] rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-md"
+                className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-accent-primary/35 rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-md"
                 onClick={e => e.stopPropagation()}
             >
                 <h2 className="text-2xl font-bold mb-6 text-white">{t('settings')}</h2>
 
                 {/* Theme Setting */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">{t('Theme')}</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Theme')}</label>
                     <div className="flex space-x-2">
                         {(['light', 'dark'] as Theme[]).map(theme => (
                             <button
                                 key={theme}
                                 onClick={() => handleThemeChange(theme)}
-                                className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-[#8b5cf6] text-white' : 'bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)]'}`}
+                                className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-[#8b5cf6] text-white' : 'bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)]'}`}
                             >
                                 {t(theme)}
                             </button>
@@ -48,13 +48,13 @@ const SettingsModal: React.FC = () => {
 
                 {/* Time Format Setting */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">{t('Time Format')}</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Time Format')}</label>
                     <div className="flex space-x-2">
                         {(['12h', '24h'] as TimeFormat[]).map(format => (
                             <button
                                 key={format}
                                 onClick={() => handleTimeFormatChange(format)}
-                                className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-[#8b5cf6] text-white' : 'bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)]'}`}
+                                className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-[#8b5cf6] text-white' : 'bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)]'}`}
                             >
                                 {format === '12h' ? t('12-Hour') : t('24-Hour')}
                             </button>
@@ -64,11 +64,11 @@ const SettingsModal: React.FC = () => {
 
                 {/* Language Setting */}
                 <div className="mb-8">
-                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">{t('Language (UI Only)')}</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">{t('Language (UI Only)')}</label>
                     <select
                         value={settings.language}
                         onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                        className="w-full p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                        className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                     >
                         <option value="en">{t('English')}</option>
                         <option value="es">{t('Español')}</option>
@@ -77,8 +77,8 @@ const SettingsModal: React.FC = () => {
                 </div>
 
                 {/* Debug Actions */}
-                <div className="mb-6 pt-4 border-t border-[rgba(139,92,246,0.35)]">
-                    <label className="block text-sm font-medium text-[#e9d5ff] mb-2">Debug Actions</label>
+                <div className="mb-6 pt-4 border-t border-accent-primary/35">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">Debug Actions</label>
                     <button
                         onClick={async () => {
                             if (confirm('This will generate dummy data for expenses, goals, etc. Continue?')) {
@@ -93,7 +93,7 @@ const SettingsModal: React.FC = () => {
                                 }
                             }
                         }}
-                        className="w-full py-2 rounded-md text-sm font-semibold text-[#8b5cf6] bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 transition-colors"
+                        className="w-full py-2 rounded-md text-sm font-semibold text-accent-primary bg-[#8b5cf6]/10 hover:bg-accent-primary/20 transition-colors"
                     >
                         Populate Dummy Data
                     </button>
@@ -106,7 +106,7 @@ const SettingsModal: React.FC = () => {
                     {t('Close')}
                 </button>
 
-                <div className="pt-4 border-t border-[rgba(139,92,246,0.35)]">
+                <div className="pt-4 border-t border-accent-primary/35">
                     <button
                         onClick={() => {
                             setIsSettingsModalOpen(false);
@@ -123,3 +123,4 @@ const SettingsModal: React.FC = () => {
 };
 
 export default SettingsModal;
+

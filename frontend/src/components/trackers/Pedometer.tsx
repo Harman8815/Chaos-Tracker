@@ -9,10 +9,11 @@ const Pedometer: React.FC = () => {
                 <h2 className="ml-4 text-3xl font-bold text-white">Pedometer</h2>
             </div>
             <div className="flex items-center justify-center h-full">
-                <p className="text-2xl text-[#e9d5ff]">Pedometer coming soon!</p>
+                <p className="text-2xl text-text-secondary">Pedometer coming soon!</p>
             </div>
         </div>
     );
 };
 
 export default Pedometer;
+

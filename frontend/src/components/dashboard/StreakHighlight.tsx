@@ -22,3 +22,4 @@ const StreakHighlight: React.FC<{ streaks: { name: string, streak: number }[] }>
 };
 
 export { StreakHighlight };
+

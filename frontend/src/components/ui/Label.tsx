@@ -7,3 +7,4 @@ const Label = ({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelEleme
 
 export { Label }
 export default Label
+

@@ -47,3 +47,4 @@ const TabsContent = ({ value, className, ...props }: React.HTMLAttributes<HTMLDi
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }
 export default Tabs
+

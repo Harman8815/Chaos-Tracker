@@ -26,3 +26,4 @@ const ScrollArea = ({ className, children, ...props }: React.HTMLAttributes<HTML
 
 export { ScrollArea }
 export default ScrollArea
+

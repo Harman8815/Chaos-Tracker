@@ -173,7 +173,7 @@ const ExpenseTracker: React.FC = () => {
         return (
             <TrackerWrapper tracker={trackerInfo}>
                 <div className="flex items-center justify-center h-64">
-                    <div className="text-[#e9d5ff]">Loading expenses...</div>
+                    <div className="text-text-secondary">Loading expenses...</div>
                 </div>
             </TrackerWrapper>
         );
@@ -246,14 +246,14 @@ const ExpenseTracker: React.FC = () => {
                                     .map(key => (
                                         <th
                                             key={key}
-                                            className="p-3 capitalize cursor-pointer whitespace-nowrap text-[#e9d5ff] font-medium"
+                                            className="p-3 capitalize cursor-pointer whitespace-nowrap text-text-secondary font-medium"
                                             onClick={() => handleSort(key)}
                                         >
                                             {key} {sortConfig?.key === key && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                         </th>
                                     ))}
-                                <th className="p-3 whitespace-nowrap text-[#e9d5ff] font-medium">Total</th>
-                                <th className="p-3 whitespace-nowrap text-[#e9d5ff] font-medium">Actions</th>
+                                <th className="p-3 whitespace-nowrap text-text-secondary font-medium">Total</th>
+                                <th className="p-3 whitespace-nowrap text-text-secondary font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -355,3 +355,4 @@ const ExpenseTracker: React.FC = () => {
 };
 
 export default ExpenseTracker;
+

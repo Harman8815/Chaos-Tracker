@@ -237,14 +237,14 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                         <select
                             value={currentDate.getMonth()}
                             onChange={(e) => handleDateChange(undefined, parseInt(e.target.value))}
-                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
                         </select>
                         <select
                             value={currentDate.getFullYear()}
                             onChange={(e) => handleDateChange(parseInt(e.target.value), undefined)}
-                            className="p-2 rounded-md bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             {years.map(y => <option key={y} value={y}>{y}</option>)}
                         </select>
@@ -260,7 +260,7 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                             <button
                                 key={day.key}
                                 onClick={() => handleDayClick(day.dateString!)}
-                                className={`h-28 rounded-lg flex flex-col p-2 text-left transition-colors border ${day.entry ? 'bg-[rgba(15,10,30,0.75)] border-[rgba(139,92,246,0.35)] hover:bg-border hover:border-accent-primary cursor-pointer' : 'bg-[rgba(15,10,30,0.6)]/50 border-transparent hover:border-accent-primary cursor-pointer'
+                                className={`h-28 rounded-lg flex flex-col p-2 text-left transition-colors border ${day.entry ? 'bg-[rgba(15,10,30,0.75)] border-accent-primary/35 hover:bg-border hover:border-accent-primary cursor-pointer' : 'bg-white/[0.06]/50 border-transparent hover:border-accent-primary cursor-pointer'
                                     }`}
                             >
                                 <span className={`font-semibold ml-auto ${day.entry ? 'text-white' : 'text-text-tertiary'}`}>{day.day}</span>
@@ -336,7 +336,7 @@ const JournalTracker: React.FC = () => {
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <div className="flex border-b border-[rgba(139,92,246,0.35)] mb-6">
+            <div className="flex border-b border-accent-primary/35 mb-6">
                 <button
                     onClick={() => {
                         setActiveTab('editor');
@@ -361,3 +361,4 @@ const JournalTracker: React.FC = () => {
 };
 
 export default JournalTracker;
+

@@ -26,3 +26,4 @@ const AvatarFallback = ({ className, children, ...props }: React.HTMLAttributes<
 
 export { Avatar, AvatarImage, AvatarFallback }
 export default Avatar
+

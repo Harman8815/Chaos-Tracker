@@ -133,3 +133,4 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
 };
 
 export default SignUpPage;
+

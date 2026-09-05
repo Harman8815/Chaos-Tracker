@@ -43,15 +43,15 @@ const PedometerTool: React.FC = () => {
     return (
         <div className="h-full flex flex-col items-center justify-center text-white">
             <div 
-                className="w-48 h-48 rounded-full border-8 border-[#8b5cf6] flex flex-col items-center justify-center cursor-pointer transition-transform active:scale-95"
+                className="w-48 h-48 rounded-full border-8 border-accent-primary flex flex-col items-center justify-center cursor-pointer transition-transform active:scale-95"
                 onClick={handleStep}
                 role="button"
                 aria-label="Increment step count"
             >
                 <div className="text-5xl font-bold">{steps}</div>
-                <div className="text-[#e9d5ff]">steps</div>
+                <div className="text-text-secondary">steps</div>
             </div>
-            <button onClick={handleReset} className="mt-8 text-sm text-[#e9d5ff] hover:text-white underline">
+            <button onClick={handleReset} className="mt-8 text-sm text-text-secondary hover:text-white underline">
                 Reset
             </button>
         </div>
@@ -59,3 +59,4 @@ const PedometerTool: React.FC = () => {
 };
 
 export default PedometerTool;
+

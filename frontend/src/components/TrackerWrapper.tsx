@@ -24,3 +24,4 @@ const TrackerWrapper: React.FC<TrackerWrapperProps> = ({ tracker, children }) =>
 };
 
 export default TrackerWrapper;
+

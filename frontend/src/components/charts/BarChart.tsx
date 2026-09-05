@@ -126,3 +126,4 @@ const BarChart: React.FC<ChartProps> = ({
 };
 
 export default BarChart;
+

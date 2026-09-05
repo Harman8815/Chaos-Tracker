@@ -140,11 +140,11 @@ const ChatTool: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col text-white bg-[rgba(15,10,30,0.6)] backdrop-blur-sm border border-white/5 rounded-2xl -m-4 relative">
+        <div className="h-full flex flex-col text-white bg-white/[0.06] backdrop-blur-sm border border-white/5 rounded-2xl -m-4 relative">
             <button 
                 onClick={handleClearChat}
                 title="Clear Chat"
-                className="absolute top-3 right-3 z-10 p-2 text-[#e9d5ff] hover:text-white rounded-full hover:bg-[rgba(15,10,30,0.6)]/80 backdrop-blur-sm transition-colors"
+                className="absolute top-3 right-3 z-10 p-2 text-text-secondary hover:text-white rounded-full hover:bg-white/[0.06]/80 backdrop-blur-sm transition-colors"
             >
                 <ClearIcon />
             </button>
@@ -152,11 +152,11 @@ const ChatTool: React.FC = () => {
                 {messages.map((message) => (
                     <div key={message.id} className={`flex items-start gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {message.role === 'model' && (
-                            <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm border border-[rgba(139,92,246,0.35)] flex items-center justify-center flex-shrink-0 text-accent-primary">
+                            <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm border border-accent-primary/35 flex items-center justify-center flex-shrink-0 text-accent-primary">
                                 <SparkleIcon className="w-5 h-5"/>
                             </div>
                         )}
-                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-[rgba(15,10,30,0.6)] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-bl-none'}`}>
+                        <div className={`group relative max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-accent-primary text-white rounded-br-none' : 'bg-white/[0.06] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-bl-none'}`}>
                            <div 
                              className="prose prose-invert prose-sm max-w-none"
                              dangerouslySetInnerHTML={parsedContent(message.content || ' ')}
@@ -164,7 +164,7 @@ const ChatTool: React.FC = () => {
                            {message.role === 'model' && message.id !== 'initial' && (
                                 <button 
                                     onClick={() => handleCopy(message.content, message.id)}
-                                    className="absolute -top-2 -right-2 p-1.5 bg-[rgba(15,10,30,0.6)]/80 backdrop-blur-sm rounded-full text-[#e9d5ff] hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute -top-2 -right-2 p-1.5 bg-white/[0.06]/80 backdrop-blur-sm rounded-full text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                     {copiedMessageId === message.id ? <CheckIcon className="text-green-500" /> : <CopyIcon />}
                                 </button>
@@ -174,10 +174,10 @@ const ChatTool: React.FC = () => {
                 ))}
                 {isLoading && messages[messages.length-1]?.role === 'model' && (
                      <div className="flex items-start gap-3 justify-start">
-                        <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm border border-[rgba(139,92,246,0.35)] flex items-center justify-center flex-shrink-0 text-accent-primary">
+                        <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm border border-accent-primary/35 flex items-center justify-center flex-shrink-0 text-accent-primary">
                             <SparkleIcon className="w-5 h-5"/>
                         </div>
-                        <div className="bg-[rgba(15,10,30,0.6)] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-lg rounded-bl-none px-4 py-3">
+                        <div className="bg-white/[0.06] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-lg rounded-bl-none px-4 py-3">
                             <div className="flex items-center justify-center space-x-1">
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
@@ -188,7 +188,7 @@ const ChatTool: React.FC = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t border-[rgba(139,92,246,0.2)] bg-[rgba(15,10,30,0.6)] backdrop-blur-xl">
+            <div className="p-4 border-t border-[rgba(139,92,246,0.2)] bg-white/[0.06] backdrop-blur-xl">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <input
                         type="text"
@@ -196,7 +196,7 @@ const ChatTool: React.FC = () => {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask about your data..."
                         disabled={isLoading || !aiInitialized}
-                        className="flex-grow w-full bg-[rgba(15,10,30,0.6)] backdrop-blur-sm rounded-full px-4 py-2 border border-[rgba(139,92,246,0.25)] focus:outline-none focus:ring-2 focus:ring-accent-primary text-white placeholder:text-[#e9d5ff]"
+                        className="flex-grow w-full bg-white/[0.06] backdrop-blur-sm rounded-full px-4 py-2 border border-[rgba(139,92,246,0.25)] focus:outline-none focus:ring-2 focus:ring-accent-primary text-white placeholder:text-text-secondary"
                     />
                     <button type="submit" disabled={isLoading || !input.trim() || !aiInitialized} className="w-10 h-10 flex items-center justify-center rounded-full bg-accent-primary text-white disabled:bg-gray-600 transition-colors shadow-[0_0_15px_rgba(139,92,246,0.5)] hover:shadow-[0_0_20px_rgba(139,92,246,0.7)]">
                         <SendIcon className="w-5 h-5" />

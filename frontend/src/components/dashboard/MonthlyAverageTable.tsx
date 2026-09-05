@@ -55,3 +55,4 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
 };
 
 export { MonthlyAverageTable };
+

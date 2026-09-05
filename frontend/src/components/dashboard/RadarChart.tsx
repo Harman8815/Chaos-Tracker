@@ -84,3 +84,4 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
 };
 
 export { RadarChart };
+

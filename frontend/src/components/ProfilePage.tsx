@@ -83,7 +83,7 @@ const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
         <Card className="w-full overflow-hidden">
             <div className="flex justify-between items-center mb-6">
                  <h3 className="text-lg font-bold">Submission Calendar</h3>
-                 <div className="text-xs text-[#e9d5ff]">
+                 <div className="text-xs text-text-secondary">
                     Total Active Days: <span className="text-white font-bold">{totalActiveDays}</span>
                  </div>
             </div>
@@ -91,7 +91,7 @@ const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
             <div className="overflow-x-auto custom-scrollbar pb-2">
                 <div className="min-w-[850px] px-2">
                     {/* Month Labels */}
-                    <div className="flex relative h-6 mb-2 text-xs text-[#e9d5ff] select-none">
+                    <div className="flex relative h-6 mb-2 text-xs text-text-secondary select-none">
                         {monthLabels.map((m, i) => {
                             // Prevent overlapping labels (simple heuristic)
                             if (i > 0 && (m.index - monthLabels[i-1].index) < 3) return null;
@@ -106,7 +106,7 @@ const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
                     {/* Grid */}
                     <div className="flex gap-[3px]">
                          {/* Day Labels (Mon, Wed, Fri) */}
-                        <div className="flex flex-col gap-[3px] text-[10px] text-[#e9d5ff] mr-2 select-none">
+                        <div className="flex flex-col gap-[3px] text-[10px] text-text-secondary mr-2 select-none">
                              <div className="h-[12px]"></div>
                              <span className="h-[12px] flex items-center">Mon</span>
                              <div className="h-[12px]"></div>
@@ -133,7 +133,7 @@ const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
             </div>
 
              {/* Legend */}
-            <div className="flex items-center justify-end gap-2 mt-4 text-xs text-[#e9d5ff] mr-4 select-none">
+            <div className="flex items-center justify-end gap-2 mt-4 text-xs text-text-secondary mr-4 select-none">
                 <span>Less</span>
                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#1f1f1f]`}></div>
                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#4c1d95]`}></div>
@@ -188,7 +188,7 @@ const CircleStats: React.FC<{ data: AllData }> = ({ data }) => {
                     </svg>
                     <div className="absolute flex flex-col items-center">
                         <span className="text-3xl font-bold text-white">{stats.total}</span>
-                        <span className="text-xs text-[#e9d5ff]">Days Tracked</span>
+                        <span className="text-xs text-text-secondary">Days Tracked</span>
                     </div>
                 </div>
                 <div className="flex flex-col gap-3 flex-1">
@@ -225,7 +225,7 @@ const BadgesSection: React.FC<{ achievements: any[] }> = ({ achievements }) => {
         <Card>
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold">Recent Badges</h3>
-                <span className="text-xs text-[#e9d5ff]">{achievements.length} Total</span>
+                <span className="text-xs text-text-secondary">{achievements.length} Total</span>
             </div>
             <div className="grid grid-cols-3 gap-4">
                 {recent.length > 0 ? recent.map((ach, i) => (
@@ -238,10 +238,10 @@ const BadgesSection: React.FC<{ achievements: any[] }> = ({ achievements }) => {
                              )}
                          </div>
                          <span className="text-xs font-medium line-clamp-2">{ach.title}</span>
-                         <span className="text-[10px] text-[#e9d5ff] mt-1">{new Date(ach.date).getFullYear()}</span>
+                         <span className="text-[10px] text-text-secondary mt-1">{new Date(ach.date).getFullYear()}</span>
                     </div>
                 )) : (
-                    <div className="col-span-3 text-center text-sm text-[#e9d5ff] py-4">No badges earned yet.</div>
+                    <div className="col-span-3 text-center text-sm text-text-secondary py-4">No badges earned yet.</div>
                 )}
             </div>
         </Card>
@@ -284,29 +284,29 @@ const ProfilePage: React.FC = () => {
                                 </div>
                             </div>
                             <h1 className="text-2xl font-bold">{userProfile.name}</h1>
-                            <p className="text-[#e9d5ff] text-sm mb-4">@{userProfile.name.toLowerCase().replace(/\s/g, '')}</p>
+                            <p className="text-text-secondary text-sm mb-4">@{userProfile.name.toLowerCase().replace(/\s/g, '')}</p>
                             
-                            <div className="w-full py-2 bg-[rgba(15,10,30,0.6)]/50 rounded-lg mb-4 border border-[rgba(139,92,246,0.35)]">
+                            <div className="w-full py-2 bg-white/[0.06]/50 rounded-lg mb-4 border border-accent-primary/35">
                                 <span className="text-accent-primary font-bold uppercase tracking-widest text-xs">Rank: {rank}</span>
                             </div>
 
-                            {userProfile.bio && <p className="text-sm text-[#e9d5ff] mb-6 px-2 italic">"{userProfile.bio}"</p>}
+                            {userProfile.bio && <p className="text-sm text-text-secondary mb-6 px-2 italic">"{userProfile.bio}"</p>}
 
                             <Button className="w-full mb-4" onClick={handleEditClick}>Edit Profile</Button>
 
-                            <div className="flex justify-center gap-4 w-full pt-4 border-t border-[rgba(139,92,246,0.35)]">
+                            <div className="flex justify-center gap-4 w-full pt-4 border-t border-accent-primary/35">
                                 {userProfile.location && (
-                                    <div className="flex items-center text-xs text-[#e9d5ff]" title="Location">
+                                    <div className="flex items-center text-xs text-text-secondary" title="Location">
                                         <MapPinIcon className="w-4 h-4 mr-1" /> {userProfile.location}
                                     </div>
                                 )}
                                 {userProfile.socials?.github && (
-                                    <a href={userProfile.socials.github} target="_blank" rel="noreferrer" className="text-[#e9d5ff] hover:text-white transition-colors">
+                                    <a href={userProfile.socials.github} target="_blank" rel="noreferrer" className="text-text-secondary hover:text-white transition-colors">
                                         <GithubIcon />
                                     </a>
                                 )}
                                 {userProfile.socials?.linkedin && (
-                                    <a href={userProfile.socials.linkedin} target="_blank" rel="noreferrer" className="text-[#e9d5ff] hover:text-white transition-colors">
+                                    <a href={userProfile.socials.linkedin} target="_blank" rel="noreferrer" className="text-text-secondary hover:text-white transition-colors">
                                         <LinkedinIcon />
                                     </a>
                                 )}
@@ -318,15 +318,15 @@ const ProfilePage: React.FC = () => {
                         <h3 className="font-bold text-md mb-3">Community Stats</h3>
                         <div className="space-y-3">
                             <div className="flex justify-between text-sm">
-                                <span className="text-[#e9d5ff]">Views</span>
+                                <span className="text-text-secondary">Views</span>
                                 <span className="font-mono">1.2k</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-[#e9d5ff]">Solution</span>
+                                <span className="text-text-secondary">Solution</span>
                                 <span className="font-mono">{achievements.length}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-[#e9d5ff]">Reputation</span>
+                                <span className="text-text-secondary">Reputation</span>
                                 <span className="font-mono">42</span>
                             </div>
                         </div>
@@ -336,9 +336,9 @@ const ProfilePage: React.FC = () => {
                          <h3 className="font-bold text-md mb-3">Skills</h3>
                          <div className="flex flex-wrap gap-2">
                              {skills.length > 0 ? skills.map(skill => (
-                                 <span key={skill} className="px-2 py-1 rounded bg-[rgba(15,10,30,0.6)] text-xs text-[#e9d5ff] border border-[rgba(139,92,246,0.35)] hover:border-accent-primary transition-colors cursor-default">{skill}</span>
+                                 <span key={skill} className="px-2 py-1 rounded bg-white/[0.06] text-xs text-text-secondary border border-accent-primary/35 hover:border-accent-primary transition-colors cursor-default">{skill}</span>
                              )) : (
-                                 <span className="text-xs text-[#e9d5ff] italic">No skills added yet.</span>
+                                 <span className="text-xs text-text-secondary italic">No skills added yet.</span>
                              )}
                          </div>
                     </Card>
@@ -363,9 +363,9 @@ const ProfilePage: React.FC = () => {
                                     const dayData = d as DailyData;
                                     const scores = Object.values(dayData.habitScores || {});
                                     return (
-                                    <div key={date} className="flex items-start gap-4 py-3 border-b border-[rgba(139,92,246,0.35)]/50 last:border-0">
+                                    <div key={date} className="flex items-start gap-4 py-3 border-b border-accent-primary/35/50 last:border-0">
                                         <div className="flex flex-col items-center min-w-[50px]">
-                                            <span className="text-xs font-bold text-[#e9d5ff] uppercase">{new Date(date).toLocaleDateString(undefined, { month: 'short' })}</span>
+                                            <span className="text-xs font-bold text-text-secondary uppercase">{new Date(date).toLocaleDateString(undefined, { month: 'short' })}</span>
                                             <span className="text-xl font-bold">{new Date(date).getDate()}</span>
                                         </div>
                                         <div>
@@ -373,7 +373,7 @@ const ProfilePage: React.FC = () => {
                                                 Completed <span className="font-bold text-accent-primary">{scores.filter((s: number) => (Number(s)||0) > 0).length} habits</span> with a total score of <span className="font-mono">{scores.reduce((a: number,b: number) => a+(Number(b)||0),0)}</span>.
                                             </p>
                                             {dayData.journal && (
-                                                <p className="text-xs text-[#e9d5ff] mt-1 italic line-clamp-1">"{dayData.journal}"</p>
+                                                <p className="text-xs text-text-secondary mt-1 italic line-clamp-1">"{dayData.journal}"</p>
                                             )}
                                         </div>
                                     </div>
@@ -387,3 +387,4 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+

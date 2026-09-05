@@ -52,7 +52,7 @@ const DialogTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingEl
 )
 
 const DialogDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-sm text-[#e9d5ff]", className)} {...props} />
+  <p className={cn("text-sm text-text-secondary", className)} {...props} />
 )
 
 const DialogClose = ({ className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
@@ -74,3 +74,4 @@ const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 
 export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter }
 export default Dialog
+

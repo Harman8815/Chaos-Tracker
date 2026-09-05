@@ -23,3 +23,4 @@ const StreakStats: React.FC<{ streaks: { name: string, streak: number }[] }> = (
 };
 
 export { StreakStats };
+

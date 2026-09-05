@@ -54,12 +54,12 @@ const GridView: React.FC<GridViewProps> = ({ achievements, onImageClick, onEdit 
                         onClick={() => onImageClick({ images: achievement.images, title: achievement.title })}
                     />
                     <div className="p-4 flex flex-col flex-grow">
-                        <span className="text-sm text-[#e9d5ff]">{new Date(achievement.date + 'T00:00:00').toLocaleDateString()}</span>
+                        <span className="text-sm text-text-secondary">{new Date(achievement.date + 'T00:00:00').toLocaleDateString()}</span>
                         <h3 className="text-xl font-bold mt-1">{achievement.title}</h3>
-                        <p className="text-sm text-[#e9d5ff] mt-2 flex-grow">{achievement.description}</p>
+                        <p className="text-sm text-text-secondary mt-2 flex-grow">{achievement.description}</p>
                         <div className="flex flex-wrap gap-2 mt-4">
                             {achievement.tags.map(tag => (
-                                <span key={tag} className="px-2 py-0.5 text-xs bg-[rgba(15,10,30,0.6)] rounded-full capitalize">{tag}</span>
+                                <span key={tag} className="px-2 py-0.5 text-xs bg-white/[0.06] rounded-full capitalize">{tag}</span>
                             ))}
                         </div>
                     </div>

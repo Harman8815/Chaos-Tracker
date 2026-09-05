@@ -350,7 +350,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                                 )}
                                 {!isCollapsed && (
                                     <span className={`ml-3 font-medium transition-all duration-200 truncate w-full
-                                        ${isSelected ? 'text-white' : 'text-[#e9d5ff] group-hover:text-white'}
+                                        ${isSelected ? 'text-white' : 'text-text-secondary group-hover:text-white'}
                                     `}>
                                         {item.name}
                                     </span>

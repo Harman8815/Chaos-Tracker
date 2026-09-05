@@ -38,3 +38,4 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
 };
 
 export { StreakBarChart };
+

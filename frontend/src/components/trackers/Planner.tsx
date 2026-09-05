@@ -147,7 +147,7 @@ const Planner: React.FC = () => {
 
             <div
                 ref={canvasRef}
-                className={`relative w-full h-[calc(100vh-8rem)] bg-[#0f0f23] border border-[rgba(139,92,246,0.35)] overflow-hidden rounded-lg shadow-inner ${interactionState?.type === 'pan' ? 'cursor-grabbing' : 'cursor-grab'} ${linking ? 'cursor-crosshair' : ''}`}
+                className={`relative w-full h-[calc(100vh-8rem)] bg-background border border-accent-primary/35 overflow-hidden rounded-lg shadow-inner ${interactionState?.type === 'pan' ? 'cursor-grabbing' : 'cursor-grab'} ${linking ? 'cursor-crosshair' : ''}`}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -234,7 +234,7 @@ const TodoBlockComponent: React.FC<TodoBlockProps> = ({ block, updateBlock, dele
         <div
             data-block-id={block.id}
             onClick={() => isLinking && finishLink(block.id)}
-            className={`absolute w-64 bg-[rgba(15,10,30,0.75)] rounded-lg shadow-lg border border-[rgba(139,92,246,0.35)] transition-all duration-100 ease-in-out flex flex-col ${isLinking ? 'cursor-crosshair hover:border-accent-primary' : ''}`}
+            className={`absolute w-64 bg-[rgba(15,10,30,0.75)] rounded-lg shadow-lg border border-accent-primary/35 transition-all duration-100 ease-in-out flex flex-col ${isLinking ? 'cursor-crosshair hover:border-accent-primary' : ''}`}
             style={{ top: block.y, left: block.x }}
         >
             <div data-dragger="true" className="p-2 bg-sidebar-bg rounded-t-lg flex justify-between items-center cursor-move">
@@ -242,12 +242,12 @@ const TodoBlockComponent: React.FC<TodoBlockProps> = ({ block, updateBlock, dele
                     type="text"
                     value={block.title}
                     onChange={handleTitleChange}
-                    className="bg-transparent font-bold w-full focus:outline-none focus:bg-[rgba(15,10,30,0.6)] rounded px-1"
+                    className="bg-transparent font-bold w-full focus:outline-none focus:bg-white/[0.06] rounded px-1"
                     onMouseDown={e => e.stopPropagation()}
                 />
                 <div className="flex items-center">
-                    <button onClick={(e) => { e.stopPropagation(); startLink(block.id); }} className="p-1 text-[#e9d5ff] hover:text-accent-primary" title="Link Block">🔗</button>
-                    <button onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} className="p-1 text-[#e9d5ff] hover:text-red-500" title="Delete Block">🗑️</button>
+                    <button onClick={(e) => { e.stopPropagation(); startLink(block.id); }} className="p-1 text-text-secondary hover:text-accent-primary" title="Link Block">🔗</button>
+                    <button onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} className="p-1 text-text-secondary hover:text-red-500" title="Delete Block">🗑️</button>
                 </div>
             </div>
             <div className="p-2 space-y-2 max-h-60 overflow-y-auto">
@@ -259,14 +259,14 @@ const TodoBlockComponent: React.FC<TodoBlockProps> = ({ block, updateBlock, dele
                     </div>
                 ))}
             </div>
-            <form onSubmit={handleAddTask} className="p-2 border-t border-[rgba(139,92,246,0.35)]">
+            <form onSubmit={handleAddTask} className="p-2 border-t border-accent-primary/35">
                 <input
                     ref={inputRef}
                     type="text"
                     value={newTaskText}
                     onChange={e => setNewTaskText(e.target.value)}
                     placeholder="+ Add a task"
-                    className="w-full bg-[rgba(15,10,30,0.6)] text-sm px-2 py-1 rounded border border-transparent focus:outline-none focus:border-accent-primary"
+                    className="w-full bg-white/[0.06] text-sm px-2 py-1 rounded border border-transparent focus:outline-none focus:border-accent-primary"
                     onMouseDown={e => e.stopPropagation()}
                 />
             </form>
@@ -275,3 +275,4 @@ const TodoBlockComponent: React.FC<TodoBlockProps> = ({ block, updateBlock, dele
 }
 
 export default Planner;
+

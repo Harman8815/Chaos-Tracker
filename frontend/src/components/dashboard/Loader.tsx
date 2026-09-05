@@ -5,3 +5,4 @@ const Loader: React.FC = () => (
 );
 
 export { Loader };
+
