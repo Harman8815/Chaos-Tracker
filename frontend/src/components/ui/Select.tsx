@@ -1,34 +1,26 @@
-import React from 'react';
+import * as React from "react"
+import { cn } from "@/lib/utils"
+import { ChevronDown } from "lucide-react"
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
-  error?: string;
-  options: { value: string; label: string }[];
-}
-
-const Select: React.FC<SelectProps> = ({ label, error, options, className = '', ...props }) => {
+const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(({ className, ...props }, ref) => {
   return (
-    <div className="space-y-2">
-      {label && (
-        <label className="block text-sm font-medium text-white">
-          {label}
-        </label>
-      )}
+    <div className="relative">
       <select
-        className={`w-full px-4 py-2.5 bg-white/[0.06] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all duration-200 ${error ? 'border-error' : ''} ${className}`}
+        className={cn(
+          "flex h-9 w-full appearance-none rounded-md border border-white/10 bg-white/[0.06] px-3 py-1 text-sm text-white shadow-sm transition-colors",
+          "placeholder:text-[#71717a]",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
         {...props}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      {error && (
-        <p className="text-sm text-error">{error}</p>
-      )}
+      />
+      <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-[#a1a1aa] pointer-events-none" />
     </div>
-  );
-};
+  )
+})
+Select.displayName = "Select"
 
-export default Select;
+export { Select }
+export default Select
