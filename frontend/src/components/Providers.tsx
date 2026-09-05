@@ -22,6 +22,7 @@ import EditHabitsModal from './EditHabitsModal';
 import EditRulesModal from './EditRulesModal';
 import LoginPage from './auth/LoginPage';
 import SignUpPage from './auth/SignUpPage';
+import VantaBackground from './VantaBackground';
 
 const getToday = () => {
     const d = new Date();
@@ -250,6 +251,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
+                    <VantaBackground />
                     {!mounted ? (
                         <div className="w-full h-full flex items-center justify-center relative">
                             <div className="text-text-secondary">Loading...</div>
