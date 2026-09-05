@@ -6,24 +6,22 @@ import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, GoalData, E
 import { DUMMY_DATA } from '../data/dummy_data';
 import { DUMMY_QUOTES } from '../data/quotes_data';
 import { DUMMY_ACHIEVEMENTS } from '../data/achievements_data';
-import Sidebar from './Sidebar';
-import SettingsModal from './SettingsModal';
 import { DEFAULT_HABITS, DEFAULT_SCORING_RULES } from '../constants';
-import EditHabitsModal from './EditHabitsModal';
-import EditRulesModal from './EditRulesModal';
+import { v4 as uuidv4 } from 'uuid';
+import { fetchAppData } from '../api/services';
+import { DataContext } from '../context/DataContext';
+import { SettingsContext } from '../context/SettingsContext';
 import { ToolsProvider, useTools } from './ToolsProvider';
 import FloatingTools from './common/FloatingTools';
 import DraggableResizableModal from './common/DraggableResizableModal';
 import Calculator from './tools/Calculator';
 import Clock from './tools/Clock';
 import ChatTool from './tools/ChatTool';
+import SettingsModal from './SettingsModal';
+import EditHabitsModal from './EditHabitsModal';
+import EditRulesModal from './EditRulesModal';
 import LoginPage from './auth/LoginPage';
 import SignUpPage from './auth/SignUpPage';
-import { v4 as uuidv4 } from 'uuid';
-import { fetchAppData } from '../api/services';
-import { DataContext } from '../context/DataContext';
-import { SettingsContext } from '../context/SettingsContext';
-import VantaBackground from './VantaBackground';
 
 const getToday = () => {
     const d = new Date();
@@ -182,7 +180,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isEditHabitsModalOpen, setIsEditHabitsModalOpen] = useState(false);
     const [isEditRulesModalOpen, setIsEditRulesModalOpen] = useState(false);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     const today = getToday();
@@ -221,7 +218,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    // API Data Sync Effect
     useEffect(() => {
         const syncData = async () => {
             if (!isAuthenticated) return;
@@ -254,35 +250,27 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
-                    <VantaBackground />
-                    <div className={`flex h-screen font-sans text-white bg-[#0f0f23] theme-${settings.theme}`}>
-                        {!mounted ? (
-                            <div className="w-full h-full flex items-center justify-center relative">
-                                <div className="text-[#e9d5ff]">Loading...</div>
-                            </div>
-                        ) : !isAuthenticated ? (
-                            <div className="w-full h-full flex items-center justify-center relative">
-                                {authView === 'login' ? (
-                                    <LoginPage onLogin={login} onSwitchToSignUp={() => setAuthView('signup')} />
-                                ) : (
-                                    <SignUpPage onSignUp={login} onSwitchToLogin={() => setAuthView('login')} />
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <Sidebar
-                                    isCollapsed={isSidebarCollapsed}
-                                    toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                />
-                                <div className={`flex-1 h-full overflow-hidden relative z-10 transition-all duration-300`}>
-                                    {children}
-                                </div>
-                            </>
-                        )}
-                        {isSettingsModalOpen && <SettingsModal />}
-                        {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
-                        {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
-                    </div>
+                    {!mounted ? (
+                        <div className="w-full h-full flex items-center justify-center relative">
+                            <div className="text-text-secondary">Loading...</div>
+                        </div>
+                    ) : !isAuthenticated ? (
+                        <div className="w-full h-full flex items-center justify-center relative">
+                            {authView === 'login' ? (
+                                <LoginPage onLogin={login} onSwitchToSignUp={() => setAuthView('signup')} />
+                            ) : (
+                                <SignUpPage onSignUp={login} onSwitchToLogin={() => setAuthView('login')} />
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            {children}
+                            <ToolManager />
+                            {isSettingsModalOpen && <SettingsModal />}
+                            {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+                            {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
+                        </>
+                    )}
                 </ToolsProvider>
             </DataContext.Provider>
         </SettingsContext.Provider>
