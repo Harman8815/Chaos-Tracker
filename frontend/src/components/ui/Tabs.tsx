@@ -10,7 +10,7 @@ const Tabs = ({ value, onValueChange, children, className }: { value: string; on
 )
 
 const TabsList = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("inline-flex h-10 items-center justify-center rounded-lg bg-white/[0.06] p-1 text-[#a1a1aa]", className)} {...props} />
+  <div className={cn("inline-flex h-10 items-center justify-center rounded-lg bg-white/[0.06] p-1 text-text-secondary", className)} {...props} />
 )
 
 const TabsTrigger = ({ value, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { value: string }) => {

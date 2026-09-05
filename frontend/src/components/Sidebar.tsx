@@ -215,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
             <div className="flex items-center w-full px-4 py-4">
                 <button
                     onClick={toggleSidebar}
-                    className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-white/[0.08]"
+                    className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-text-secondary hover:text-white focus:outline-none hover:bg-white/[0.08]"
                     aria-label={isCollapsed ? "Open menu" : "Close menu"}
                 >
                     <MenuIcon className="w-5 h-5" />
@@ -264,7 +264,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                     {showWave && reducedMotion && (
                         <div
                             aria-hidden
-                            className="absolute inset-x-0 rounded-xl bg-[#4c1d95] shadow-[0_0_18px_rgba(99,102,241,0.45)] pointer-events-none z-0"
+                            className="absolute inset-x-0 rounded-xl bg-accent-primary shadow-[0_0_18px_rgba(99,102,241,0.45)] pointer-events-none z-0"
                             style={{ top: (centers[activeIndex] ?? 0) - ITEM_HEIGHT / 2, height: ITEM_HEIGHT }}
                         />
                     )}
@@ -299,7 +299,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                                     width: badgeSize,
                                     height: badgeSize,
                                     opacity: settleProgress,
-                                    background: '#4c1d95',
+                                    background: 'rgba(var(--color-accent-primary-rgb), 0.4)',
                                     ...badgeLeftStyle,
                                 }}
                             />
@@ -327,7 +327,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                                 prefetch
                                 onClick={onNavigate}
                                 className={`relative flex items-center transition-colors duration-200 focus:outline-none z-10 group
-                                ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.08]'}
+                                ${isSelected ? 'text-text-inverse' : 'text-text-secondary hover:text-white hover:bg-white/[0.08]'}
                                 ${isCollapsed
                                     ? (isSelected ? 'w-14 h-14 mx-auto justify-center rounded-full my-5' : 'w-12 h-12 mx-auto justify-center rounded-xl')
                                     : `w-full h-12 px-3 rounded-xl ${isSelected ? 'my-4' : ''}`
@@ -374,7 +374,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                         {userProfile.avatar ? (
                             <img src={userProfile.avatar} alt={userProfile.name} className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm shadow-[0_0_12px_rgba(139,92,246,0.55)]">
+                            <div className="w-full h-full bg-accent-primary flex items-center justify-center text-white font-bold text-sm shadow-[0_0_12px_rgba(139,92,246,0.55)]">
                                 {initials}
                             </div>
                         )}
@@ -382,7 +382,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
 
                     <button
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-white/[0.08]"
+                        className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-text-secondary hover:text-white focus:outline-none hover:bg-white/[0.08]"
                         aria-label="Settings"
                     >
                         <SettingsIcon className="w-5 h-5" />

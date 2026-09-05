@@ -51,7 +51,7 @@ const PopoverContent = ({ className, align = "center", children, ...props }: Rea
       <div
         ref={ref}
         className={cn(
-          "z-50 min-w-[8rem] rounded-md border border-white/10 bg-[#1a1a1a] p-1 text-white shadow-md",
+          "z-50 min-w-[8rem] rounded-md border border-white/10 bg-background p-1 text-white shadow-md",
           className
         )}
         {...props}

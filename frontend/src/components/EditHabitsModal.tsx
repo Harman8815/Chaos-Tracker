@@ -79,7 +79,7 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
                                     type="text"
                                     value={habit.name}
                                     onChange={e => handleHabitChange(habit.id, 'name', e.target.value)}
-                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                             <div className="col-span-3">
@@ -88,7 +88,7 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
                                     type="number"
                                     value={habit.rangeMax ?? 10}
                                     onChange={e => handleHabitChange(habit.id, 'rangeMax', parseInt(e.target.value))}
-                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                             <div className="col-span-3">
@@ -97,7 +97,7 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
                                     type="number"
                                     value={habit.target}
                                     onChange={e => handleHabitChange(habit.id, 'target', parseInt(e.target.value))}
-                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                                    className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                             <div className="col-span-1 flex items-end">

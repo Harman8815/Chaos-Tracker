@@ -72,11 +72,11 @@ const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
     }, [data]);
 
     const getColor = (count: number) => {
-        if (count === 0) return 'bg-[#1f1f1f]'; // Inactive - Dark Gray
-        if (count <= 10) return 'bg-[#4c1d95]'; // Low - Dark Violet
-        if (count <= 20) return 'bg-[#6d28d9]'; // Medium - Violet
-        if (count <= 30) return 'bg-[#8b5cf6]'; // High - Light Violet
-        return 'bg-[#c4b5fd]';                   // Max - Bright Violet
+        if (count === 0) return 'bg-input-bg'; // Inactive
+        if (count <= 10) return 'bg-accent-primary/40'; // Low
+        if (count <= 20) return 'bg-accent-primary/60'; // Medium
+        if (count <= 30) return 'bg-accent-primary'; // High
+        return 'bg-accent-primary/90'; // Max
     };
 
     return (
@@ -135,11 +135,11 @@ const Heatmap: React.FC<{ data: AllData }> = ({ data }) => {
              {/* Legend */}
             <div className="flex items-center justify-end gap-2 mt-4 text-xs text-text-secondary mr-4 select-none">
                 <span>Less</span>
-                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#1f1f1f]`}></div>
-                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#4c1d95]`}></div>
-                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#6d28d9]`}></div>
-                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#8b5cf6]`}></div>
-                <div className={`w-[12px] h-[12px] rounded-[2px] bg-[#c4b5fd]`}></div>
+                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-input-bg`}></div>
+                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-accent-primary/40`}></div>
+                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-accent-primary/60`}></div>
+                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-accent-primary`}></div>
+                 <div className={`w-[12px] h-[12px] rounded-[2px] bg-accent-primary/90`}></div>
                 <span>More</span>
             </div>
         </Card>
@@ -182,9 +182,9 @@ const CircleStats: React.FC<{ data: AllData }> = ({ data }) => {
                     <svg width="160" height="160" className="transform -rotate-90">
                         <circle cx="80" cy="80" r={radius} fill="transparent" stroke="var(--color-input-bg)" strokeWidth="8" />
                         {/* Segments - simplified stacking for visual donut */}
-                        <circle cx="80" cy="80" r={radius} fill="transparent" stroke="#10b981" strokeWidth="8" strokeDasharray={`${perfectDash} ${circumference}`} strokeDashoffset="0" />
-                        <circle cx="80" cy="80" r={radius} fill="transparent" stroke="#f59e0b" strokeWidth="8" strokeDasharray={`${goodDash} ${circumference}`} strokeDashoffset={-perfectDash} />
-                        <circle cx="80" cy="80" r={radius} fill="transparent" stroke="#3b82f6" strokeWidth="8" strokeDasharray={`${fairDash} ${circumference}`} strokeDashoffset={-(perfectDash + goodDash)} />
+                        <circle cx="80" cy="80" r={radius} fill="transparent" stroke="hsl(var(--color-success))" strokeWidth="8" strokeDasharray={`${perfectDash} ${circumference}`} strokeDashoffset="0" />
+                        <circle cx="80" cy="80" r={radius} fill="transparent" stroke="hsl(var(--color-warning))" strokeWidth="8" strokeDasharray={`${goodDash} ${circumference}`} strokeDashoffset={-perfectDash} />
+                        <circle cx="80" cy="80" r={radius} fill="transparent" stroke="hsl(var(--color-info))" strokeWidth="8" strokeDasharray={`${fairDash} ${circumference}`} strokeDashoffset={-(perfectDash + goodDash)} />
                     </svg>
                     <div className="absolute flex flex-col items-center">
                         <span className="text-3xl font-bold text-white">{stats.total}</span>

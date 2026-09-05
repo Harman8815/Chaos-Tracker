@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const CHART_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#14b8a6'];
+const CHART_COLORS = ['hsl(var(--color-accent-primary))', 'hsl(var(--color-accent-secondary))', 'hsl(var(--color-info))', 'hsl(var(--color-success))', 'hsl(var(--color-warning))', 'hsl(var(--color-destructive))', 'hsl(var(--color-info))', 'hsl(var(--color-success))'];
 
 const NoData: React.FC = () => <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
 

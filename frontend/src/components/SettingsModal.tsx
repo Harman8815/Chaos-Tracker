@@ -38,7 +38,7 @@ const SettingsModal: React.FC = () => {
                             <button
                                 key={theme}
                                 onClick={() => handleThemeChange(theme)}
-                                className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-[#8b5cf6] text-white' : 'bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)]'}`}
+                                className={`w-full py-2 rounded-md text-sm capitalize transition-colors ${settings.theme === theme ? 'bg-accent-primary text-white' : 'bg-white/[0.06] hover:bg-accent-primary/35'}`}
                             >
                                 {t(theme)}
                             </button>
@@ -54,7 +54,7 @@ const SettingsModal: React.FC = () => {
                             <button
                                 key={format}
                                 onClick={() => handleTimeFormatChange(format)}
-                                className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-[#8b5cf6] text-white' : 'bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)]'}`}
+                                className={`w-full py-2 rounded-md text-sm ${settings.timeFormat === format ? 'bg-accent-primary text-white' : 'bg-white/[0.06] hover:bg-accent-primary/35'}`}
                             >
                                 {format === '12h' ? t('12-Hour') : t('24-Hour')}
                             </button>
@@ -68,7 +68,7 @@ const SettingsModal: React.FC = () => {
                     <select
                         value={settings.language}
                         onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                        className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
+                        className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                         <option value="en">{t('English')}</option>
                         <option value="es">{t('Español')}</option>
@@ -93,7 +93,7 @@ const SettingsModal: React.FC = () => {
                                 }
                             }
                         }}
-                        className="w-full py-2 rounded-md text-sm font-semibold text-accent-primary bg-[#8b5cf6]/10 hover:bg-accent-primary/20 transition-colors"
+                        className="w-full py-2 rounded-md text-sm font-semibold text-accent-primary bg-accent-primary/10 hover:bg-accent-primary/20 transition-colors"
                     >
                         Populate Dummy Data
                     </button>
@@ -101,7 +101,7 @@ const SettingsModal: React.FC = () => {
 
                 <button
                     onClick={() => setIsSettingsModalOpen(false)}
-                    className="w-full py-2 rounded-md font-semibold text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] mb-4"
+                    className="w-full py-2 rounded-md font-semibold text-white bg-accent-primary hover:bg-accent-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary mb-4"
                 >
                     {t('Close')}
                 </button>

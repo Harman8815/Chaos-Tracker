@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 const Command = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-xl bg-[#1a1a1a] border border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] backdrop-blur-xl",
+      "flex h-full w-full flex-col overflow-hidden rounded-xl bg-background border border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] backdrop-blur-xl",
       className
     )}
     {...props}
@@ -14,10 +14,10 @@ const Command = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) 
 
 const CommandInput = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <div className="flex items-center border-b border-white/10 px-3">
-    <Search className="mr-2 h-4 w-4 shrink-0 text-[#a1a1aa]" />
+    <Search className="mr-2 h-4 w-4 shrink-0 text-text-secondary" />
     <input
       className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm text-white outline-none placeholder:text-[#a1a1aa] disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm text-white outline-none placeholder:text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}

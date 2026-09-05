@@ -163,14 +163,14 @@ const Planner: React.FC = () => {
                     <svg className="absolute top-0 left-0 overflow-visible pointer-events-none">
                         <defs>
                             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(var(--color-accent-primary))" />
                             </marker>
                         </defs>
                         {links.map(link => {
                             const fromPos = blockPositions.get(link.from);
                             const toPos = blockPositions.get(link.to);
                             if (!fromPos || !toPos) return null;
-                            return <path key={link.id} d={`M ${fromPos.x} ${fromPos.y} L ${toPos.x} ${toPos.y}`} stroke="#8b5cf6" strokeWidth="2" markerEnd="url(#arrow)" />;
+                            return <path key={link.id} d={`M ${fromPos.x} ${fromPos.y} L ${toPos.x} ${toPos.y}`} stroke="hsl(var(--color-accent-primary))" strokeWidth="2" markerEnd="url(#arrow)" />;
                         })}
                     </svg>
 

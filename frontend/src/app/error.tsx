@@ -39,7 +39,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="text-[#e9d5ff] max-w-md mx-auto mb-8 text-lg"
+                    className="text-accent-primary/80 max-w-md mx-auto mb-8 text-lg"
                 >
                     Something went wrong on our end. Please try again or return to a safe page.
                 </motion.p>
@@ -52,13 +52,13 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                 >
                     <button
                         onClick={reset}
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-semibold transition-colors duration-200"
+                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-accent-primary hover:bg-accent-primary-hover text-white font-semibold transition-colors duration-200"
                     >
                         Try Again
                     </button>
                     <Link
                         href="/"
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[rgba(15,10,30,0.6)] hover:bg-[rgba(139,92,246,0.35)] text-white font-semibold transition-colors duration-200"
+                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-white/[0.06] hover:bg-accent-primary/35 text-white font-semibold transition-colors duration-200"
                     >
                         Go Home
                     </Link>
@@ -69,7 +69,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8 }}
-                        className="mt-8 p-4 rounded-lg bg-[rgba(15,10,30,0.75)] border border-[rgba(139,92,246,0.35)] text-left text-sm text-[#e9d5ff] max-w-lg mx-auto"
+                        className="mt-8 p-4 rounded-lg bg-white/[0.06] border border-accent-primary/35 text-left text-sm text-accent-primary/80 max-w-lg mx-auto"
                     >
                         <p className="font-bold text-white mb-2">Development Error Details</p>
                         <p className="break-words">{error.message}</p>

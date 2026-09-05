@@ -21,7 +21,7 @@ const Tooltip = ({ open, onOpenChange, children, content, side = "top", align = 
       <div className="relative inline-flex" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
         {children}
         {isOpen && (
-          <div className={cn("absolute z-50 max-w-xs rounded-md bg-[#262626] px-3 py-1.5 text-sm text-white shadow-md border border-white/10", sideClasses[side])}>
+          <div className={cn("absolute z-50 max-w-xs rounded-md bg-surface-elevated px-3 py-1.5 text-sm text-white shadow-md border border-white/10", sideClasses[side])}>
             {content}
           </div>
         )}

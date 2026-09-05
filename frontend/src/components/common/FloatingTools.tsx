@@ -38,7 +38,7 @@ const FloatingTools: React.FC = () => {
             )}
             <button
                 onClick={() => setIsOpen(prev => !prev)}
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] text-white flex items-center justify-center shadow-[0_0_18px_rgba(139,92,246,0.65)] transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary focus:ring-offset-background"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-primary to-accent-secondary text-white flex items-center justify-center shadow-[0_0_18px_rgba(139,92,246,0.65)] transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary focus:ring-offset-background"
                 aria-label={isOpen ? "Close tools menu" : "Open tools menu"}
                 aria-expanded={isOpen}
             >

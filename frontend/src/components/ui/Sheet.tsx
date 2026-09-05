@@ -31,7 +31,7 @@ const Sheet = ({ open, onOpenChange, children, side = "right" }: { open: boolean
   return (
     <div className="fixed inset-0 z-50">
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
-      <div className={cn("fixed z-50 bg-[#1a1a1a] border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] backdrop-blur-xl transition-transform duration-300", sideClasses[side], positionClasses[side])}>
+      <div className={cn("fixed z-50 bg-background border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] backdrop-blur-xl transition-transform duration-300", sideClasses[side], positionClasses[side])}>
         <button
           onClick={() => onOpenChange(false)}
           className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none"

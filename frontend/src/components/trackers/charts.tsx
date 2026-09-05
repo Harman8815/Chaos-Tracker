@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 
-const CHART_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#14b8a6'];
+const CHART_COLORS = ['hsl(var(--color-accent-primary))', 'hsl(var(--color-accent-secondary))', 'hsl(var(--color-info))', 'hsl(var(--color-success))', 'hsl(var(--color-warning))', 'hsl(var(--color-destructive))', 'hsl(var(--color-info))', 'hsl(var(--color-success))'];
 
 const PieChart: React.FC<{ data: { name: string; value: number }[], colors?: string[] }> = ({ data, colors = CHART_COLORS }) => {
     const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -35,7 +35,7 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], colors?: str
     );
 };
 
-const BarChart: React.FC<{ data: { label: string; value: number }[], color?: string }> = ({ data, color = '#6366f1' }) => {
+const BarChart: React.FC<{ data: { label: string; value: number }[], color?: string }> = ({ data, color = 'hsl(var(--color-accent-primary))' }) => {
     const maxValue = Math.max(...data.map(d => d.value), 1);
     return (
         <div className="flex justify-around items-end h-48 w-full gap-4 px-2">
