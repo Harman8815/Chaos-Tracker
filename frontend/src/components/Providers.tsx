@@ -24,6 +24,7 @@ import { fetchAppData } from '../api/services';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { Menu } from 'lucide-react';
+import VantaBackground from './VantaBackground';
 
 const getToday = () => {
     const d = new Date();
@@ -201,9 +202,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 setIsMobileMenuOpen(false);
             } else if (width >= 768 && width < 1280) {
                 setSidebarState('collapsed');
+                setIsSidebarCollapsed(true);
                 setIsMobileMenuOpen(false);
             } else {
                 setSidebarState('expanded');
+                setIsSidebarCollapsed(false);
                 setIsMobileMenuOpen(false);
             }
         };
@@ -276,6 +279,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
             <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
                 <ToolsProvider>
+                    <VantaBackground />
                     <div className={`flex h-screen font-sans text-white bg-[#0f0f23] theme-${settings.theme}`}>
                         {!mounted ? (
                             <div className="w-full h-full flex items-center justify-center relative">
