@@ -25,8 +25,8 @@ const BarChart: React.FC<ChartProps> = ({
     data,
     height = 250,
     totalBars,
-    normalColor = "#6366f1",
-    hoverColor = "#818cf8",
+    normalColor = "var(--color-accent-primary)",
+    hoverColor = "var(--color-accent-primary-hover)",
     highlightedBarName,
 }) => {
     // Default to today's date number if not provided
@@ -56,7 +56,7 @@ const BarChart: React.FC<ChartProps> = ({
 
     if (!data || data.length === 0) {
         return (
-            <div className="p-6 text-center text-[#e9d5ff]">
+            <div className="p-6 text-center text-text-secondary">
                 No data available.
             </div>
         );
@@ -64,7 +64,7 @@ const BarChart: React.FC<ChartProps> = ({
 
     return (
         <div className="w-full bg-transparent rounded-lg p-2">
-            <h2 className="text-xl font-semibold mb-4 text-white">
+            <h2 className="text-xl font-semibold mb-4 text-text-primary">
                 {title}
             </h2>
             <ResponsiveContainer width="100%" height={height}>
@@ -90,13 +90,13 @@ const BarChart: React.FC<ChartProps> = ({
                     <Tooltip
                         formatter={(v: number) => Number(v.toFixed(2))}
                         contentStyle={{
-                            backgroundColor: "rgba(15,10,30,0.75)",
-                            border: "1px solid rgba(139,92,246,0.35)",
+                            backgroundColor: "var(--color-surface)",
+                            border: "1px solid var(--color-border)",
                             borderRadius: "6px",
                         }}
-                        cursor={{ fill: "rgba(15,10,30,0.6)" }}
-                        labelStyle={{ color: "#ffffff" }}
-                        itemStyle={{ color: "#e9d5ff" }}
+                        cursor={{ fill: "var(--color-surface)" }}
+                        labelStyle={{ color: "var(--color-text-primary)" }}
+                        itemStyle={{ color: "var(--color-text-secondary)" }}
                     />
                     <Bar
                         dataKey="value"
