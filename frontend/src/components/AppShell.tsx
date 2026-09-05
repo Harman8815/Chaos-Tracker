@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutDashboard, Target, Calendar, Wallet, BookOpen, Smile, Droplets, Footprints, Star, Trophy, Quote, Menu, Settings, User } from "lucide-react"
+import { Home, LayoutDashboard, Target, Calendar, Wallet, BookOpen, Smile, Droplets, Footprints, Star, Trophy, Quote, Menu, Settings, User, Activity } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/Sheet"
 import { Button } from "@/components/ui/Button"
 import { Separator } from "@/components/ui/Separator"
@@ -22,6 +22,9 @@ const navItems = [
   { id: 'points', name: 'Points', icon: Star, href: '/points' },
   { id: 'achievements', name: 'Achievements', icon: Trophy, href: '/achievements' },
   { id: 'quotes', name: 'Quotes', icon: Quote, href: '/quotes' },
+  { id: 'habits', name: 'Habits', icon: Activity, href: '/habits' },
+  { id: 'mood', name: 'Mood', icon: Smile, href: '/mood' },
+  { id: 'water', name: 'Water', icon: Droplets, href: '/water' },
 ]
 
 function getInitials(name: string) {

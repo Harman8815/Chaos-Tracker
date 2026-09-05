@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Tracker, Habit, ScoringRule } from './types';
 import { v4 as uuidv4 } from 'uuid';
-import { LayoutGrid, TrendingUp, BookOpen, Wallet, Target, Quote, Trophy } from 'lucide-react';
+import { LayoutGrid, TrendingUp, BookOpen, Wallet, Target, Quote, Trophy, Activity, Smile, Droplets } from 'lucide-react';
 
 export const TRACKERS: Tracker[] = [
     { id: 'planner', name: 'Planner', icon: LayoutGrid },
@@ -11,6 +11,9 @@ export const TRACKERS: Tracker[] = [
     { id: 'goals', name: 'Goals', icon: Target },
     { id: 'quotes', name: 'Quotes', icon: Quote },
     { id: 'achievements', name: 'Achievements', icon: Trophy },
+    { id: 'habits', name: 'Habits', icon: Activity },
+    { id: 'mood', name: 'Mood', icon: Smile },
+    { id: 'water', name: 'Water', icon: Droplets },
 ];
 
 export const DEFAULT_HABITS: Habit[] = [

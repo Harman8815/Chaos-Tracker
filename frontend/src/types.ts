@@ -56,7 +56,7 @@ export interface Achievement {
   coverImage?: string; // Main image for grid view
 }
 
-export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'achievements' | 'profile' | 'edit-profile';
+export type PageId = 'home' | 'dashboard' | 'planner' | 'points' | 'journal' | 'settings' | 'expense' | 'goals' | 'quotes' | 'achievements' | 'profile' | 'edit-profile' | 'habits' | 'mood' | 'water';
 export type ToolId = 'calculator' | 'clock' | 'chat';
 
 export interface Tracker {
