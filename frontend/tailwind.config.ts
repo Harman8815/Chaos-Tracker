@@ -38,9 +38,37 @@ export default {
         'info-bg': 'var(--color-info-bg)',
         shadow: 'var(--color-shadow)',
         'shadow-subtle': 'var(--color-shadow-subtle)',
+
+        primary: 'var(--color-primary)',
+        'primary-foreground': 'var(--color-primary-foreground)',
+        secondary: 'var(--color-secondary)',
+        'secondary-foreground': 'var(--color-secondary-foreground)',
+        muted: 'var(--color-muted)',
+        'muted-foreground': 'var(--color-muted-foreground)',
+        accent: 'var(--color-accent)',
+        'accent-foreground': 'var(--color-accent-foreground)',
+        destructive: 'var(--color-destructive)',
+        'destructive-foreground': 'var(--color-destructive-foreground)',
+        ring: 'var(--color-ring)',
+        input: 'var(--color-input)',
       },
       fontFamily: {
         sans: ['var(--font-family-sans)', 'sans-serif'],
+      },
+      borderRadius: {
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
+      },
+      keyframes: {
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-in-up": "fade-in-up 0.5s ease-out forwards",
       },
     },
   },
