@@ -2,11 +2,14 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Goal, GoalCategory, GoalStatus } from '../../types';
 import goalService from '../../services/goalService';
 import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp } from 'lucide-react';
+import { PieChart, BarChart } from './charts';
 
 const TrashIcon = Trash2;
 const BlockIcon = Ban;
@@ -20,59 +23,6 @@ const FilterIcon = Filter;
 const CalendarIcon = Calendar;
 const TargetIcon = Target;
 const TrendingUpIcon = TrendingUp;
-
-// --- Sub-components ---
-
-const PieChart: React.FC<{ data: { name: string; value: number }[], colors: string[] }> = ({ data, colors }) => {
-    const total = data.reduce((sum, d) => sum + d.value, 0);
-    if (total === 0) return <div className="text-center text-[#e9d5ff] p-4 h-full flex items-center justify-center">No data to display.</div>;
-
-    let startAngle = -90;
-    return (
-        <div className="flex items-center justify-center gap-6">
-            <svg width="150" height="150" viewBox="0 0 150 150">
-                {data.map((slice, i) => {
-                    const angle = (slice.value / total) * 360;
-                    const endAngle = startAngle + angle;
-                    const x1 = 75 + 75 * Math.cos(startAngle * Math.PI / 180);
-                    const y1 = 75 + 75 * Math.sin(startAngle * Math.PI / 180);
-                    const x2 = 75 + 75 * Math.cos(endAngle * Math.PI / 180);
-                    const y2 = 75 + 75 * Math.sin(endAngle * Math.PI / 180);
-                    const largeArcFlag = angle > 180 ? 1 : 0;
-                    const pathData = `M 75,75 L ${x1},${y1} A 75,75 0 ${largeArcFlag},1 ${x2},${y2} Z`;
-                    startAngle = endAngle;
-                    return <path key={slice.name} d={pathData} fill={colors[i % colors.length]} />;
-                })}
-            </svg>
-            <div className="flex flex-col space-y-1">
-                {data.map((slice, i) => (
-                    <div key={slice.name} className="flex items-center text-sm">
-                        <div className="w-3 h-3 rounded-sm mr-2" style={{ backgroundColor: colors[i % colors.length] }} />
-                        <span>{slice.name} ({((slice.value / total) * 100).toFixed(0)}%)</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const BarChart: React.FC<{ data: { label: string; value: number }[], color: string }> = ({ data, color }) => {
-    const maxValue = Math.max(...data.map(d => d.value), 1);
-    return (
-        <div className="flex justify-around items-end h-48 w-full gap-4 px-2">
-            {data.map(item => (
-                <div key={item.label} className="flex flex-col items-center justify-end h-full w-full">
-                    <div className="text-sm font-bold">{item.value}</div>
-                    <div
-                        className="w-full rounded-t-md"
-                        style={{ height: `${(item.value / maxValue) * 80}%`, backgroundColor: color }}
-                    />
-                    <div className="text-xs text-[#e9d5ff] mt-1">{item.label}</div>
-                </div>
-            ))}
-        </div>
-    );
-};
 
 const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals, onClose }) => {
     const stats = useMemo(() => {
@@ -122,13 +72,13 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-3xl font-bold">Goals Dashboard</h2>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-[rgba(15,10,30,0.6)]"><CloseIcon /></button>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-white/[0.08]"><CloseIcon /></button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <Card><div className="text-2xl font-bold">{stats.completed}</div><div className="text-sm text-[#e9d5ff]">Completed</div></Card>
-                    <Card><div className="text-2xl font-bold">{stats.active}</div><div className="text-sm text-[#e9d5ff]">Active</div></Card>
-                    <Card><div className="text-2xl font-bold">{stats.blocked}</div><div className="text-sm text-[#e9d5ff]">Blocked</div></Card>
-                    <Card><div className="text-2xl font-bold">{stats.trashed}</div><div className="text-sm text-[#e9d5ff]">Trashed</div></Card>
+                    <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-white">{stats.completed}</div><div className="text-sm text-text-secondary">Completed</div></CardContent></Card>
+                    <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-white">{stats.active}</div><div className="text-sm text-text-secondary">Active</div></CardContent></Card>
+                    <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-white">{stats.blocked}</div><div className="text-sm text-text-secondary">Blocked</div></CardContent></Card>
+                    <Card><CardContent className="pt-6"><div className="text-2xl font-bold text-white">{stats.trashed}</div><div className="text-sm text-text-secondary">Trashed</div></CardContent></Card>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Card>
@@ -151,12 +101,12 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card className="flex flex-col justify-center items-center">
                         <h3 className="text-xl font-bold mb-2">Completion Rate</h3>
-                        <div className="text-5xl font-bold text-green-400">{stats.completionRate.toFixed(1)}<span className="text-2xl">%</span></div>
-                        <p className="text-sm text-[#e9d5ff] mt-1">Of active & completed goals</p>
+                        <div className="text-5xl font-bold text-success">{stats.completionRate.toFixed(1)}<span className="text-2xl">%</span></div>
+                        <p className="text-sm text-text-secondary mt-1">Of active & completed goals</p>
                     </Card>
                     <Card>
                         <h3 className="text-xl font-bold mb-4">Insights</h3>
-                        <ul className="text-sm space-y-2 text-[#e9d5ff] list-disc list-inside">
+                        <ul className="text-sm space-y-2 text-text-secondary list-disc list-inside">
                             <li>Total goals tracked: <span className="font-bold text-white">{goals.length}</span></li>
                             <li>Active goals needing attention: <span className="font-bold text-white">{stats.active}</span></li>
                             <li>Average time to complete a goal: <span className="font-bold text-white">{stats.avgCompletionTime.toFixed(1)} days</span></li>
@@ -172,9 +122,9 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
 const GoalCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
     const statusColors = {
         active: 'border-accent-primary/30',
-        completed: 'border-green-500/30',
-        blocked: 'border-yellow-500/30',
-        trashed: 'border-red-500/30'
+        completed: 'border-success/30',
+        blocked: 'border-warning/30',
+        trashed: 'border-error/30'
     };
 
     return (
@@ -187,13 +137,13 @@ const GoalCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateS
                     {goal.status === 'completed' && <CheckIcon className="text-white w-3 h-3" />}
                 </button>
                 <div className="flex-grow min-w-0">
-                    <p className={`text-white font-medium ${goal.status === 'completed' ? 'line-through text-[#71717a]' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-[#71717a]' : ''}`}>
+                    <p className={`text-white font-medium ${goal.status === 'completed' ? 'line-through text-text-tertiary' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-text-tertiary' : ''}`}>
                         {goal.text}
                     </p>
                     {goal.tags && goal.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                             {goal.tags.map(tag => (
-                                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-[#e9d5ff] border border-white/10">
+                                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-text-secondary border border-white/10">
                                     {tag}
                                 </span>
                             ))}
@@ -202,11 +152,11 @@ const GoalCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateS
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     {goal.status !== 'completed' && (
-                        <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-[#e9d5ff] hover:text-yellow-500 transition-colors">
+                        <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-text-secondary hover:text-warning transition-colors">
                             <BlockIcon className="w-4 h-4" />
                         </button>
                     )}
-                    <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-[#e9d5ff] hover:text-red-500 transition-colors">
+                    <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-text-secondary hover:text-error transition-colors">
                         <TrashIcon className="w-4 h-4" />
                     </button>
                 </div>
@@ -342,7 +292,7 @@ const GoalTracker: React.FC = () => {
         return (
             <TrackerWrapper tracker={trackerInfo}>
                 <div className="flex items-center justify-center h-64">
-                    <div className="text-[#e9d5ff]">Loading goals...</div>
+                    <div className="text-text-secondary">Loading goals...</div>
                 </div>
             </TrackerWrapper>
         );
@@ -358,7 +308,7 @@ const GoalTracker: React.FC = () => {
                     <TargetIcon className="w-8 h-8 text-accent-primary" />
                     <div>
                         <h2 className="text-2xl font-bold text-white">Goals</h2>
-                        <p className="text-sm text-[#e9d5ff]">Track and manage your objectives</p>
+                        <p className="text-sm text-text-secondary">Track and manage your objectives</p>
                     </div>
                 </div>
                 <Button onClick={() => setShowDashboard(true)} className="flex items-center gap-2">
@@ -371,17 +321,17 @@ const GoalTracker: React.FC = () => {
             <Card className="mb-6 border-white/5 bg-white/[0.03]">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-grow">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#e9d5ff]" />
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Search goals by name or tag..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-[#e9d5ff] focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <FilterIcon className="w-4 h-4 text-[#e9d5ff]" />
+                        <FilterIcon className="w-4 h-4 text-text-secondary" />
                         <select
                             value={selectedCategory}
                             onChange={e => setSelectedCategory(e.target.value)}
@@ -405,7 +355,7 @@ const GoalTracker: React.FC = () => {
                         className={`px-6 py-3 text-sm font-semibold transition-all relative ${
                             activeTab === tab 
                                 ? 'text-white' 
-                                : 'text-[#e9d5ff] hover:text-white'
+                                : 'text-text-secondary hover:text-white'
                         }`}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)} Goals
@@ -433,7 +383,7 @@ const GoalTracker: React.FC = () => {
                             value={newGoalText}
                             onChange={e => setNewGoalText(e.target.value)}
                             placeholder={`What's your ${activeTab} goal?`}
-                            className="flex-grow px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-[#e9d5ff] focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                            className="flex-grow px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
                             required
                         />
                         <input
@@ -441,7 +391,7 @@ const GoalTracker: React.FC = () => {
                             value={newGoalTags}
                             onChange={e => setNewGoalTags(e.target.value)}
                             placeholder="Tags (comma-separated)"
-                            className="md:w-64 px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-[#e9d5ff] focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                            className="md:w-64 px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
                         />
                         <Button type="submit" className="flex items-center gap-2">
                             <PlusIcon className="w-4 h-4" />
@@ -462,7 +412,7 @@ const GoalTracker: React.FC = () => {
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-2 h-2 rounded-full bg-accent-primary" />
                             <h4 className="font-bold text-lg text-white">{tag}</h4>
-                            <span className="text-xs text-[#e9d5ff] bg-white/[0.06] px-2 py-0.5 rounded-full border border-white/10">
+                            <span className="text-xs text-text-secondary bg-white/[0.06] px-2 py-0.5 rounded-full border border-white/10">
                                 {goalsInGroup.length} {goalsInGroup.length === 1 ? 'goal' : 'goals'}
                             </span>
                         </div>
@@ -480,8 +430,8 @@ const GoalTracker: React.FC = () => {
                     </Card>
                 )) : (
                     <Card className="border-white/5 bg-white/[0.03] text-center py-12">
-                        <TargetIcon className="w-12 h-12 text-[#e9d5ff] mx-auto mb-4 opacity-50" />
-                        <p className="text-[#e9d5ff] text-lg">
+                        <TargetIcon className="w-12 h-12 text-text-secondary mx-auto mb-4 opacity-50" />
+                        <p className="text-text-secondary text-lg">
                             {searchQuery || selectedCategory !== 'all' 
                                 ? 'No goals match your search criteria.' 
                                 : 'No goals yet. Create your first goal above!'}
