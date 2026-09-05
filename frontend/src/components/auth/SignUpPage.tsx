@@ -1,8 +1,13 @@
+"use client";
+
 import React, { useState, useContext } from 'react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
 import { DataContext } from '../../context/DataContext';
 import { authService } from '../../api/authService';
+import { Loader2 } from 'lucide-react';
 
 interface SignUpPageProps {
     onSignUp: () => void;
@@ -26,10 +31,8 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
             const response = await authService.signup({ username, email, password });
 
             if (response.success && response.user) {
-                // Store user data in local storage
                 localStorage.setItem('user', JSON.stringify(response.user));
 
-                // Update context with new user profile
                 setUserProfile(prev => ({
                     ...prev,
                     name: response.user?.username || username,
@@ -39,7 +42,6 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
 
                 onSignUp();
             } else {
-                // Handle validation errors
                 if (typeof response.error === 'object') {
                     const errors = Object.values(response.error).flat();
                     setError(errors.join(', '));
@@ -57,64 +59,74 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
     return (
         <div className="w-full max-w-md px-4 animate-fade-in relative z-10">
             <div className="text-center mb-8">
-                <h1 className="text-5xl font-bold text-[#8b5cf6] mb-2 tracking-tight">Tracker</h1>
-                <p className="text-[#e9d5ff] text-lg">Start your journey today.</p>
+                <h1 className="text-5xl font-bold text-accent-primary mb-2 tracking-tight">Chaos Tracker</h1>
+                <p className="text-text-secondary text-lg">Start your journey today.</p>
             </div>
-            <Card className="w-full p-8 shadow-2xl border-[rgba(139,92,246,0.35)] bg-[rgba(15,10,30,0.75)] backdrop-blur-xl">
-                <h2 className="text-2xl font-bold mb-6 text-white">Create Account</h2>
+            <Card className="w-full border-white/10 bg-card-bg shadow-xl">
+                <CardHeader className="space-y-1 pb-4">
+                    <CardTitle className="text-2xl font-bold text-center text-white">Create Account</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+                            {error}
+                        </div>
+                    )}
 
-                {error && (
-                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 text-sm">
-                        {error}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="signup-username">Username</Label>
+                            <Input
+                                id="signup-username"
+                                type="text"
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                placeholder="johndoe"
+                                required
+                                autoComplete="username"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="signup-email">Email</Label>
+                            <Input
+                                id="signup-email"
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                placeholder="name@example.com"
+                                required
+                                autoComplete="email"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="signup-password">Password</Label>
+                            <Input
+                                id="signup-password"
+                                type="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                minLength={8}
+                                autoComplete="new-password"
+                            />
+                            <p className="text-xs text-text-secondary">Must be at least 8 characters</p>
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isLoading ? 'Creating Account...' : 'Sign Up'}
+                        </Button>
+                    </form>
+                    <div className="mt-6 text-center text-sm text-text-secondary">
+                        Already have an account?{' '}
+                        <button 
+                            onClick={onSwitchToLogin} 
+                            className="text-accent-primary hover:text-accent-primary-hover font-bold transition-colors"
+                        >
+                            Log In
+                        </button>
                     </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
-                            placeholder="johndoe"
-                            required
-                            autoComplete="username"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
-                            placeholder="name@example.com"
-                            required
-                            autoComplete="email"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
-                            placeholder="••••••••"
-                            required
-                            minLength={8}
-                            autoComplete="new-password"
-                        />
-                        <p className="text-xs text-[#e9d5ff] mt-1">Must be at least 8 characters</p>
-                    </div>
-                    <Button type="submit" className="w-full py-3 mt-4 shadow-lg shadow-[#8b5cf6]/20" disabled={isLoading}>
-                        {isLoading ? 'Creating Account...' : 'Sign Up'}
-                    </Button>
-                </form>
-                <div className="mt-8 text-center text-sm text-[#e9d5ff]">
-                    Already have an account? <button onClick={onSwitchToLogin} className="text-[#8b5cf6] hover:text-[#7c3aed] font-bold hover:underline transition-colors">Log In</button>
-                </div>
+                </CardContent>
             </Card>
         </div>
     );

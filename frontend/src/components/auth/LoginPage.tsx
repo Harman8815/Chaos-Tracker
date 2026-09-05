@@ -1,7 +1,12 @@
+"use client";
+
 import React, { useState } from 'react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
 import { authService, TempDataResponse } from '../../api/authService';
+import { Loader2 } from 'lucide-react';
 
 interface LoginPageProps {
     onLogin: () => void;
@@ -26,7 +31,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignUp }) => {
             const response = await authService.login({ username, password });
 
             if (response.success && response.user) {
-                // Store user data in local storage or context
                 localStorage.setItem('user', JSON.stringify(response.user));
                 onLogin();
             } else {
@@ -64,96 +68,109 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignUp }) => {
     return (
         <div className="w-full max-w-md px-4 animate-fade-in relative z-10">
             <div className="text-center mb-8">
-                <h1 className="text-5xl font-bold text-[#8b5cf6] mb-2 tracking-tight">Tracker</h1>
-                <p className="text-[#e9d5ff] text-lg">Your daily companion for growth.</p>
+                <h1 className="text-5xl font-bold text-accent-primary mb-2 tracking-tight">Chaos Tracker</h1>
+                <p className="text-text-secondary text-lg">Your daily companion for growth.</p>
             </div>
             
             {/* Demo Credentials Box */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-[rgba(139,92,246,0.35)] rounded-lg">
+            <div className="mb-6 p-4 bg-accent-primary/10 border border-accent-primary/20 rounded-lg">
                 <div className="flex items-center mb-2">
                     <span className="text-lg mr-2">💡</span>
-                    <h3 className="text-sm font-semibold text-blue-300">Demo Credentials</h3>
+                    <h3 className="text-sm font-semibold text-accent-primary">Demo Credentials</h3>
                 </div>
                 <div className="space-y-1 text-xs">
                     <div className="flex items-center justify-between">
-                        <span className="text-blue-400 font-medium">Username:</span>
-                        <code className="bg-blue-900/30 px-2 py-0.5 rounded text-blue-300 font-mono">admin</code>
+                        <span className="text-text-secondary font-medium">Username:</span>
+                        <code className="bg-white/[0.06] px-2 py-0.5 rounded text-text-primary font-mono">admin</code>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-blue-400 font-medium">Password:</span>
-                        <code className="bg-blue-900/30 px-2 py-0.5 rounded text-blue-300 font-mono">Admin@123</code>
+                        <span className="text-text-secondary font-medium">Password:</span>
+                        <code className="bg-white/[0.06] px-2 py-0.5 rounded text-text-primary font-mono">Admin@123</code>
                     </div>
                 </div>
-                <button 
+                <Button 
                     onClick={() => {
                         setUsername('admin');
                         setPassword('Admin@123');
                     }}
-                    className="mt-3 w-full text-xs bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded transition-colors duration-200"
+                    className="mt-3 w-full text-xs"
+                    variant="secondary"
                 >
                     🚀 Auto-Fill Credentials
-                </button>
+                </Button>
             </div>
             
-            <Card className="w-full p-8 shadow-2xl border-[rgba(139,92,246,0.35)] bg-[rgba(15,10,30,0.75)] backdrop-blur-xl">
-                <h2 className="text-2xl font-bold mb-6 text-white">Welcome Back</h2>
+            <Card className="w-full border-white/10 bg-card-bg shadow-xl">
+                <CardHeader className="space-y-1 pb-4">
+                    <CardTitle className="text-2xl font-bold text-center text-white">Welcome Back</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+                            {error}
+                        </div>
+                    )}
 
-                {error && (
-                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 text-sm">
-                        {error}
-                    </div>
-                )}
+                    {successMessage && (
+                        <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-lg text-success text-sm">
+                            {successMessage}
+                        </div>
+                    )}
 
-                {successMessage && (
-                    <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 text-sm">
-                        {successMessage}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input
+                                id="username"
+                                type="text"
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                placeholder="your_username"
+                                required
+                                autoComplete="username"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                autoComplete="current-password"
+                            />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isLoading ? 'Logging in...' : 'Log In'}
+                        </Button>
+                    </form>
+                    <div className="mt-6 pt-4 border-t border-border">
+                        <Button 
+                            onClick={handlePopulateTestData}
+                            className="w-full"
+                            variant="outline"
+                            disabled={isPopulatingData || isLoading}
+                        >
+                            {isPopulatingData && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isPopulatingData ? 'Populating Data...' : '🎲 Populate Test Data (12 Months)'}
+                        </Button>
+                        <p className="mt-2 text-xs text-text-secondary text-center">
+                            Creates sample expenses, goals, habits, and journal entries for testing
+                        </p>
                     </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
-                            placeholder="your_username"
-                            required
-                            autoComplete="username"
-                        />
+                    <div className="mt-6 text-center text-sm text-text-secondary">
+                        Don't have an account?{' '}
+                        <button 
+                            onClick={onSwitchToSignUp} 
+                            className="text-accent-primary hover:text-accent-primary-hover font-bold transition-colors"
+                        >
+                            Sign Up
+                        </button>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-[#e9d5ff] mb-1.5">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            className="w-full p-3 rounded-lg bg-[rgba(15,10,30,0.6)] border border-[rgba(139,92,246,0.35)] text-white focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] focus:outline-none transition-all"
-                            placeholder="••••••••"
-                            required
-                            autoComplete="current-password"
-                        />
-                    </div>
-                    <Button type="submit" className="w-full py-3 mt-4 shadow-lg shadow-[#8b5cf6]/20" disabled={isLoading}>
-                        {isLoading ? 'Logging in...' : 'Log In'}
-                    </Button>
-                </form>
-                <div className="mt-6 pt-6 border-t border-[rgba(139,92,246,0.35)]">
-                    <Button 
-                        onClick={handlePopulateTestData}
-                        className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium shadow-lg shadow-purple-600/20 transition-all duration-200"
-                        disabled={isPopulatingData || isLoading}
-                    >
-                        {isPopulatingData ? 'Populating Data...' : '🎲 Populate Test Data (12 Months)'}
-                    </Button>
-                    <p className="mt-2 text-xs text-[#e9d5ff] text-center">
-                        Creates sample expenses, goals, habits, and journal entries for testing
-                    </p>
-                </div>
-                <div className="mt-8 text-center text-sm text-[#e9d5ff]">
-                    Don't have an account? <button onClick={onSwitchToSignUp} className="text-[#8b5cf6] hover:text-[#7c3aed] font-bold hover:underline transition-colors">Sign Up</button>
-                </div>
+                </CardContent>
             </Card>
         </div>
     );
