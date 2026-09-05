@@ -22,6 +22,7 @@ const MenuIcon = Menu;
 interface SidebarProps {
     isCollapsed: boolean;
     toggleSidebar: () => void;
+    onNavigate?: () => void;
 }
 
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -30,6 +31,9 @@ const prefersReducedMotion = () => typeof window !== 'undefined' && window.match
 // "droplet" badge that sits on the active icon once the wave settles.
 const ITEM_HEIGHT = 48;
 const BADGE_SIZE = 44;
+// Home is the "hero" stop on the rail — its settled badge and its collapsed
+// button are both larger than a normal row, so it visibly breaks the grid.
+const HOME_BADGE_SIZE = 60;
 // How far (in px of travel) the wave has to close in on its target before
 // it's considered "settled" and the badge/ray fade in.
 const SETTLE_DISTANCE = 36;
@@ -41,12 +45,13 @@ interface WaveIconProps {
     Icon: React.FC<React.SVGProps<SVGSVGElement>>;
     isSelected: boolean;
     isHovered: boolean;
+    isHome: boolean;
     headY: MotionValue<number>;
     centerY: number;
     reducedMotion: boolean;
 }
 
-const WaveIcon: React.FC<WaveIconProps> = ({ Icon, isSelected, isHovered, headY, centerY, reducedMotion }) => {
+const WaveIcon: React.FC<WaveIconProps> = ({ Icon, isSelected, isHovered, isHome, headY, centerY, reducedMotion }) => {
     // As the wave's leading edge (headY) sweeps past this icon's vertical
     // center, briefly bump its scale/brightness — this is the "nearby icons
     // react as the wave passes" behavior from the spec.
@@ -57,7 +62,7 @@ const WaveIcon: React.FC<WaveIconProps> = ({ Icon, isSelected, isHovered, headY,
         <div className="relative z-10 flex items-center justify-center flex-shrink-0">
             <motion.div style={reducedMotion || isSelected ? undefined : { scale: proximityScale }}>
                 <Icon
-                    className={`w-6 h-6 transition-colors duration-200
+                    className={`transition-colors duration-200 ${isHome ? 'w-7 h-7' : 'w-6 h-6'}
                         ${isSelected ? 'text-yellow-400' : ''}
                         ${isHovered && !isSelected ? 'text-white' : ''}
                     `}
@@ -76,7 +81,7 @@ const WaveIcon: React.FC<WaveIconProps> = ({ Icon, isSelected, isHovered, headY,
     );
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigate }) => {
     const pathname = usePathname();
     const { userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
@@ -144,6 +149,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     // ------------------------------------------------------------------
     const headY = useSpring(0, { stiffness: 300, damping: 28, mass: 0.9 });
     const tailY = useSpring(0, { stiffness: 110, damping: 22, mass: 1.6 });
+    // Trails even further behind tailY — low opacity, heavily blurred, wide.
+    // This is what gives the travel a "smoky liquid" depth instead of a
+    // single hard-edged capsule sliding around.
+    const trailY = useSpring(0, { stiffness: 55, damping: 16, mass: 2.4 });
 
     const diff = useTransform([headY, tailY], (latest: number[]) => Math.abs(latest[0] - latest[1]));
     const blobTop = useTransform([headY, tailY], (latest: number[]) => Math.min(latest[0], latest[1]) - ITEM_HEIGHT / 2);
@@ -151,6 +160,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const blobSquash = useTransform(diff, [0, 160], [1, 0.86]);
     const settleProgress = useTransform(diff, [0, SETTLE_DISTANCE], [1, 0]);
     const badgeCenter = useTransform([headY, tailY], (latest: number[]) => (latest[0] + latest[1]) / 2);
+
+    const trailDiff = useTransform([headY, trailY], (latest: number[]) => Math.abs(latest[0] - latest[1]));
+    const trailTop = useTransform([headY, trailY], (latest: number[]) => Math.min(latest[0], latest[1]) - ITEM_HEIGHT / 2);
+    const trailHeight = useTransform(trailDiff, (d: number) => d + ITEM_HEIGHT * 1.4);
 
     useMotionValueEvent(diff, 'change', (latest) => {
         const settled = latest <= 2;
@@ -184,12 +197,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         const target = centers[activeIndex] ?? 0;
         headY.set(target);
         tailY.set(target);
-    }, [activeIndex, centers, headY, tailY]);
+        trailY.set(target);
+    }, [activeIndex, centers, headY, tailY, trailY]);
 
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
     const showWave = activeIndex >= 0 && centers.length > 0;
+    const activeIsHome = activeIndex >= 0 && navItems[activeIndex]?.id === 'home';
+    const badgeSize = activeIsHome ? HOME_BADGE_SIZE : BADGE_SIZE;
     const badgeLeftStyle: React.CSSProperties = isCollapsed
         ? { left: '50%', transform: 'translate(-50%, -50%)' }
         : { left: '24px', transform: 'translate(-50%, -50%)' };
@@ -207,7 +223,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             </div>
 
             <div className="flex flex-col h-full w-full px-2 pb-4">
-                <div ref={containerRef} className="relative flex flex-col items-start space-y-1 flex-grow w-full">
+                <div ref={containerRef} className="relative flex flex-col justify-center space-y-1 flex-grow w-full">
+
+                    {/* Smoky trail: wider, softer, and further behind than the main
+                        wave — adds depth so the travel reads as liquid rather than
+                        a single shape sliding up and down. */}
+                    {showWave && !reducedMotion && (
+                        <motion.div
+                            aria-hidden
+                            className="absolute -inset-x-2 rounded-[999px] pointer-events-none z-0"
+                            style={{
+                                top: trailTop,
+                                height: trailHeight,
+                                background: 'radial-gradient(closest-side, rgba(139,92,246,0.25), transparent 75%)',
+                                filter: 'blur(6px)',
+                            }}
+                        />
+                    )}
 
                     {/* Traveling liquid wave: a single element whose top/height are
                         driven by the two springs above. Mid-travel the gap between
@@ -221,9 +253,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 top: blobTop,
                                 height: blobHeight,
                                 scaleX: blobSquash,
-                                background: 'linear-gradient(180deg, rgba(139,92,246,0.35), rgba(76,29,149,0.45))',
+                                background: 'linear-gradient(180deg, rgba(139,92,246,0.4), rgba(76,29,149,0.5))',
                                 filter: 'blur(1px)',
-                                boxShadow: '0 0 22px 4px rgba(99,102,241,0.35)',
+                                boxShadow: '0 0 26px 6px rgba(99,102,241,0.4)',
                             }}
                         />
                     )}
@@ -244,13 +276,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                         being dragged around. */}
                     {showWave && !reducedMotion && (
                         <>
+                            {/* Slow ambient breathing glow so the settled state still
+                                feels alive, not just during transitions. */}
                             <motion.div
                                 aria-hidden
-                                className={`absolute rounded-full pointer-events-none z-0 transition-shadow duration-300 ${arrivalPulse ? 'shadow-[0_0_38px_10px_rgba(250,204,21,0.55)]' : 'shadow-[0_0_18px_rgba(99,102,241,0.45)]'}`}
+                                className="absolute rounded-full pointer-events-none z-0 animate-pulse"
                                 style={{
                                     top: badgeCenter,
-                                    width: BADGE_SIZE,
-                                    height: BADGE_SIZE,
+                                    width: badgeSize + 24,
+                                    height: badgeSize + 24,
+                                    opacity: settleProgress,
+                                    background: 'radial-gradient(closest-side, rgba(250,204,21,0.18), transparent 70%)',
+                                    animationDuration: '3.5s',
+                                    ...badgeLeftStyle,
+                                }}
+                            />
+                            <motion.div
+                                aria-hidden
+                                className={`absolute rounded-full pointer-events-none z-0 transition-[box-shadow,width,height] duration-300 ${arrivalPulse ? 'shadow-[0_0_40px_12px_rgba(250,204,21,0.55)]' : 'shadow-[0_0_18px_rgba(99,102,241,0.45)]'}`}
+                                style={{
+                                    top: badgeCenter,
+                                    width: badgeSize,
+                                    height: badgeSize,
                                     opacity: settleProgress,
                                     background: '#4c1d95',
                                     ...badgeLeftStyle,
@@ -278,10 +325,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                 href={href}
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
-                                className={`relative flex items-center w-full rounded-xl transition-colors duration-200 focus:outline-none z-10 group
+                                onClick={onNavigate}
+                                className={`relative flex items-center transition-colors duration-200 focus:outline-none z-10 group
                                 ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.08]'}
-                                ${isCollapsed ? 'h-12 justify-center' : 'h-12 px-3'}
-                                ${isHome ? 'mt-2 mb-2' : ''}
+                                ${isCollapsed
+                                    ? (isSelected ? 'w-14 h-14 mx-auto justify-center rounded-full my-5' : 'w-12 h-12 mx-auto justify-center rounded-xl')
+                                    : `w-full h-12 px-3 rounded-xl ${isSelected ? 'my-4' : ''}`
+                                }
                             `}
                                 title={isCollapsed ? item.name : undefined}
                                 onMouseEnter={() => setHoveredIndex(index)}
@@ -292,6 +342,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                                         Icon={item.icon}
                                         isSelected={isSelected}
                                         isHovered={hoveredIndex === index}
+                                        isHome={isHome}
                                         headY={headY}
                                         centerY={centers[index] ?? 0}
                                         reducedMotion={reducedMotion}
@@ -309,11 +360,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
                     })}
                 </div>
 
-                <div className="flex flex-col items-center space-y-3 mt-auto">
+                <div className="flex flex-col space-y-3 mt-auto">
                     {/* Profile Avatar Button */}
                     <Link
                         href="/profile"
                         prefetch
+                        onClick={onNavigate}
                         className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 focus:outline-none overflow-hidden
                              ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary shadow-[0_0_15px_rgba(139,92,246,0.5)]' : 'hover:ring-2 hover:ring-border'}
                         `}
