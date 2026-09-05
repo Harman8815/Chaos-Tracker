@@ -252,7 +252,7 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                     <h3 className="font-bold text-lg hidden md:block">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
                 </div>
                 <div className="grid grid-cols-7 gap-2 text-center">
-                    {DAY_NAMES.map(day => <div key={day} className="font-semibold text-[#e9d5ff] text-sm p-2">{day}</div>)}
+                    {DAY_NAMES.map(day => <div key={day} className="font-semibold text-text-secondary text-sm p-2">{day}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-2">
                     {calendarGrid.map(day => (
@@ -263,9 +263,9 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                                 className={`h-28 rounded-lg flex flex-col p-2 text-left transition-colors border ${day.entry ? 'bg-[rgba(15,10,30,0.75)] border-[rgba(139,92,246,0.35)] hover:bg-border hover:border-accent-primary cursor-pointer' : 'bg-[rgba(15,10,30,0.6)]/50 border-transparent hover:border-accent-primary cursor-pointer'
                                     }`}
                             >
-                                <span className={`font-semibold ml-auto ${day.entry ? 'text-white' : 'text-[#71717a]'}`}>{day.day}</span>
+                                <span className={`font-semibold ml-auto ${day.entry ? 'text-white' : 'text-text-tertiary'}`}>{day.day}</span>
                                 {day.entry && (
-                                    <p className="text-xs text-[#e9d5ff] overflow-hidden text-ellipsis mt-1">
+                                    <p className="text-xs text-text-secondary overflow-hidden text-ellipsis mt-1">
                                         {day.entry?.substring(0, 80)}{(day.entry?.length || 0) > 80 && '...'}
                                     </p>
                                 )}
@@ -343,13 +343,13 @@ const JournalTracker: React.FC = () => {
                         setTargetDate(today); // Reset to today when clicking tab? Or keep selected? 
                         // Usually "Today's Entry" implies today.
                     }}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'editor' ? 'border-b-2 border-accent-primary text-white' : 'text-[#e9d5ff] hover:text-white'}`}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'editor' ? 'border-b-2 border-accent-primary text-white' : 'text-text-secondary hover:text-white'}`}
                 >
                     Editor
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'history' ? 'border-b-2 border-accent-primary text-white' : 'text-[#e9d5ff] hover:text-white'}`}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'history' ? 'border-b-2 border-accent-primary text-white' : 'text-text-secondary hover:text-white'}`}
                 >
                     History
                 </button>
