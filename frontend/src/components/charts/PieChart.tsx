@@ -4,7 +4,7 @@ const CHART_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#e
 
 const NoData: React.FC = () => <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
 
-const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' | 'donut' }> = ({ data, type }) => {
+const PieChart: React.FC<{ data: { name: string; value: number }[], type?: 'pie' | 'donut', title?: string, height?: number }> = ({ data, type = 'pie', title, height = 200 }) => {
     const [hoveredSlice, setHoveredSlice] = useState<{ name: string; value: number } | null>(null);
 
     if (!data || data.length === 0 || data.every(d => d.value === 0)) return <NoData />;
@@ -22,7 +22,9 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' 
     ];
 
     return (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full h-full">
+        <div className="flex flex-col items-center gap-4 w-full" style={{ height }}>
+            {title && <h4 className="text-sm font-medium text-text-secondary">{title}</h4>}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full h-full">
             <div className="relative">
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                     {data.map((slice, i) => {
@@ -84,8 +86,10 @@ const PieChart: React.FC<{ data: { name: string; value: number }[], type: 'pie' 
                     </div>
                 ))}
             </div>
+            </div>
         </div>
     );
 };
 
 export { PieChart, NoData };
+export default PieChart;
