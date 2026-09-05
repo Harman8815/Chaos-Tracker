@@ -33,8 +33,11 @@ const CommandEmpty = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   <div className={cn("py-6 text-center text-sm text-[#e9d5ff]", className)} {...props} />
 )
 
-const CommandGroup = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("overflow-hidden p-1", className)} {...props} />
+const CommandGroup = ({ className, heading, children, ...props }: React.HTMLAttributes<HTMLDivElement> & { heading?: string }) => (
+  <div className={cn("overflow-hidden p-1", className)} {...props}>
+    {heading && <div className="px-2 py-1.5 text-xs font-medium text-text-secondary">{heading}</div>}
+    {children}
+  </div>
 )
 
 const CommandItem = ({ className, onSelect, children, ...props }: React.HTMLAttributes<HTMLDivElement> & { onSelect?: () => void }) => {
