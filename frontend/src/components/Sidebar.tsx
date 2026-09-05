@@ -52,11 +52,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
             'goals',
             'planner',
             'expense',
+            'home',
             'journal',
             'points',
             'achievements',
             'quotes',
-            'home',
         ];
 
         return orderedIds.map(id => {
@@ -100,8 +100,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
     const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
 
     return (
-        <aside className={`${sidebarWidth} h-screen flex flex-col items-center transition-all duration-300 bg-white/[0.04] backdrop-blur-xl border-r border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] flex-shrink-0 relative z-50`}>
-            <div className="flex items-center justify-between w-full px-4 py-4">
+        <aside className={`${sidebarWidth} h-screen flex flex-col transition-all duration-300 bg-white/[0.04] backdrop-blur-xl border-r border-white/10 shadow-[0_0_25px_rgba(124,58,237,0.25)] flex-shrink-0 relative z-50`}>
+            <div className="flex items-center w-full px-4 py-4">
                 <button
                     onClick={toggleSidebar}
                     className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 text-[#a1a1aa] hover:text-white focus:outline-none hover:bg-white/[0.08]"
@@ -111,11 +111,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                 </button>
             </div>
 
-            <div className="flex flex-col items-center justify-between h-full w-full px-2 pb-4">
-                <div className="relative flex flex-col items-center justify-center space-y-2 flex-grow w-full">
+            <div className="flex flex-col h-full w-full px-2 pb-4">
+                <div className="flex flex-col items-start space-y-1 flex-grow w-full">
                     {navItems.map((item, index) => {
                         const isSelected = selectedPage === item.id;
                         const href = item.id === 'home' ? '/' : `/${item.id}`;
+                        const isHome = item.id === 'home';
                         return (
                             <Link
                                 key={item.id}
@@ -123,9 +124,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
                                 onClick={onNavigate}
-                                className={`relative flex items-center justify-center w-full rounded-xl transition-all duration-200 focus:outline-none z-10 group
+                                className={`relative flex items-center w-full rounded-xl transition-all duration-200 focus:outline-none z-10 group
                                 ${isSelected ? 'text-text-inverse' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.08]'}
-                                ${isCollapsed ? 'h-12' : 'h-12 px-3'}
+                                ${isCollapsed ? 'h-12 justify-center' : 'h-12 px-3'}
+                                ${isHome ? 'mt-2 mb-2' : ''}
                             `}
                                 title={isCollapsed ? item.name : undefined}
                                 onMouseEnter={() => { updateIndicator(index); setHoveredIndex(index); }}
@@ -155,8 +157,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                                     />
                                 )}
                                 {item.icon && (
-                                    <div className="relative z-10 flex items-center justify-center">
-                                        <item.icon className={`w-6 h-6 flex-shrink-0 transition-all duration-200
+                                    <div className="relative z-10 flex items-center justify-center flex-shrink-0">
+                                        <item.icon className={`w-6 h-6 transition-all duration-200
                                             ${isSelected ? 'text-yellow-400 animate-neon-pulse' : ''}
                                             ${hoveredIndex === index && !isSelected ? 'text-white scale-110 animate-neon-flicker' : ''}
                                         `}
@@ -167,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                                     </div>
                                 )}
                                 {!isCollapsed && (
-                                    <span className={`ml-3 font-medium transition-all duration-200 truncate
+                                    <span className={`ml-3 font-medium transition-all duration-200 truncate w-full
                                         ${isSelected ? 'text-white' : 'text-[#e9d5ff] group-hover:text-white'}
                                     `}>
                                         {item.name}
@@ -178,7 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, onNavigat
                     })}
                 </div>
 
-                <div className="flex flex-col items-center space-y-3">
+                <div className="flex flex-col items-center space-y-3 mt-auto">
                     {/* Profile Avatar Button */}
                     <Link
                         href="/profile"
