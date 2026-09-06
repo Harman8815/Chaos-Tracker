@@ -286,7 +286,7 @@ const ProfilePage: React.FC = () => {
                             <h1 className="text-2xl font-bold">{userProfile.name}</h1>
                             <p className="text-text-secondary text-sm mb-4">@{userProfile.name.toLowerCase().replace(/\s/g, '')}</p>
                             
-                            <div className="w-full py-2 bg-white/[0.06]/50 rounded-lg mb-4 border border-accent-primary/35">
+                            <div className="w-full py-2 bg-white/[0.06]/50 rounded-lg mb-4 ">
                                 <span className="text-accent-primary font-bold uppercase tracking-widest text-xs">Rank: {rank}</span>
                             </div>
 
@@ -336,7 +336,7 @@ const ProfilePage: React.FC = () => {
                          <h3 className="font-bold text-md mb-3">Skills</h3>
                          <div className="flex flex-wrap gap-2">
                              {skills.length > 0 ? skills.map(skill => (
-                                 <span key={skill} className="px-2 py-1 rounded bg-white/[0.06] text-xs text-text-secondary border border-accent-primary/35 hover:border-accent-primary transition-colors cursor-default">{skill}</span>
+                                 <span key={skill} className="px-2 py-1 rounded bg-white/[0.06] text-xs text-text-secondary  hover:border-accent-primary transition-colors cursor-default">{skill}</span>
                              )) : (
                                  <span className="text-xs text-text-secondary italic">No skills added yet.</span>
                              )}

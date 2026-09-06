@@ -75,15 +75,15 @@ const EditRulesModal: React.FC<EditRulesModalProps> = ({ rules, setRules, onClos
                              <div className="grid grid-cols-12 gap-4 items-center">
                                 <div className="col-span-3">
                                     <label className="text-xs text-text-secondary">Activity</label>
-                                    <input type="text" value={rule.activity} onChange={e => handleRuleChange(rule.id, 'activity', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white"/>
+                                    <input type="text" value={rule.activity} onChange={e => handleRuleChange(rule.id, 'activity', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background  text-white"/>
                                 </div>
                                 <div className="col-span-2">
                                     <label className="text-xs text-text-secondary">Max Points</label>
-                                    <input type="number" value={rule.maxPoints} onChange={e => handleRuleChange(rule.id, 'maxPoints', parseInt(e.target.value))} className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white"/>
+                                    <input type="number" value={rule.maxPoints} onChange={e => handleRuleChange(rule.id, 'maxPoints', parseInt(e.target.value))} className="w-full mt-1 p-2 rounded-md bg-background  text-white"/>
                                 </div>
                                 <div className="col-span-6">
                                      <label className="text-xs text-text-secondary">Penalty Rule</label>
-                                    <input type="text" value={rule.penaltyRule} onChange={e => handleRuleChange(rule.id, 'penaltyRule', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white"/>
+                                    <input type="text" value={rule.penaltyRule} onChange={e => handleRuleChange(rule.id, 'penaltyRule', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background  text-white"/>
                                 </div>
                                 <div className="col-span-1 flex items-end">
                                     <button onClick={() => handleDeleteRule(rule.id)} className="text-red-500 hover:text-red-400 p-2">
@@ -94,11 +94,11 @@ const EditRulesModal: React.FC<EditRulesModalProps> = ({ rules, setRules, onClos
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs text-text-secondary">0 Points Condition</label>
-                                    <input type="text" value={rule.zeroPointsCondition} onChange={e => handleRuleChange(rule.id, 'zeroPointsCondition', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white"/>
+                                    <input type="text" value={rule.zeroPointsCondition} onChange={e => handleRuleChange(rule.id, 'zeroPointsCondition', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background  text-white"/>
                                 </div>
                                 <div>
                                     <label className="text-xs text-text-secondary">Scoring Logic / Notes</label>
-                                    <input type="text" value={rule.scoringLogic} onChange={e => handleRuleChange(rule.id, 'scoringLogic', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background border border-accent-primary/35 text-white"/>
+                                    <input type="text" value={rule.scoringLogic} onChange={e => handleRuleChange(rule.id, 'scoringLogic', e.target.value)} className="w-full mt-1 p-2 rounded-md bg-background  text-white"/>
                                 </div>
                               </div>
                         </div>

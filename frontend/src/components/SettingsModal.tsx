@@ -68,7 +68,7 @@ const SettingsModal: React.FC = () => {
                     <select
                         value={settings.language}
                         onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                        className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                        className="w-full p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                         <option value="en">{t('English')}</option>
                         <option value="es">{t('Español')}</option>

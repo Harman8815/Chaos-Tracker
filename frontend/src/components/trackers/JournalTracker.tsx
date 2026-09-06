@@ -237,14 +237,14 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
                         <select
                             value={currentDate.getMonth()}
                             onChange={(e) => handleDateChange(undefined, parseInt(e.target.value))}
-                            className="p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
                         </select>
                         <select
                             value={currentDate.getFullYear()}
                             onChange={(e) => handleDateChange(parseInt(e.target.value), undefined)}
-                            className="p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             {years.map(y => <option key={y} value={y}>{y}</option>)}
                         </select>

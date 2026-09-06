@@ -52,13 +52,13 @@ const SourceModal: React.FC<{ source?: QuoteSource | null; onClose: () => void; 
             <div className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6">{source ? 'Edit' : 'Add'} Source</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
-                    <select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35">
+                    <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " required />
+                    <select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])} className="w-full p-2 rounded-md bg-white/[0.06] ">
                         <option>Movie</option>
                         <option>Web Series</option>
                         <option>Book</option>
                     </select>
-                    <input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
+                    <input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " required />
                     <div className="flex justify-end gap-4 pt-4">
                         <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button type="submit">Save Source</Button>
@@ -92,10 +92,10 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
             <div className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6">{quote ? 'Edit' : 'Add'} Quote</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 h-24" required />
-                    <input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
-                    <input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" />
-                    <input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" />
+                    <textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06]  h-24" required />
+                    <input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " required />
+                    <input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " />
+                    <input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " />
                     <div className="flex justify-end gap-4 pt-4">
                         <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button type="submit">Save Quote</Button>
@@ -431,7 +431,7 @@ const QuoteCollector: React.FC = () => {
                     </Button>
                     <form onSubmit={handleSearch} className="flex-grow ml-4">
                         <div className="relative">
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search again..." className="w-full p-3 pl-12 rounded-lg bg-white/[0.06] border border-accent-primary/35" />
+                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search again..." className="w-full p-3 pl-12 rounded-lg bg-white/[0.06] " />
                             <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-text-secondary" />
                         </div>
                     </form>
@@ -493,7 +493,7 @@ const QuoteCollector: React.FC = () => {
                                 </div>
                             </form>
                             {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-[rgba(15,10,30,0.75)] rounded-xl shadow-2xl border border-accent-primary/35 overflow-hidden z-50 animate-fade-in max-h-96 overflow-y-auto">
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-[rgba(15,10,30,0.75)] rounded-xl shadow-2xl  overflow-hidden z-50 animate-fade-in max-h-96 overflow-y-auto">
                                     {suggestions.map((result, index) => (
                                         <div
                                             key={index}

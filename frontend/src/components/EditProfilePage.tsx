@@ -145,7 +145,7 @@ const EditProfilePage: React.FC = () => {
                                     value={avatarUrl}
                                     onChange={(e) => setAvatarUrl(e.target.value)}
                                     placeholder="https://example.com/avatar.jpg"
-                                    className="w-full p-2 rounded bg-white/[0.06] border border-accent-primary/35 text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                    className="w-full p-2 rounded bg-white/[0.06]  text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                 />
                                 <p className="text-[10px] text-text-secondary mt-1 text-center">Leave empty to use generated avatar.</p>
                             </div>
@@ -161,7 +161,7 @@ const EditProfilePage: React.FC = () => {
                                     type="text"
                                     value={website}
                                     onChange={(e) => setWebsite(e.target.value)}
-                                    className="w-full p-2 rounded bg-white/[0.06] border border-accent-primary/35 text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                    className="w-full p-2 rounded bg-white/[0.06]  text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                     placeholder="https://mywebsite.com"
                                 />
                             </div>
@@ -180,7 +180,7 @@ const EditProfilePage: React.FC = () => {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full p-2 rounded bg-white/[0.06] border border-accent-primary/35 text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                    className="w-full p-2 rounded bg-white/[0.06]  text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                 />
                             </div>
                             <div>
@@ -189,7 +189,7 @@ const EditProfilePage: React.FC = () => {
                                     type="email"
                                     value={email}
                                     disabled
-                                    className="w-full p-2 rounded bg-white/[0.06] border border-accent-primary/35 text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                    className="w-full p-2 rounded bg-white/[0.06]  text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                     title="Email cannot be changed here"
                                 />
                             </div>
@@ -199,7 +199,7 @@ const EditProfilePage: React.FC = () => {
                                     type="text"
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
-                                    className="w-full p-2 rounded bg-white/[0.06] border border-accent-primary/35 text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                    className="w-full p-2 rounded bg-white/[0.06]  text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                     placeholder="e.g. New York, USA"
                                 />
                             </div>
@@ -208,7 +208,7 @@ const EditProfilePage: React.FC = () => {
                                 <textarea
                                     value={bio}
                                     onChange={(e) => setBio(e.target.value)}
-                                    className="w-full p-2 rounded bg-white/[0.06] border border-accent-primary/35 text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary h-32 resize-none"
+                                    className="w-full p-2 rounded bg-white/[0.06]  text-sm focus:outline-none focus:ring-1 focus:ring-accent-primary h-32 resize-none"
                                     placeholder="Tell us a little about yourself..."
                                 />
                             </div>
