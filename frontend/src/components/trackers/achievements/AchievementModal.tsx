@@ -51,34 +51,34 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
 
     return (
         <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-accent-primary/35 rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <card className="glass p-4 backdrop-blur-xl  rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6 text-white">{achievement ? 'Edit' : 'Create'} Achievement</h2>
                 <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-4 -mr-4">
                     <div>
                         <label className="text-sm text-text-secondary">Title</label>
-                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
+                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " required />
                     </div>
                      <div>
                         <label className="text-sm text-text-secondary">Description</label>
-                        <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 h-24" />
+                        <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06]  h-24" />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
                              <label className="text-sm text-text-secondary">Date</label>
-                             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" required />
+                             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " required />
                         </div>
                         <div>
                             <label className="text-sm text-text-secondary">Tags (comma-separated)</label>
-                            <input type="text" value={tags} onChange={e => setTags(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" />
+                            <input type="text" value={tags} onChange={e => setTags(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " />
                         </div>
                      </div>
                        <div>
                         <label className="text-sm text-text-secondary">Cover Image URL</label>
-                        <input type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] border border-accent-primary/35" />
+                        <input type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " />
                     </div>
                     <div>
                         <label className="text-sm text-text-secondary">Gallery Image URLs (one per line)</label>
-                        <textarea value={images} onChange={e => setImages(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 h-24" />
+                        <textarea value={images} onChange={e => setImages(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06]  h-24" />
                     </div>
                     <div className="flex justify-between items-center pt-4 mt-auto">
                         <div>
@@ -92,7 +92,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
                         </div>
                     </div>
                 </form>
-            </div>
+            </card>
         </div>
     );
 };

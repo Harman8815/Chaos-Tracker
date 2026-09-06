@@ -54,7 +54,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({ achievements, onImageClick,
                         {/* Dot on timeline */}
                         <div className={`absolute top-1/2 w-4 h-4 bg-accent-primary rounded-full border-4 border-background -translate-y-1/2 ${isLeft ? 'right-0 -mr-[9px]' : 'left-0 -ml-[9px]'}`}></div>
                         
-                        <div className={`bg-[rgba(15,10,30,0.75)] p-4 rounded-lg shadow-lg border border-accent-primary/35 w-[calc(100%-2rem)] relative ${isLeft ? 'mr-auto' : 'ml-auto'}`}>
+                        <div className={`bg-[rgba(15,10,30,0.75)] p-4 rounded-lg shadow-lg  w-[calc(100%-2rem)] relative ${isLeft ? 'mr-auto' : 'ml-auto'}`}>
                              <button 
                                 onClick={() => onEdit(achievement)}
                                 className="absolute top-2 right-2 p-1.5 bg-white/[0.06] rounded-full text-text-secondary hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"

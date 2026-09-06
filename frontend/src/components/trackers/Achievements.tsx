@@ -114,7 +114,7 @@ const Achievements: React.FC = () => {
                     onDelete={handleDeleteAchievement}
                 />
             )}
-            <Card className="mb-6">
+            <Card className="mb-6 p-2">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4">
                         <div className="flex space-x-1 bg-white/[0.06] p-1 rounded-lg">
@@ -132,14 +132,14 @@ const Achievements: React.FC = () => {
                         <select
                             value={sortOrder}
                             onChange={e => setSortOrder(e.target.value as SortOrder)}
-                            className="p-2 rounded-md bg-white/[0.06] border border-accent-primary/35 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         >
                             <option value="desc">Newest First</option>
                             <option value="asc">Oldest First</option>
                         </select>
                     </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-accent-primary/35">
+                <div className="mt-4 pt-4">
                     <div className="flex flex-wrap gap-2 items-center">
                         <span className="text-sm font-medium text-text-secondary mr-2">Filter by Tag:</span>
                         {allTags.length > 0 ? (

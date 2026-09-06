@@ -147,7 +147,7 @@ const Planner: React.FC = () => {
 
             <div
                 ref={canvasRef}
-                className={`relative w-full h-[calc(100vh-8rem)] bg-background border border-accent-primary/35 overflow-hidden rounded-lg shadow-inner ${interactionState?.type === 'pan' ? 'cursor-grabbing' : 'cursor-grab'} ${linking ? 'cursor-crosshair' : ''}`}
+                className={`relative w-full h-[calc(100vh-8rem)] bg-background  overflow-hidden rounded-lg shadow-inner ${interactionState?.type === 'pan' ? 'cursor-grabbing' : 'cursor-grab'} ${linking ? 'cursor-crosshair' : ''}`}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -234,7 +234,7 @@ const TodoBlockComponent: React.FC<TodoBlockProps> = ({ block, updateBlock, dele
         <div
             data-block-id={block.id}
             onClick={() => isLinking && finishLink(block.id)}
-            className={`absolute w-64 bg-[rgba(15,10,30,0.75)] rounded-lg shadow-lg border border-accent-primary/35 transition-all duration-100 ease-in-out flex flex-col ${isLinking ? 'cursor-crosshair hover:border-accent-primary' : ''}`}
+            className={`absolute w-64 bg-[rgba(15,10,30,0.75)] rounded-lg shadow-lg  transition-all duration-100 ease-in-out flex flex-col ${isLinking ? 'cursor-crosshair hover:border-accent-primary' : ''}`}
             style={{ top: block.y, left: block.x }}
         >
             <div data-dragger="true" className="p-2 bg-sidebar-bg rounded-t-lg flex justify-between items-center cursor-move">
