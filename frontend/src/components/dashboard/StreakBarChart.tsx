@@ -1,28 +1,60 @@
 import React, { useState } from 'react';
+import {
+  ResponsiveContainer,
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+} from 'recharts';
 
 const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = ({ data }) => {
     const [expanded, setExpanded] = useState(false);
-
-    if (data.length === 0) return <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
-
-    const maxStreak = Math.max(...data.map(d => d.streak), 1);
     const displayData = expanded ? data : data.slice(0, 5);
+
+    if (data.length === 0) {
+        return (
+            <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">
+                Not enough data to display.
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
-            <div className={`space-y-4 transition-all duration-300 ease-in-out`}>
-                {displayData.map((item) => (
-                    <div key={item.name} className="flex items-center gap-3 text-sm">
-                        <span className="w-24 truncate text-right text-text-secondary" title={item.name}>{item.name}</span>
-                        <div className="flex-grow bg-white/[0.06] rounded-full h-3 relative overflow-hidden">
-                            <div
-                                className="bg-gradient-to-r from-accent-primary to-accent-primary-hover h-full rounded-full absolute top-0 left-0 transition-all duration-500"
-                                style={{ width: `${(item.streak / maxStreak) * 100}%` }}
-                            />
-                        </div>
-                        <span className="w-8 font-bold text-right text-white">{item.streak}</span>
-                    </div>
-                ))}
+            <div className="w-full" style={{ height: expanded ? Math.max(displayData.length * 40, 200) : 200 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart data={displayData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                        <XAxis
+                            dataKey="name"
+                            tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }}
+                            stroke="var(--color-border)"
+                        />
+                        <YAxis
+                            tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }}
+                            stroke="var(--color-border)"
+                        />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: 'var(--color-surface)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '6px',
+                            }}
+                            labelStyle={{ color: 'var(--color-text-primary)' }}
+                        />
+                        <Bar dataKey="streak" radius={[4, 4, 0, 0]}>
+                            {displayData.map((entry, index) => (
+                                <Cell
+                                    key={index}
+                                    fill="var(--color-accent-primary)"
+                                />
+                            ))}
+                        </Bar>
+                    </RechartsBarChart>
+                </ResponsiveContainer>
             </div>
 
             {data.length > 5 && (
@@ -38,4 +70,3 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
 };
 
 export { StreakBarChart };
-
