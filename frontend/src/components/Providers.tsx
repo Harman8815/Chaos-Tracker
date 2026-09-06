@@ -51,14 +51,14 @@ const DUMMY_EXPENSES: Expense[] = [
 
 const DEFAULT_GOALS: GoalData = {
     daily: [
-        { id: 1, text: 'Finish the report for Q3', status: 'active', category: 'daily', created_at: new Date().toISOString(), tags: ['work'] },
-        { id: 2, text: 'Go for a 30-minute run', status: 'completed', category: 'daily', created_at: new Date().toISOString(), completed_at: new Date().toISOString(), tags: ['health'] },
+        { id: 1, text: 'Finish the report for Q3', status: 'active', category: 'daily', created_at: new Date().toISOString(), tags: ['work'], target: 1, completed_tasks: 0 },
+        { id: 2, text: 'Go for a 30-minute run', status: 'completed', category: 'daily', created_at: new Date().toISOString(), completed_at: new Date().toISOString(), tags: ['health'], target: 1, completed_tasks: 1 },
     ],
     monthly: [
-        { id: 3, text: 'Read two books', status: 'active', category: 'monthly', created_at: new Date().toISOString(), tags: ['personal growth', 'reading'] },
+        { id: 3, text: 'Read two books', status: 'active', category: 'monthly', created_at: new Date().toISOString(), tags: ['personal growth', 'reading'], target: 2, completed_tasks: 0 },
     ],
     future: [
-        { id: 4, text: 'Plan vacation for next year', status: 'active', category: 'future', created_at: new Date().toISOString(), tags: ['travel', 'personal'] },
+        { id: 4, text: 'Plan vacation for next year', status: 'active', category: 'future', created_at: new Date().toISOString(), tags: ['travel', 'personal'], target: 1, completed_tasks: 0 },
     ]
 };
 
