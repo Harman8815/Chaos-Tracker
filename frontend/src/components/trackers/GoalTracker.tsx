@@ -1,14 +1,16 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import Masonry from 'react-masonry-css';
 import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog';
 import { Goal, GoalCategory, GoalStatus } from '../../types';
 import goalService from '../../services/goalService';
-import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp } from 'lucide-react';
+import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp, MoreHorizontal } from 'lucide-react';
 import { PieChart, BarChart } from './charts';
 
 const TrashIcon = Trash2;
@@ -23,6 +25,7 @@ const FilterIcon = Filter;
 const CalendarIcon = Calendar;
 const TargetIcon = Target;
 const TrendingUpIcon = TrendingUp;
+const MoreIcon = MoreHorizontal;
 
 const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals, onClose }) => {
     const stats = useMemo(() => {
@@ -167,6 +170,72 @@ const GoalCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateS
 
 // --- Main Component ---
 
+const GoalMasonryCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
+    const progress = goal.target > 0 ? Math.round((goal.completed_tasks / goal.target) * 100) : 0;
+    const statusColors = {
+        active: 'border-accent-primary/30',
+        completed: 'border-success/30',
+        blocked: 'border-warning/30',
+        trashed: 'border-error/30'
+    };
+    const statusBg = {
+        active: 'bg-accent-primary/10',
+        completed: 'bg-success/10',
+        blocked: 'bg-warning/10',
+        trashed: 'bg-error/10'
+    };
+
+    return (
+        <div className={`p-4 rounded-xl border ${statusColors[goal.status]} bg-white/[0.03] backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.05] hover:border-white/20 group break-inside-avoid`}>
+            <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 flex-grow min-w-0">
+                    <button 
+                        onClick={() => onToggle(goal.id)} 
+                        className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-white/20 hover:border-accent-primary'}`}
+                    >
+                        {goal.status === 'completed' && <Check className="text-white w-2.5 h-2.5" />}
+                    </button>
+                    <p className={`text-white font-medium text-sm truncate ${goal.status === 'completed' ? 'line-through text-text-tertiary' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-text-tertiary' : ''}`}>
+                        {goal.text}
+                    </p>
+                </div>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full capitalize flex-shrink-0 ${statusBg[goal.status]} ${statusColors[goal.status].replace('/30', '')}`}>
+                    {goal.status}
+                </span>
+            </div>
+            
+            <div className="mt-3">
+                <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-text-secondary">Progress</span>
+                    <span className="text-text-secondary">{goal.completed_tasks}/{goal.target}</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div 
+                        className="h-full rounded-full bg-accent-primary transition-all duration-300"
+                        style={{ width: `${Math.min(progress, 100)}%` }}
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/[0.06]">
+                <span className="text-[11px] text-text-secondary">
+                    {goal.completed_tasks} {goal.completed_tasks === 1 ? 'task' : 'tasks'} completed
+                </span>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {goal.status !== 'completed' && (
+                        <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1 rounded hover:bg-white/[0.08] text-text-secondary hover:text-warning transition-colors">
+                            <Ban className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1 rounded hover:bg-white/[0.08] text-text-secondary hover:text-error transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const GoalTracker: React.FC = () => {
     const trackerInfo = TRACKERS.find(t => t.id === 'goals')!;
     const [goals, setGoals] = useState<Goal[]>([]);
@@ -178,6 +247,7 @@ const GoalTracker: React.FC = () => {
     const [newGoalTags, setNewGoalTags] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [showAllGoals, setShowAllGoals] = useState(false);
 
     const isFutureTab = activeTab === 'future';
 
@@ -402,43 +472,69 @@ const GoalTracker: React.FC = () => {
             </Card>
 
             {/* Goals List */}
-            <div className="space-y-6">
-                {Object.keys(filteredGoals).length > 0 ? Object.entries(filteredGoals).map(([tag, goalsInGroup], index) => (
-                    <Card
-                        key={tag}
-                        className="glass animate-fade-in-up"
-                        style={{ animationDelay: `${index * 50}ms` }}
+            {visibleGoals.length > 0 ? (
+                <>
+                    <Masonry
+                        breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
+                        className="flex -mx-3"
+                        columnClassName="px-3"
                     >
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="w-2 h-2 rounded-full bg-accent-primary" />
-                            <h4 className="font-bold text-lg text-white">{tag}</h4>
-                            <span className="text-xs text-text-secondary bg-white/[0.06] px-2 py-0.5 rounded-full border border-white/10">
-                                {goalsInGroup.length} {goalsInGroup.length === 1 ? 'goal' : 'goals'}
-                            </span>
-                        </div>
-                        <div className="space-y-2">
-                            {goalsInGroup.map(goal => (
-                                <GoalCard
-                                    key={goal.id}
+                        {visibleGoals.slice(0, 5).map((goal, index) => (
+                            <div key={goal.id} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                                <GoalMasonryCard
                                     goal={goal}
                                     onToggle={handleToggleGoal}
                                     onUpdateStatus={handleUpdateStatus}
                                     onDelete={handleDeleteGoal}
                                 />
-                            ))}
+                            </div>
+                        ))}
+                    </Masonry>
+                    {visibleGoals.length > 5 && (
+                        <div className="flex justify-center mt-6">
+                            <Button onClick={() => setShowAllGoals(true)} variant="outline" className="flex items-center gap-2">
+                                <MoreIcon className="w-4 h-4" />
+                                Show More ({visibleGoals.length - 5} more)
+                            </Button>
                         </div>
-                    </Card>
-                )) : (
-                    <Card className="glass text-center py-12">
-                        <TargetIcon className="w-12 h-12 text-text-secondary mx-auto mb-4 opacity-50" />
-                        <p className="text-text-secondary text-lg">
-                            {searchQuery || selectedCategory !== 'all' 
-                                ? 'No goals match your search criteria.' 
-                                : 'No goals yet. Create your first goal above!'}
-                        </p>
-                    </Card>
-                )}
-            </div>
+                    )}
+                </>
+            ) : (
+                <Card className="glass text-center py-12">
+                    <TargetIcon className="w-12 h-12 text-text-secondary mx-auto mb-4 opacity-50" />
+                    <p className="text-text-secondary text-lg">
+                        {searchQuery || selectedCategory !== 'all' 
+                            ? 'No goals match your search criteria.' 
+                            : 'No goals yet. Create your first goal above!'}
+                    </p>
+                </Card>
+            )}
+
+            {/* Show All Goals Modal */}
+            <Dialog open={showAllGoals} onOpenChange={setShowAllGoals}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>All Goals</DialogTitle>
+                    </DialogHeader>
+                    <DialogClose />
+                    <Masonry
+                        breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
+                        className="flex -mx-3"
+                        columnClassName="px-3"
+                    >
+                        {visibleGoals.map((goal, index) => (
+                            <div key={goal.id} className="mb-4">
+                                <GoalMasonryCard
+                                    goal={goal}
+                                    onToggle={handleToggleGoal}
+                                    onUpdateStatus={handleUpdateStatus}
+                                    onDelete={handleDeleteGoal}
+                                />
+                            </div>
+                        ))}
+                    </Masonry>
+                </DialogContent>
+            </Dialog>
         </TrackerWrapper>
     );
 };
