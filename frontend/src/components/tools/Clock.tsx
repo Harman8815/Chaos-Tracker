@@ -67,7 +67,7 @@ const Clock: React.FC = () => {
                 <AnalogClock time={time} onToggleView={toggleView} />
             ) : (
                 <div 
-                    className="font-mono text-6xl tracking-widest cursor-pointer bg-white/[0.06] backdrop-blur-sm border border-accent-primary/35 rounded-2xl px-8 py-4 text-white"
+                    className="font-mono text-6xl tracking-widest cursor-pointer bg-white/[0.06] backdrop-blur-sm  rounded-2xl px-8 py-4 text-white"
                     onClick={toggleView}
                     title="Switch to Analog View"
                 >

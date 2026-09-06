@@ -152,7 +152,7 @@ const ChatTool: React.FC = () => {
                 {messages.map((message) => (
                     <div key={message.id} className={`flex items-start gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {message.role === 'model' && (
-                            <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm border border-accent-primary/35 flex items-center justify-center flex-shrink-0 text-accent-primary">
+                            <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm  flex items-center justify-center flex-shrink-0 text-accent-primary">
                                 <SparkleIcon className="w-5 h-5"/>
                             </div>
                         )}
@@ -174,7 +174,7 @@ const ChatTool: React.FC = () => {
                 ))}
                 {isLoading && messages[messages.length-1]?.role === 'model' && (
                      <div className="flex items-start gap-3 justify-start">
-                        <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm border border-accent-primary/35 flex items-center justify-center flex-shrink-0 text-accent-primary">
+                        <div className="w-8 h-8 rounded-full bg-[rgba(15,10,30,0.65)]/80 backdrop-blur-sm  flex items-center justify-center flex-shrink-0 text-accent-primary">
                             <SparkleIcon className="w-5 h-5"/>
                         </div>
                         <div className="bg-white/[0.06] backdrop-blur-md border border-[rgba(139,92,246,0.2)] rounded-lg rounded-bl-none px-4 py-3">

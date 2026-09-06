@@ -71,7 +71,7 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
     return (
         <div
             ref={modalRef}
-            className="fixed bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-accent-primary/35 rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] flex flex-col animate-fade-in"
+            className="fixed bg-[rgba(15,10,30,0.75)] backdrop-blur-xl  rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] flex flex-col animate-fade-in"
             style={{
                 top: position.y,
                 left: position.x,
