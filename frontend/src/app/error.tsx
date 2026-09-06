@@ -69,7 +69,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8 }}
-                        className="mt-8 p-4 rounded-lg bg-white/[0.06] border border-accent-primary/35 text-left text-sm text-accent-primary/80 max-w-lg mx-auto"
+                        className="mt-8 p-4 rounded-lg bg-white/[0.06]  text-left text-sm text-accent-primary/80 max-w-lg mx-auto"
                     >
                         <p className="font-bold text-white mb-2">Development Error Details</p>
                         <p className="break-words">{error.message}</p>

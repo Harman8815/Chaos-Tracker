@@ -103,9 +103,6 @@ const Sidebar: React.FC = () => {
                 >
                     <MenuIcon className="w-6 h-6" />
                 </button>
-                <div className="bg-sidebar-bg/80 backdrop-blur-xl px-6 py-3 rounded-lg border border-accent-primary/20 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-                    <img src="/logo.svg" alt="Chaos Tracker" className="h-7 w-7" />
-                </div>
             </div>
         );
     }
@@ -113,7 +110,7 @@ const Sidebar: React.FC = () => {
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     return (
-        <aside className="relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-accent-primary/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+        <aside className="relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0  shadow-[0_0_30px_rgba(99,102,241,0.1)]">
             <button
                 onClick={() => setIsCollapsed(true)}
                 className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
