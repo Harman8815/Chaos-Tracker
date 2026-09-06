@@ -9,6 +9,8 @@ import {
   Tooltip,
 } from 'recharts';
 
+const formatValue = (value: number) => Number(value.toFixed(2));
+
 const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ data }) => {
   const domain = useMemo(() => {
     if (!data || data.length === 0) return [0, 10];
@@ -38,6 +40,7 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
           fillOpacity={0.5}
         />
         <Tooltip
+          formatter={(value: number) => [formatValue(value), 'Avg Score']}
           contentStyle={{
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',

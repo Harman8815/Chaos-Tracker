@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
-  LineChart,
+  AreaChart,
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -21,6 +22,8 @@ const CHART_COLORS = [
   'hsl(var(--color-info))',
   'hsl(var(--color-success))',
 ];
+
+const formatValue = (value: number) => Number(value.toFixed(2));
 
 const MultiLineTrendChart: React.FC<{
   data: { date: string; scores: { [habitId: string]: number } }[];
@@ -65,7 +68,15 @@ const MultiLineTrendChart: React.FC<{
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            {habits.map((habit, index) => (
+              <linearGradient key={habit.id} id={`color-${habit.id}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={CHART_COLORS[index % CHART_COLORS.length]} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={CHART_COLORS[index % CHART_COLORS.length]} stopOpacity={0} />
+              </linearGradient>
+            ))}
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
           <XAxis
             dataKey="date"
@@ -78,6 +89,7 @@ const MultiLineTrendChart: React.FC<{
             stroke="var(--color-border)"
           />
           <Tooltip
+            formatter={(value: number) => [formatValue(value), 'Score']}
             contentStyle={{
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
@@ -87,18 +99,25 @@ const MultiLineTrendChart: React.FC<{
           />
           <Legend />
           {habits.map((habit, index) => (
-            <Line
-              key={habit.id}
-              type="monotone"
-              dataKey={habit.id}
-              name={habit.name}
-              stroke={CHART_COLORS[index % CHART_COLORS.length]}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
+            <React.Fragment key={habit.id}>
+              <Area
+                type="monotone"
+                dataKey={habit.id}
+                stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                fill={`url(#color-${habit.id})`}
+              />
+              <Line
+                type="monotone"
+                dataKey={habit.id}
+                name={habit.name}
+                stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </React.Fragment>
           ))}
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

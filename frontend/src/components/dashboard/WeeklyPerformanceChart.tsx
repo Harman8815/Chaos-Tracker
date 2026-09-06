@@ -10,6 +10,8 @@ import {
   Cell,
 } from 'recharts';
 
+const formatValue = (value: number) => Number(value.toFixed(2));
+
 const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] }> = ({ data }) => {
     if (data.length === 0) {
         return (
@@ -37,13 +39,13 @@ const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] 
                         stroke="var(--color-border)"
                     />
                     <Tooltip
+                        formatter={(value: number) => [`${formatValue(value)} avg`, 'Score']}
                         contentStyle={{
                             backgroundColor: 'var(--color-surface)',
                             border: '1px solid var(--color-border)',
                             borderRadius: '6px',
                         }}
                         labelStyle={{ color: 'var(--color-text-primary)' }}
-                        formatter={(value: number) => [`${value.toFixed(1)} avg`, 'Score']}
                     />
                     <Bar dataKey="score" radius={[6, 6, 0, 0]}>
                         {data.map((entry) => (

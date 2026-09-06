@@ -5,7 +5,6 @@ import {
   Pie,
   Cell,
   Tooltip,
-  Legend,
 } from 'recharts';
 
 const CHART_COLORS = [
@@ -24,6 +23,8 @@ const NoData: React.FC = () => (
     Not enough data to display.
   </div>
 );
+
+const formatValue = (value: number) => Number(value.toFixed(2));
 
 const PieChart: React.FC<{
   data: { name: string; value: number }[];
@@ -53,10 +54,11 @@ const PieChart: React.FC<{
             label
           >
             {data.map((_, index) => (
-              <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              <Cell key={index} style={{ fill: CHART_COLORS[index % CHART_COLORS.length] }} />
             ))}
           </Pie>
           <Tooltip
+            formatter={(value: number) => [formatValue(value), 'Value']}
             contentStyle={{
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
@@ -64,10 +66,9 @@ const PieChart: React.FC<{
             }}
             labelStyle={{ color: 'var(--color-text-primary)' }}
           />
-          <Legend />
         </RechartsPieChart>
       </ResponsiveContainer>
-      <div className="flex flex-col space-y-1">
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
         {data.map((slice, i) => (
           <div key={slice.name} className="flex items-center text-sm">
             <div

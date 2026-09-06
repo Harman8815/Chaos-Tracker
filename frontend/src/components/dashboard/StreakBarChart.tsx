@@ -10,6 +10,8 @@ import {
   Cell,
 } from 'recharts';
 
+const formatValue = (value: number) => Number(value.toFixed(2));
+
 const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = ({ data }) => {
     const [expanded, setExpanded] = useState(false);
     const displayData = expanded ? data : data.slice(0, 5);
@@ -38,6 +40,7 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
                             stroke="var(--color-border)"
                         />
                         <Tooltip
+                            formatter={(value: number) => [formatValue(value), 'Streak']}
                             contentStyle={{
                                 backgroundColor: 'var(--color-surface)',
                                 border: '1px solid var(--color-border)',
