@@ -162,17 +162,22 @@ const Dashboard: React.FC = () => {
 
   const { dataForChart, habitsForChart, maxYForChart } = useMemo(() => {
     if (selectedTrend === "total") {
+      const totalData = trendChartData.map(({ date, scores }) => ({
+        date,
+        scores: {
+          total:
+            Object.values(scores).reduce<number>(
+              (sum, score) => sum + (Number(score) || 0),
+              0,
+            ) / (habits.length || 1),
+        },
+      }));
+      const maxY = totalData.reduce((max, d) => {
+        const v = d.scores.total || 0;
+        return v > max ? v : max;
+      }, 0);
       return {
-        dataForChart: trendChartData.map(({ date, scores }) => ({
-          date,
-          scores: {
-            total:
-              Object.values(scores).reduce<number>(
-                (sum, score) => sum + (Number(score) || 0),
-                0,
-              ) / (habits.length || 1),
-          },
-        })),
+        dataForChart: totalData,
         habitsForChart: [
           {
             id: "total",
@@ -182,7 +187,7 @@ const Dashboard: React.FC = () => {
             completed: false,
           },
         ],
-        maxYForChart: 10,
+        maxYForChart: maxY > 0 ? Math.ceil(maxY * 1.1) : 10,
       };
     }
 
@@ -191,10 +196,19 @@ const Dashboard: React.FC = () => {
         ? habits
         : habits.filter((h) => h.id === selectedTrend);
 
+    const maxY = trendChartData.reduce((max, d) => {
+      let localMax = max;
+      habitsToList.forEach((h) => {
+        const v = d.scores[h.id] ?? 0;
+        if (v > localMax) localMax = v;
+      });
+      return localMax;
+    }, 0);
+
     return {
       dataForChart: trendChartData,
       habitsForChart: habitsToList,
-      maxYForChart: 10,
+      maxYForChart: maxY > 0 ? Math.ceil(maxY * 1.1) : 10,
     };
   }, [trendChartData, selectedTrend, habits]);
 
