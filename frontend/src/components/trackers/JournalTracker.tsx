@@ -83,7 +83,7 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-white/5 bg-white/[0.03]">
+            <Card className="glass">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-lg text-white">Editor ({targetDate})</h3>
                     <div className="flex items-center space-x-2">
@@ -105,7 +105,7 @@ const JournalEditor: React.FC<{ targetDate: string }> = ({ targetDate }) => {
                     <Button onClick={handleSave}>Save</Button>
                 </div>
             </Card>
-            <Card className="border-white/5 bg-white/[0.03]">
+            <Card className="glass">
                 <h3 className="font-bold text-lg text-white mb-4">Preview</h3>
                 <div
                     className="prose prose-invert prose-sm max-w-none h-[330px] overflow-y-auto p-4 bg-white/[0.06] rounded-lg border border-white/5"
@@ -361,4 +361,5 @@ const JournalTracker: React.FC = () => {
 };
 
 export default JournalTracker;
+
 

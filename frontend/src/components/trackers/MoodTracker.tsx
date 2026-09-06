@@ -20,7 +20,7 @@ const MoodTracker: React.FC = () => {
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <Card className="border-white/5 bg-white/[0.03]">
+            <Card className="glass">
                 <CardHeader>
                     <CardTitle className="text-white">How are you feeling today?</CardTitle>
                 </CardHeader>
@@ -56,3 +56,4 @@ const MoodTracker: React.FC = () => {
 };
 
 export default MoodTracker;
+

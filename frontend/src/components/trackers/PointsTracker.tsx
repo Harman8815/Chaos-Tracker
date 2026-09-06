@@ -330,7 +330,7 @@ const PointsTracker: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <Card className="mt-6 border-white/5 bg-white/[0.03]">
+                    <Card className="mt-6 glass">
                         <h3 className="font-bold text-lg text-white mb-4">Monthly Progress</h3>
                         <div className="space-y-4">
                             {habits.map(habit => {
@@ -353,7 +353,7 @@ const PointsTracker: React.FC = () => {
             )}
             {view === 'monthly' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="border-white/5 bg-white/[0.03]">
+                    <Card className="glass">
                         <h3 className="font-bold text-lg text-white mb-4">Monthly Progress Summary</h3>
                         <div className="space-y-4">
                             {habits.map(habit => {
@@ -372,7 +372,7 @@ const PointsTracker: React.FC = () => {
                             })}
                         </div>
                     </Card>
-                    <Card className="border-white/5 bg-white/[0.03]">
+                    <Card className="glass">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-lg text-white">Scoring Rules</h3>
                             <button onClick={() => setIsEditRulesModalOpen(true)} className="text-sm text-accent-primary hover:underline">Edit</button>
@@ -405,7 +405,7 @@ const PointsTracker: React.FC = () => {
                 </div>
             )}
             {view === 'yearly' && (
-                <Card className="border-white/5 bg-white/[0.03]">
+                <Card className="glass">
                     <h3 className="font-bold text-lg text-white mb-4">Yearly Summary for {currentDate.getFullYear()}</h3>
                     <table className="w-full text-left">
                         <thead className="bg-white/[0.04]">
@@ -444,4 +444,5 @@ const PointsTracker: React.FC = () => {
 };
 
 export default PointsTracker;
+
 

@@ -318,7 +318,7 @@ const GoalTracker: React.FC = () => {
             </div>
 
             {/* Search and Filter Bar */}
-            <Card className="mb-6 border-white/5 bg-white/[0.03]">
+            <Card className="mb-6 glass">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-grow">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
@@ -371,7 +371,7 @@ const GoalTracker: React.FC = () => {
             </div>
 
             {/* Create New Goal Container */}
-            <Card className="mb-6 border-white/5 bg-white/[0.03]">
+            <Card className="mb-6 glass">
                 <form onSubmit={handleAddGoal} className="space-y-4">
                     <div className="flex items-center gap-2 mb-3">
                         <PlusIcon className="w-5 h-5 text-accent-primary" />
@@ -406,7 +406,7 @@ const GoalTracker: React.FC = () => {
                 {Object.keys(filteredGoals).length > 0 ? Object.entries(filteredGoals).map(([tag, goalsInGroup], index) => (
                     <Card
                         key={tag}
-                        className="border-white/5 bg-white/[0.03] animate-fade-in-up"
+                        className="glass animate-fade-in-up"
                         style={{ animationDelay: `${index * 50}ms` }}
                     >
                         <div className="flex items-center gap-2 mb-4">
@@ -429,7 +429,7 @@ const GoalTracker: React.FC = () => {
                         </div>
                     </Card>
                 )) : (
-                    <Card className="border-white/5 bg-white/[0.03] text-center py-12">
+                    <Card className="glass text-center py-12">
                         <TargetIcon className="w-12 h-12 text-text-secondary mx-auto mb-4 opacity-50" />
                         <p className="text-text-secondary text-lg">
                             {searchQuery || selectedCategory !== 'all' 

@@ -183,7 +183,7 @@ const ExpenseTracker: React.FC = () => {
         <TrackerWrapper tracker={trackerInfo}>
             {isModalOpen && <AddExpenseModal onClose={() => setIsModalOpen(false)} onAdd={handleAddExpense} />}
             <div className="flex flex-col gap-4 mb-6 text-sm lg:flex-row lg:gap-6 lg:p-0 lg:text-base">
-                <Card className="flex flex-1 lg:flex-[4] items-center justify-center align-center border-white/5 bg-white/[0.03]">
+                <Card className="flex flex-1 lg:flex-[4] items-center justify-center align-center glass">
                     <BarChart
                         title="Daily Spending"
                         data={dailyChartData}
@@ -192,7 +192,7 @@ const ExpenseTracker: React.FC = () => {
                     />
                 </Card>
 
-                <Card className="flex-1 lg:flex-[1] border-white/5 bg-white/[0.03]">
+                <Card className="flex-1 lg:flex-[1] glass">
                     <PieChart
                         title="Daily Spending"
                         data={analytics?.category_breakdown || []}
@@ -203,7 +203,7 @@ const ExpenseTracker: React.FC = () => {
 
 
 
-            <Card className="p-4 lg:p-6 text-sm lg:text-base border-white/5 bg-white/[0.03]">
+            <Card className="p-4 lg:p-6 text-sm lg:text-base glass">
 
                 {/* Header Section */}
                 <div className="flex flex-col gap-3 mb-4 lg:flex-row lg:items-center lg:justify-between">
@@ -355,4 +355,5 @@ const ExpenseTracker: React.FC = () => {
 };
 
 export default ExpenseTracker;
+
 

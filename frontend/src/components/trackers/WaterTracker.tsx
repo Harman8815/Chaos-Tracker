@@ -17,7 +17,7 @@ const WaterTracker: React.FC = () => {
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <Card className="border-white/5 bg-white/[0.03]">
+            <Card className="glass">
                 <CardHeader>
                     <CardTitle className="text-white">Water Intake</CardTitle>
                 </CardHeader>
@@ -78,3 +78,4 @@ const WaterTracker: React.FC = () => {
 };
 
 export default WaterTracker;
+

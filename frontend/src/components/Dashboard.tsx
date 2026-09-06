@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
     }, [data]);
 
     return (
-        <div className="relative h-full overflow-y-auto">
+        <div className="relative h-full overflow-y-auto p-6">
             <div className="absolute inset-0 bg-gradient-to-br from-background via-surface to-background -z-20" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent-primary/15 via-transparent to-transparent -z-10" />
             <div className="space-y-6">

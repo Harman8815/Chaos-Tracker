@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "../components/Providers";
-import Sidebar from "../components/Sidebar";
 
 export const metadata: Metadata = {
   title: "Chaos Tracker",
@@ -22,12 +21,9 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <div className="flex h-screen w-full">
-            <Sidebar />
-            <main className="flex-1 h-full overflow-y-auto p-6">
-              {children}
-            </main>
-          </div>
+          <main className="h-screen w-full overflow-y-auto p-6">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>

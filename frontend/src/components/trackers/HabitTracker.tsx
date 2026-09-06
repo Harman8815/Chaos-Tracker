@@ -36,7 +36,7 @@ const HabitTracker: React.FC = () => {
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <Card className="border-white/5 bg-white/[0.03]">
+            <Card className="glass">
                 <CardHeader>
                     <CardTitle className="text-white">Today's Habits</CardTitle>
                 </CardHeader>
@@ -90,3 +90,4 @@ const HabitTracker: React.FC = () => {
 };
 
 export default HabitTracker;
+
