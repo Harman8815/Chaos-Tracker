@@ -151,6 +151,8 @@ class Goal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    target = models.IntegerField(default=1)
+    completed_tasks = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['-created_at']

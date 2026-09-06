@@ -173,7 +173,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
-        fields = ['id', 'text', 'category', 'status', 'tags', 'created_at', 'updated_at', 'completed_at']
+        fields = ['id', 'text', 'category', 'status', 'tags', 'created_at', 'updated_at', 'completed_at', 'target', 'completed_tasks']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
