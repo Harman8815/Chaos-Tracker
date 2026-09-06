@@ -25,7 +25,7 @@ const SettingsModal: React.FC = () => {
             onClick={() => setIsSettingsModalOpen(false)}
         >
             <div
-                className="glass backdrop-blur-xl rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-md"
+                className="glass backdrop-blur-xl rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-md p-6"
                 onClick={e => e.stopPropagation()}
             >
                 <h2 className="text-2xl font-bold mb-6 text-white">{t('settings')}</h2>

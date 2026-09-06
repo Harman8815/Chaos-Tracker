@@ -25,7 +25,7 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
 
     return (
         <div className="absolute inset-0 flex flex-col">
-            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-white/10 pb-2 pr-2 select-none bg-white/[0.04] sticky top-0 z-10">
+            <div className="grid grid-cols-3 gap-2 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-white/10 px-2 pb-2 select-none bg-white/[0.04] sticky top-0 z-10">
                  <div 
                     className="col-span-2 cursor-pointer flex items-center hover:text-white transition-colors" 
                     onClick={() => requestSort('name')}
