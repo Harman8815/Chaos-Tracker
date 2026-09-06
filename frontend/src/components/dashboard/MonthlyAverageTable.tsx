@@ -24,21 +24,21 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
     if (data.length === 0) return <div className="text-center text-text-secondary p-4 h-full flex items-center justify-center">Not enough data to display.</div>;
 
     return (
-        <div className="absolute inset-0 flex flex-col">
+        <div className="flex flex-col h-full">
             <div className="grid grid-cols-3 gap-2 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-white/10 px-2 pb-2 select-none bg-white/[0.04] sticky top-0 z-10">
                  <div 
-                    className="col-span-2 cursor-pointer flex items-center hover:text-white transition-colors" 
-                    onClick={() => requestSort('name')}
-                    title="Sort by Name"
+                     className="col-span-2 cursor-pointer flex items-center hover:text-white transition-colors" 
+                     onClick={() => requestSort('name')}
+                     title="Sort by Name"
                  >
-                    Habit {sortConfig.key === 'name' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
+                     Habit {sortConfig.key === 'name' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
                  </div>
                  <div 
-                    className="col-span-1 text-right cursor-pointer flex items-center justify-end hover:text-white transition-colors" 
-                    onClick={() => requestSort('avg')}
-                    title="Sort by Average Score"
+                     className="col-span-1 text-right cursor-pointer flex items-center justify-end hover:text-white transition-colors" 
+                     onClick={() => requestSort('avg')}
+                     title="Sort by Average Score"
                  >
-                    Avg {sortConfig.key === 'avg' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
+                     Avg {sortConfig.key === 'avg' && <span className="ml-1 text-accent-primary">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>}
                  </div>
             </div>
             
@@ -55,4 +55,3 @@ const MonthlyAverageTable: React.FC<{ data: { name: string, avg: number }[] }> =
 };
 
 export { MonthlyAverageTable };
-

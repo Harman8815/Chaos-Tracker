@@ -5,7 +5,7 @@ import { getAIPoweredSummary } from "../services/geminiService";
 import { dashboardService } from "../services/dashboardService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Habit, AllData, DailyData } from "../types";
 import { PieChart } from "./charts/PieChart";
 import { RadarChart } from "./dashboard/RadarChart";
@@ -379,18 +379,15 @@ const Dashboard: React.FC = () => {
               <h3 className="font-bold text-xl text-white">
                 Habit Trends (30 Days)
               </h3>
-              <Select
+              <CustomSelect
                 value={selectedTrend}
-                onChange={(e) => setSelectedTrend(e.target.value)}
-              >
-                <option value="all">All Habits</option>
-                <option value="total">Avg Daily Score</option>
-                {habits.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name}
-                  </option>
-                ))}
-              </Select>
+                onChange={setSelectedTrend}
+                options={[
+                  { value: 'all', label: 'All Habits' },
+                  { value: 'total', label: 'Avg Daily Score' },
+                  ...habits.map(h => ({ value: h.id, label: h.name })),
+                ]}
+              />
             </div>
             <MultiLineTrendChart
               data={dataForChart}
