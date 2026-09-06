@@ -266,11 +266,11 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+                <Card className="xl:col-span-4 glass animate-fade-in-up" style={{ animationDelay: '0ms' }}>
                     <StreakHighlight streaks={habitStreaks} />
                 </Card>
 
-                <Card className="xl:col-span-4 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <Card className="xl:col-span-4 glass animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                     <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                         <h3 className="font-bold text-xl text-white">Habit Trends (30 Days)</h3>
                         <Select
@@ -287,21 +287,21 @@ const Dashboard: React.FC = () => {
                     <MultiLineTrendChart data={dataForChart} habits={habitsForChart} maxY={maxYForChart} />
                 </Card>
 
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                <Card className="xl:col-span-2 glass animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4">Habit Performance (7 Days)</h3>
                     <div className="w-full h-[500px]">
                         <RadarChart data={radarData} />
                     </div>
                 </Card>
 
-                 <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                 <Card className="xl:col-span-2 glass animate-fade-in-up" style={{ animationDelay: '300ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4">Today's Distribution</h3>
                     <div className="h-64 flex items-center justify-center">
                         <PieChart data={todayPieData} type="pie" />
                     </div>
                 </Card>
 
-                 <Card className="xl:col-span-2 flex flex-col justify-between h-full border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                 <Card className="xl:col-span-2 flex flex-col justify-between h-full glass animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                     <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-xl text-white">Habit Streaks</h3>
@@ -317,14 +317,14 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="xl:col-span-2 flex flex-col h-full border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+                <Card className="xl:col-span-2 flex flex-col h-full glass animate-fade-in-up" style={{ animationDelay: '500ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4 flex-shrink-0">Monthly Daily Average</h3>
                     <div className="relative flex-grow min-h-[200px]">
                          <MonthlyAverageTable data={monthlyAverages} />
                     </div>
                 </Card>
 
-                <Card className="xl:col-span-2 flex flex-col border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+                <Card className="xl:col-span-2 flex flex-col border glass animate-fade-in-up" style={{ animationDelay: '600ms' }}>
                     <h3 className="font-bold text-xl text-white mb-4">Weekly Performance</h3>
                     <div className="flex-grow min-h-[200px]">
                         <WeeklyPerformanceChart data={weeklyPerformance} />
@@ -336,7 +336,7 @@ const Dashboard: React.FC = () => {
                     )}
                 </Card>
 
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '700ms' }}>
+                <Card className="xl:col-span-2 glass animate-fade-in-up" style={{ animationDelay: '700ms' }}>
                     <div className="flex flex-col h-full">
                         <div className="mb-6">
                             <div className="flex justify-between items-start mb-4">
@@ -371,11 +371,11 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 bg-white/[0.04] rounded-lg border border-white/10 text-center">
+                            <div className="p-4 glass-subtle rounded-lg text-center">
                                 <div className="text-2xl font-bold text-white">{levelStats.totalXP.toLocaleString()}</div>
                                 <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Lifetime XP</div>
                             </div>
-                            <div className="p-4 bg-white/[0.04] rounded-lg border border-white/10 text-center">
+                            <div className="p-4 glass-subtle rounded-lg text-center">
                                 <div className="text-2xl font-bold text-white">{Object.keys(data).length}</div>
                                 <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">Days Active</div>
                             </div>
@@ -383,14 +383,14 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="xl:col-span-2 flex flex-col min-h-[300px] border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '800ms' }}>
+                <Card className="xl:col-span-2 flex flex-col min-h-[300px] glass animate-fade-in-up" style={{ animationDelay: '800ms' }}>
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="font-bold text-xl text-white flex items-center gap-2">
                             AI Daily Reflection
                             <span className="text-xs font-normal bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full">Beta</span>
                         </h3>
                     </div>
-                    <div className="text-text-secondary mb-4 flex-grow overflow-y-auto max-h-96 p-2 bg-white/[0.04] rounded-lg border border-white/10">
+                    <div className="text-text-secondary mb-4 flex-grow overflow-y-auto max-h-96 p-2 glass-subtle rounded-lg">
                         {isLoading ? (
                             <Loader />
                         ) : (
@@ -404,13 +404,13 @@ const Dashboard: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="xl:col-span-2 border-white/5 bg-white/[0.03] animate-fade-in-up" style={{ animationDelay: '900ms' }}>
+                <Card className="xl:col-span-2 border glass animate-fade-in-up" style={{ animationDelay: '900ms' }}>
                     <div className="flex flex-col items-center justify-between h-full p-4">
                         <h3 className="font-bold text-xl text-white mb-4 w-full text-left">Monthly Target</h3>
                         <div className="w-full flex-grow flex items-center justify-center">
                             <PieChart data={overallProgressData} type="donut" />
                         </div>
-                        <div className="text-center mt-4 pt-4 border-t border-white/10 w-full">
+                        <div className="text-center mt-4 pt-4 border-t border-white/10">
                             <h3 className="font-bold text-sm text-text-secondary uppercase tracking-wide mb-2">Current Time</h3>
                             <p className="text-4xl font-mono font-bold text-accent-primary tracking-tight">
                                 {time.toLocaleTimeString('en-US', {

@@ -13,7 +13,7 @@ const TrackerWrapper: React.FC<TrackerWrapperProps> = ({ tracker, children }) =>
     return (
         <div className="p-6 lg:p-8 h-full overflow-y-auto animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-lg bg-white/[0.06] border border-white/10">
+                <div className="p-2 rounded-lg bg-white/[0.06] glass-subtle">
                     <tracker.icon className="w-6 h-6 text-accent-primary" />
                 </div>
                 <h2 className="text-3xl font-bold text-white">{t(tracker.id)}</h2>

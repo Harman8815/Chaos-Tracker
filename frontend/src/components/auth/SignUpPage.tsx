@@ -62,7 +62,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onSwitchToLogin }) =>
                 <h1 className="text-5xl font-bold text-accent-primary mb-2 tracking-tight">Chaos Tracker</h1>
                 <p className="text-text-secondary text-lg">Start your journey today.</p>
             </div>
-            <Card className="w-full border-white/10 bg-card-bg shadow-xl">
+            <Card className="w-full glass shadow-xl">
                 <CardHeader className="space-y-1 pb-4">
                     <CardTitle className="text-2xl font-bold text-center text-white">Create Account</CardTitle>
                 </CardHeader>

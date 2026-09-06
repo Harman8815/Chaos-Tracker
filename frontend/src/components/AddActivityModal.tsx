@@ -105,7 +105,7 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-[rgba(15,10,30,0.75)] rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="glass rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-6 border-b border-accent-primary/35">
                     <h2 className="text-xl font-semibold text-white">Add Activity</h2>
                     <Button 

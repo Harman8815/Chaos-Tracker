@@ -34,7 +34,7 @@ const Dialog = ({ open, onOpenChange, children }: { open: boolean; onOpenChange:
 const DialogContent = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "relative rounded-xl border border-white/10 bg-background p-6 shadow-[0_0_25px_rgba(124,58,237,0.25)] backdrop-blur-xl",
+      "relative rounded-xl glass shadow-[0_0_25px_rgba(124,58,237,0.25)] backdrop-blur-xl",
       className
     )}
     {...props}

@@ -50,7 +50,7 @@ const HomePage: React.FC = () => {
             />
 
             <div className="relative z-10 w-full h-full flex items-center justify-center text-white pointer-events-none p-4">
-                <Card className="pointer-events-auto max-w-lg w-full border-white/10 bg-card-bg/80 backdrop-blur-xl shadow-xl animate-fade-in-up">
+                <Card className="pointer-events-auto max-w-lg w-full glass shadow-xl animate-fade-in-up">
                     <CardContent className="p-8 text-center space-y-6">
                         <motion.div
                             initial={{ opacity: 0, y: 40 }}

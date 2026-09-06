@@ -100,7 +100,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignUp }) => {
                 </Button>
             </div>
             
-            <Card className="w-full border-white/10 bg-card-bg shadow-xl">
+            <Card className="w-full glass shadow-xl">
                 <CardHeader className="space-y-1 pb-4">
                     <CardTitle className="text-2xl font-bold text-center text-white">Welcome Back</CardTitle>
                 </CardHeader>

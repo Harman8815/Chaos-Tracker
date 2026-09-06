@@ -64,7 +64,7 @@ const EditRulesModal: React.FC<EditRulesModalProps> = ({ rules, setRules, onClos
             onClick={onClose}
         >
             <div 
-                className="bg-[rgba(15,10,30,0.75)] backdrop-blur-xl border border-accent-primary/35 rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-4xl max-h-[80vh] flex flex-col"
+                className="glass backdrop-blur-xl rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-4xl max-h-[80vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 <h2 className="text-2xl font-bold mb-6 text-white">Edit Scoring Rules</h2>
