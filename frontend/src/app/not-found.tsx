@@ -21,6 +21,7 @@ export default function NotFound() {
                     transition={{ delay: 0.2, duration: 0.6 }}
                     className="mb-6"
                 >
+                    <img src="/logo.svg" alt="Chaos Tracker" className="h-20 w-20 mx-auto mb-4" />
                     <span className="text-8xl font-extrabold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                         404
                     </span>

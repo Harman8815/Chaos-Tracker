@@ -42,7 +42,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r border-border bg-sidebar-bg">
         <div className="flex items-center justify-between p-4">
-          <h1 className="text-lg font-bold text-white">Chaos Tracker</h1>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.svg" alt="Chaos Tracker" className="h-7 w-7" />
+            <h1 className="text-lg font-bold text-white">Chaos Tracker</h1>
+          </Link>
         </div>
         <nav className="flex-1 space-y-1 p-2">
           {navItems.map((item) => {
@@ -86,7 +89,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold text-white">Chaos Tracker</h1>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.svg" alt="Chaos Tracker" className="h-6 w-6" />
+            <h1 className="text-lg font-bold text-white">Chaos Tracker</h1>
+          </Link>
           <div className="w-9" />
         </header>
         <main className="flex-1 overflow-auto">
@@ -115,7 +121,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetContent side="left" className="w-64 bg-sidebar-bg p-0">
           <SheetHeader className="p-4">
-            <SheetTitle className="text-white">Chaos Tracker</SheetTitle>
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.svg" alt="Chaos Tracker" className="h-6 w-6" />
+              <SheetTitle className="text-white">Chaos Tracker</SheetTitle>
+            </Link>
             <SheetDescription className="text-text-secondary">
               Navigate your tracker
             </SheetDescription>

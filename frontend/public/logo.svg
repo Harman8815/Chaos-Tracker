@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="ctGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#ctGrad)"/>
+  <path d="M32 14 L44 26 L40 30 L32 22 L24 30 L20 26 Z" fill="#fff" opacity="0.95"/>
+  <circle cx="32" cy="38" r="10" stroke="#fff" stroke-width="4" fill="none" opacity="0.95"/>
+  <circle cx="32" cy="38" r="4" fill="#fff" opacity="0.95"/>
+  <path d="M18 50 L46 50" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+</svg>

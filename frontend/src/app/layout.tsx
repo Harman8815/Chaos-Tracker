@@ -6,6 +6,9 @@ import Sidebar from "../components/Sidebar";
 export const metadata: Metadata = {
   title: "Chaos Tracker",
   description: "Track your daily habits, goals, and productivity",
+  icons: {
+    icon: '/logo.svg',
+  },
 };
 
 export default function RootLayout({

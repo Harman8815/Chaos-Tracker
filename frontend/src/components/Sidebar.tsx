@@ -104,9 +104,7 @@ const Sidebar: React.FC = () => {
                     <MenuIcon className="w-6 h-6" />
                 </button>
                 <div className="bg-sidebar-bg/80 backdrop-blur-xl px-6 py-3 rounded-lg border border-accent-primary/20 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
-                    <span className="text-2xl font-bold text-text-primary">
-                        Tracker
-                    </span>
+                    <img src="/logo.svg" alt="Chaos Tracker" className="h-7 w-7" />
                 </div>
             </div>
         );
