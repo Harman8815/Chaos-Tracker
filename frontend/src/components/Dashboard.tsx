@@ -254,10 +254,10 @@ const Dashboard: React.FC = () => {
     }, [data]);
 
     return (
-        <div className="relative h-full overflow-y-auto pb-20">
+        <div className="relative h-full overflow-y-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-background via-surface to-background -z-20" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent-primary/15 via-transparent to-transparent -z-10" />
-            <div className="p-6 lg:p-8 space-y-6">
+            <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="space-y-1">
                         <h1 className="text-4xl font-black tracking-tight text-white">{t('dashboard')}</h1>

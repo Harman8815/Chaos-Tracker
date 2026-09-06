@@ -1,3 +1,4 @@
+"use client";
 import React, { useContext, useMemo, useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -13,18 +14,14 @@ const DashboardIcon = LayoutDashboard;
 const SettingsIcon = Settings;
 const MenuIcon = Menu;
 
-interface SidebarProps {
-    isCollapsed: boolean;
-    toggleSidebar: () => void;
-}
-
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
+const Sidebar: React.FC = () => {
     const pathname = usePathname();
     const { userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
     const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
 
@@ -97,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         return (
             <div className="fixed top-6 left-6 z-50 flex justify-between pr-12 w-full gap-4">
                 <button
-                    onClick={toggleSidebar}
+                    onClick={() => setIsCollapsed(false)}
                     aria-label="Open menu"
                     className="flex items-center justify-center
                             w-14 h-14 rounded-lg bg-sidebar-bg/80 backdrop-blur-xl border border-accent-primary/20
@@ -120,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     return (
         <aside className="relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0 border-r border-accent-primary/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
             <button
-                onClick={toggleSidebar}
+                onClick={() => setIsCollapsed(true)}
                 className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
                 aria-label="Close menu"
             >
