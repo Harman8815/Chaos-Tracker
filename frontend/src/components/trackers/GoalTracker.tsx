@@ -392,26 +392,24 @@ const GoalTracker: React.FC = () => {
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-grow">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
-                        <input
+                        <Input
                             type="text"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Search goals by name or tag..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
                         />
                     </div>
                     <div className="flex items-center gap-2">
                         <FilterIcon className="w-4 h-4 text-text-secondary" />
-                        <select
+                        <Select
                             value={selectedCategory}
                             onChange={e => setSelectedCategory(e.target.value)}
-                            className="px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
                         >
                             <option value="all">All Categories</option>
                             <option value="daily">Daily</option>
                             <option value="monthly">Monthly</option>
                             <option value="future">Future</option>
-                        </select>
+                        </Select>
                     </div>
                 </div>
             </Card>
@@ -448,20 +446,20 @@ const GoalTracker: React.FC = () => {
                         <h3 className="text-lg font-semibold text-white">Create New Goal</h3>
                     </div>
                     <div className="flex flex-col md:flex-row gap-3">
-                        <input
+                        <Input
                             type="text"
                             value={newGoalText}
                             onChange={e => setNewGoalText(e.target.value)}
                             placeholder={`What's your ${activeTab} goal?`}
-                            className="flex-grow px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                            className="flex-grow"
                             required
                         />
-                        <input
+                        <Input
                             type="text"
                             value={newGoalTags}
                             onChange={e => setNewGoalTags(e.target.value)}
                             placeholder="Tags (comma-separated)"
-                            className="md:w-64 px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
+                            className="md:w-64"
                         />
                         <Button type="submit" className="flex items-center gap-2">
                             <PlusIcon className="w-4 h-4" />

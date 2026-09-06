@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Habit } from '../types';
 import Button from './ui/Button';
+import { Input } from './ui/Input';
 import { pointsService } from '../services/pointsService';
 
 interface EditHabitsModalProps {
@@ -75,35 +76,32 @@ const EditHabitsModal: React.FC<EditHabitsModalProps> = ({ habits, setHabits, on
                         <div key={habit.id} className="grid grid-cols-12 gap-4 items-center p-3 bg-white/[0.06] rounded-lg">
                             <div className="col-span-5">
                                 <label className="text-xs text-text-secondary">Name</label>
-                                <input
+                                <Input
                                     type="text"
                                     value={habit.name}
                                     onChange={e => handleHabitChange(habit.id, 'name', e.target.value)}
-                                    className="w-full mt-1 p-2 rounded-md bg-background  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                             <div className="col-span-3">
                                 <label className="text-xs text-text-secondary">Daily Range Max</label>
-                                <input
+                                <Input
                                     type="number"
                                     value={habit.rangeMax ?? 10}
                                     onChange={e => handleHabitChange(habit.id, 'rangeMax', parseInt(e.target.value))}
-                                    className="w-full mt-1 p-2 rounded-md bg-background  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                             <div className="col-span-3">
                                 <label className="text-xs text-text-secondary">Monthly Target</label>
-                                <input
+                                <Input
                                     type="number"
                                     value={habit.target}
                                     onChange={e => handleHabitChange(habit.id, 'target', parseInt(e.target.value))}
-                                    className="w-full mt-1 p-2 rounded-md bg-background  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                             <div className="col-span-1 flex items-end">
                                 <button onClick={() => handleDeleteHabit(habit.id)} className="text-red-500 hover:text-red-400 p-2">
                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                                </button>
+                                 </button>
                             </div>
                         </div>
                     ))}

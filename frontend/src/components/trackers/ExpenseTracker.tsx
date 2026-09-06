@@ -4,6 +4,8 @@ import TrackerWrapper from '../TrackerWrapper';
 import { Expense } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 import expenseService from '../../services/expenseService';
 import BarChart from '../charts/BarChart';
 import PieChart from '../charts/PieChart';
@@ -24,15 +26,15 @@ const AddExpenseModal: React.FC<{ onClose: () => void; onAdd: (expense: Omit<Exp
 
     return (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50" onClick={onClose}>
-            <div className="bg-white/[0.03] backdrop-blur-xl p-6 rounded-xl shadow-lg w-full max-w-md border border-white/10" onClick={e => e.stopPropagation()}>
+            <div className="glass p-6 rounded-xl shadow-lg w-full max-w-md border border-white/10" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6 text-white">Add New Expense</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all" required />
-                    <input placeholder="Item" value={item} onChange={e => setItem(e.target.value)} className="w-full px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all" required />
-                    <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all" required />
+                    <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+                    <Input placeholder="Item" value={item} onChange={e => setItem(e.target.value)} required />
+                    <Input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} required />
                     <div className="flex gap-4">
-                        <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-1/2 px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all" min="1" required />
-                        <input type="number" placeholder="Price" value={price} onChange={e => setPrice(parseFloat(e.target.value) || 0)} className="w-1/2 px-4 py-2.5 rounded-lg bg-white/[0.06] border border-white/10 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all" step="0.01" min="0.01" required />
+                        <Input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} min="1" required />
+                        <Input type="number" placeholder="Price" value={price} onChange={e => setPrice(parseFloat(e.target.value) || 0)} step="0.01" min="0.01" required />
                     </div>
                     <div className="flex justify-end gap-4 pt-4">
                         <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/10">Cancel</Button>

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Card from './ui/Card';
 import Button from './ui/Button';
+import { Input } from './ui/Input';
+import { Textarea } from './ui/Textarea';
+import { Select } from './ui/Select';
 
 export type ActivityType = 'journal' | 'expense' | 'goal' | 'habit' | 'planner';
 
@@ -150,11 +153,10 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                         <label className="block text-sm font-medium text-white mb-2">
                             Date
                         </label>
-                        <input
+                        <Input
                             type="date"
                             value={activityData.date}
                             onChange={(e) => setActivityData({ ...activityData, date: e.target.value })}
-                            className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                             required
                         />
                     </div>
@@ -165,12 +167,11 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                             <label className="block text-sm font-medium text-white mb-2">
                                 Journal Entry
                             </label>
-                            <textarea
+                            <Textarea
                                 value={activityData.description || ''}
                                 onChange={(e) => setActivityData({ ...activityData, description: e.target.value })}
                                 placeholder="Write about your day..."
                                 rows={4}
-                                className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
                                 required
                             />
                         </div>
@@ -182,14 +183,13 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Amount
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     value={activityData.amount || ''}
                                     onChange={(e) => setActivityData({ ...activityData, amount: parseFloat(e.target.value) || 0 })}
                                     placeholder="0.00"
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     required
                                 />
                             </div>
@@ -197,10 +197,9 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Category
                                 </label>
-                                <select
+                                <Select
                                     value={activityData.category || ''}
                                     onChange={(e) => setActivityData({ ...activityData, category: e.target.value })}
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     required
                                 >
                                     <option value="">Select category</option>
@@ -209,18 +208,17 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                             {category}
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
                             </div>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Description
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     value={activityData.description || ''}
                                     onChange={(e) => setActivityData({ ...activityData, description: e.target.value })}
                                     placeholder="What was this expense for?"
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                 />
                             </div>
                         </>
@@ -232,12 +230,11 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Goal Title
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     value={activityData.title || ''}
                                     onChange={(e) => setActivityData({ ...activityData, title: e.target.value })}
                                     placeholder="What do you want to achieve?"
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     required
                                 />
                             </div>
@@ -245,12 +242,11 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Description
                                 </label>
-                                <textarea
+                                <Textarea
                                     value={activityData.description || ''}
                                     onChange={(e) => setActivityData({ ...activityData, description: e.target.value })}
                                     placeholder="Describe your goal..."
                                     rows={3}
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -258,24 +254,22 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                     <label className="block text-sm font-medium text-white mb-2">
                                         Target Value
                                     </label>
-                                    <input
+                                    <Input
                                         type="number"
                                         value={activityData.target_value || ''}
                                         onChange={(e) => setActivityData({ ...activityData, target_value: parseFloat(e.target.value) || 0 })}
                                         placeholder="100"
-                                        className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-white mb-2">
                                         Current Value
                                     </label>
-                                    <input
+                                    <Input
                                         type="number"
                                         value={activityData.current_value || ''}
                                         onChange={(e) => setActivityData({ ...activityData, current_value: parseFloat(e.target.value) || 0 })}
                                         placeholder="0"
-                                        className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     />
                                 </div>
                             </div>
@@ -284,23 +278,21 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                     <label className="block text-sm font-medium text-white mb-2">
                                         Unit
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={activityData.unit || ''}
                                         onChange={(e) => setActivityData({ ...activityData, unit: e.target.value })}
                                         placeholder="kg, miles, etc."
-                                        className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-white mb-2">
                                         Deadline
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={activityData.deadline || ''}
                                         onChange={(e) => setActivityData({ ...activityData, deadline: e.target.value })}
-                                        className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     />
                                 </div>
                             </div>
@@ -313,12 +305,11 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Habit Name
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     value={activityData.title || ''}
                                     onChange={(e) => setActivityData({ ...activityData, title: e.target.value })}
                                     placeholder="e.g., Exercise, Read, Meditate"
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     required
                                 />
                             </div>
@@ -326,12 +317,11 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                 <label className="block text-sm font-medium text-white mb-2">
                                     Description
                                 </label>
-                                <textarea
+                                <Textarea
                                     value={activityData.description || ''}
                                     onChange={(e) => setActivityData({ ...activityData, description: e.target.value })}
                                     placeholder="Describe this habit..."
                                     rows={3}
-                                    className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -339,24 +329,22 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                                     <label className="block text-sm font-medium text-white mb-2">
                                         Target Value
                                     </label>
-                                    <input
+                                    <Input
                                         type="number"
                                         value={activityData.target_value || ''}
                                         onChange={(e) => setActivityData({ ...activityData, target_value: parseFloat(e.target.value) || 0 })}
                                         placeholder="1"
-                                        className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-white mb-2">
                                         Unit
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         value={activityData.unit || ''}
                                         onChange={(e) => setActivityData({ ...activityData, unit: e.target.value })}
                                         placeholder="times, hours, etc."
-                                        className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
                                     />
                                 </div>
                             </div>
@@ -368,12 +356,11 @@ const AddActivityModal: React.FC<AddActivityModalProps> = ({
                             <label className="block text-sm font-medium text-white mb-2">
                                 Planner Item
                             </label>
-                            <textarea
+                            <Textarea
                                 value={activityData.description || ''}
                                 onChange={(e) => setActivityData({ ...activityData, description: e.target.value })}
                                 placeholder="Add a task, event, or reminder..."
                                 rows={4}
-                                className="w-full p-3 rounded-lg  bg-white/[0.06] text-white focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
                                 required
                             />
                         </div>

@@ -127,7 +127,7 @@ const JournalEntryModal: React.FC<{
             onClick={onClose}
         >
             <div
-                className="bg-white/[0.03] backdrop-blur-xl p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-white/10"
+                className="glass p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-4">

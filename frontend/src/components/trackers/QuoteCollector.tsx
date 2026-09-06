@@ -3,6 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { Quote, QuoteSource } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { Input } from '../ui/Input';
+import { Textarea } from '../ui/Textarea';
+import { Select } from '../ui/Select';
 import quoteService, { SearchResult } from '../../services/quoteService';
 import { Search, ChevronLeft, Home, Pencil, Trash2, Plus } from 'lucide-react';
 
@@ -48,17 +51,17 @@ const SourceModal: React.FC<{ source?: QuoteSource | null; onClose: () => void; 
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
+            <div className="glass p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6">{source ? 'Edit' : 'Add'} Source</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " required />
-                    <select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])} className="w-full p-2 rounded-md bg-white/[0.06] ">
+                    <Input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} required />
+                    <Select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])}>
                         <option>Movie</option>
                         <option>Web Series</option>
                         <option>Book</option>
-                    </select>
-                    <input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " required />
+                    </Select>
+                    <Input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} required />
                     <div className="flex justify-end gap-4 pt-4">
                         <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button type="submit">Save Source</Button>
@@ -88,14 +91,14 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="bg-[rgba(15,10,30,0.75)] p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
+            <div className="glass p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6">{quote ? 'Edit' : 'Add'} Quote</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06]  h-24" required />
-                    <input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " required />
-                    <input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " />
-                    <input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} className="w-full p-2 rounded-md bg-white/[0.06] " />
+                    <Textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} required />
+                    <Input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} required />
+                    <Input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} />
+                    <Input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} />
                     <div className="flex justify-end gap-4 pt-4">
                         <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
                         <Button type="submit">Save Quote</Button>
@@ -431,7 +434,7 @@ const QuoteCollector: React.FC = () => {
                     </Button>
                     <form onSubmit={handleSearch} className="flex-grow ml-4">
                         <div className="relative">
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search again..." className="w-full p-3 pl-12 rounded-lg bg-white/[0.06] " />
+                            <Input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search again..." className="w-full p-3 pl-12 rounded-lg bg-white/[0.06] " />
                             <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-text-secondary" />
                         </div>
                     </form>
@@ -465,11 +468,11 @@ const QuoteCollector: React.FC = () => {
                 </div>
             )}
             {loading && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
-                    <div className="bg-[rgba(15,10,30,0.75)] p-6 rounded-lg">
-                        <p className="text-lg">Loading...</p>
+                    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
+                        <div className="glass p-6 rounded-lg">
+                            <p className="text-lg">Loading...</p>
+                        </div>
                     </div>
-                </div>
             )}
             <div className="w-full h-full flex flex-col items-center justify-center p-4 quote-bg relative overflow-hidden">
                 <div id="stars"></div><div id="stars2"></div><div id="stars3"></div>
@@ -480,20 +483,20 @@ const QuoteCollector: React.FC = () => {
                         <div className="w-full max-w-xl relative">
                             <form onSubmit={handleSearch} className="w-full">
                                 <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
-                                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                        placeholder="Search 'Bleach', 'funny', 'Interstellar'..."
-                                        className="w-full p-5 pl-14 rounded-full bg-background/50 border-2 border-accent-primary/35 backdrop-blur-sm text-lg focus:outline-none focus:ring-2 focus:ring-accent-primary text-black"
-                                    />
+                            <Input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                placeholder="Search 'Bleach', 'funny', 'Interstellar'..."
+                                className="w-full p-5 pl-14 rounded-full bg-background/50 border-2 border-accent-primary/35 backdrop-blur-sm text-lg focus:outline-none focus:ring-2 focus:ring-accent-primary text-black"
+                            />
                                     <SearchIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-text-secondary" />
                                 </div>
                             </form>
                             {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-[rgba(15,10,30,0.75)] rounded-xl shadow-2xl  overflow-hidden z-50 animate-fade-in max-h-96 overflow-y-auto">
+                                <div className="absolute top-full left-0 right-0 mt-2 glass rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in max-h-96 overflow-y-auto">
                                     {suggestions.map((result, index) => (
                                         <div
                                             key={index}

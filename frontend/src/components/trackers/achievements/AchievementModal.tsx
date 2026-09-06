@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Achievement } from '../../../types';
 import Button from '../../ui/Button';
+import { Input } from '../../ui/Input';
+import { Textarea } from '../../ui/Textarea';
 
 interface AchievementModalProps {
     achievement?: Achievement | null;
@@ -56,29 +58,29 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
                 <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-4 -mr-4">
                     <div>
                         <label className="text-sm text-text-secondary">Title</label>
-                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " required />
+                        <Input type="text" value={title} onChange={e => setTitle(e.target.value)} required />
                     </div>
                      <div>
                         <label className="text-sm text-text-secondary">Description</label>
-                        <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06]  h-24" />
+                        <Textarea value={description} onChange={e => setDescription(e.target.value)} />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
                              <label className="text-sm text-text-secondary">Date</label>
-                             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " required />
+                             <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
                         </div>
                         <div>
                             <label className="text-sm text-text-secondary">Tags (comma-separated)</label>
-                            <input type="text" value={tags} onChange={e => setTags(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " />
+                            <Input type="text" value={tags} onChange={e => setTags(e.target.value)} />
                         </div>
                      </div>
                        <div>
                         <label className="text-sm text-text-secondary">Cover Image URL</label>
-                        <input type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06] " />
+                        <Input type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)} />
                     </div>
                     <div>
                         <label className="text-sm text-text-secondary">Gallery Image URLs (one per line)</label>
-                        <textarea value={images} onChange={e => setImages(e.target.value)} className="w-full mt-1 p-2 rounded-md bg-white/[0.06]  h-24" />
+                        <Textarea value={images} onChange={e => setImages(e.target.value)} />
                     </div>
                     <div className="flex justify-between items-center pt-4 mt-auto">
                         <div>

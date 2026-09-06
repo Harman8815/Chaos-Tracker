@@ -71,7 +71,7 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
     return (
         <div
             ref={modalRef}
-            className="fixed bg-[rgba(15,10,30,0.75)] backdrop-blur-xl  rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] flex flex-col animate-fade-in"
+            className="fixed glass rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] flex flex-col animate-fade-in"
             style={{
                 top: position.y,
                 left: position.x,
@@ -82,7 +82,7 @@ const DraggableResizableModal: React.FC<DraggableResizableModalProps> = ({
             onMouseDown={onFocus}
         >
             <div
-                className="h-12 bg-[rgba(15,10,30,0.65)] backdrop-blur-sm border-b border-accent-primary/35 rounded-t-xl flex items-center gap-2 px-4 cursor-grab active:cursor-grabbing select-none"
+                className="h-12 bg-white/[0.06] backdrop-blur-sm border-b border-accent-primary/35 rounded-t-xl flex items-center gap-2 px-4 cursor-grab active:cursor-grabbing select-none"
                 onMouseDown={handleDragStart}
             >
                 <GripVertical className="w-4 h-4 text-text-secondary" />
