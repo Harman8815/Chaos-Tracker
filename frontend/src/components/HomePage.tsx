@@ -49,15 +49,15 @@ const HomePage: React.FC = () => {
                 style={{ position: 'fixed', top: 0, left: 0 }}
             />
 
-            <div className="relative z-10 w-full h-full flex items-center justify-center text-white pointer-events-none p-4">
-                <Card className="pointer-events-auto max-w-lg w-full glass shadow-xl animate-fade-in-up">
-                    <CardContent className="p-8 text-center space-y-6">
+            <div className="relative z-10 w-full h-full flex items-center justify-center text-white pointer-events-none p-4 ">
+                <div className="pointer-events-auto max-w-lg w-full animate-fade-in-up">
+                    <div className="p-8 text-center space-y-6">
                         <motion.div
                             initial={{ opacity: 0, y: 40 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.9, ease: "easeOut" }}
                         >
-                            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight">
+                            <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight">
                                 <span className="bg-gradient-to-r from-accent-secondary to-accent-primary bg-clip-text text-transparent">
                                     Welcome
                                 </span>
@@ -74,30 +74,8 @@ const HomePage: React.FC = () => {
                             and building a better you.
                         </motion.p>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                            className="flex flex-col sm:flex-row gap-3 justify-center pt-2"
-                        >
-                            <Button size="lg" className="w-full sm:w-auto">
-                                Get Started
-                            </Button>
-                            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                                Learn More
-                            </Button>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 1, delay: 0.8 }}
-                            className="pt-4"
-                        >
-                            <CommandPalette />
-                        </motion.div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
         </>
     );
