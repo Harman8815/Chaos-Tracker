@@ -21,7 +21,7 @@ const Sidebar: React.FC = () => {
     const { userProfile } = useContext(DataContext);
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
     const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
 
@@ -90,36 +90,19 @@ const Sidebar: React.FC = () => {
         if (idx >= 0) updateIndicator(idx);
     }, [selectedPage, navItems]);
 
-    if (isCollapsed) {
-        return (
-            <div className="fixed top-6 left-6 z-50 flex justify-between pr-12 w-full gap-4">
-                <button
-                    onClick={() => setIsCollapsed(false)}
-                    aria-label="Open menu"
-                    className="flex items-center justify-center
-                            w-14 h-14 rounded-lg bg-sidebar-bg/80 backdrop-blur-xl border border-accent-primary/20
-                            text-sidebar-icon hover:text-text-primary hover:border-accent-primary
-                            transition-colors duration-200 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
-                >
-                    <MenuIcon className="w-6 h-6" />
-                </button>
-            </div>
-        );
-    }
-
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
     return (
-        <aside className="relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-24 py-6 z-20 flex-shrink-0  shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+        <aside className={`relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 z-20 flex-shrink-0 shadow-[0_0_30px_rgba(99,102,241,0.1)] ${isExpanded ? 'w-64 py-6' : 'w-24 py-6'}`}>
             <button
-                onClick={() => setIsCollapsed(true)}
-                className="flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
-                aria-label="Close menu"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
+                aria-label={isExpanded ? 'Collapse menu' : 'Expand menu'}
             >
                 <MenuIcon className="w-6 h-6" />
             </button>
 
-            <div className="flex flex-col items-center justify-between h-full w-full">
+            <div className={`flex flex-col items-center justify-between h-full w-full ${isExpanded ? 'px-4' : ''}`}>
                 <div className="relative flex flex-col items-center justify-center space-y-3 flex-grow w-full">
                     {navItems.map((item, index) => {
                         const isSelected = selectedPage === item.id;
@@ -130,8 +113,8 @@ const Sidebar: React.FC = () => {
                                 href={href}
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
-                                className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 focus:outline-none z-10
-                                ${isSelected ? 'text-text-inverse' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
+                                className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 focus:outline-none z-10 gap-3
+                                ${isSelected ? 'text-warning' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
                             `}
                                 title={item.name}
                                 onMouseEnter={() => updateIndicator(index)}
@@ -152,16 +135,18 @@ const Sidebar: React.FC = () => {
                                 {isSelected && prefersReducedMotion() && (
                                     <div className="absolute inset-0 rounded-lg bg-accent-primary" />
                                 )}
-                                {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10
-                                ${isSelected ? '' : ''}`}
-                                />}
+                                {item.icon && <item.icon className={`w-6 h-6 flex-shrink-0 relative z-10`} />}
+                                {isExpanded && (
+                                    <span className={`text-sm font-medium whitespace-nowrap ${isSelected ? 'text-warning' : 'text-text-primary'}`}>
+                                        {item.name}
+                                    </span>
+                                )}
                             </Link>
                         )
                     })}
                 </div>
 
                 <div className="flex flex-col items-center space-y-3">
-                    {/* Profile Avatar Button */}
                     <Link
                         href="/profile"
                         prefetch
@@ -181,7 +166,7 @@ const Sidebar: React.FC = () => {
 
                     <button
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="relative flex items-center justify-center w-14 h-14 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
+                        className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
                         aria-label="Settings"
                     >
                         <SettingsIcon className="w-6 h-6" />

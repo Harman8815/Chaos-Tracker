@@ -51,7 +51,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
 
     return (
         <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <card className="glass p-4 backdrop-blur-xl  rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="glass p-4 backdrop-blur-xl  rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-2xl font-bold mb-6 text-white">{achievement ? 'Edit' : 'Create'} Achievement</h2>
                 <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-4 -mr-4">
                     <div>
@@ -83,8 +83,8 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
                     <div className="flex justify-between items-center pt-4 mt-auto">
                         <div>
                            {achievement && (
-                             <Button type="button" onClick={handleDelete} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete</Button>
-                           )}
+                              <Button type="button" onClick={handleDelete} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete</Button>
+                            )}
                         </div>
                         <div className="flex gap-4">
                             <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
@@ -92,7 +92,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
                         </div>
                     </div>
                 </form>
-            </card>
+            </div>
         </div>
     );
 };
