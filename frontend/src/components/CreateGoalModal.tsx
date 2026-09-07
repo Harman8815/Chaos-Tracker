@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Goal, GoalCategory, GoalPriority, GoalFrequency, CreateGoalPayload } from '../../types';
+import { Goal, GoalCategory, GoalPriority, GoalFrequency } from '../types';
+import { CreateGoalPayload } from '../services/goalService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -294,7 +295,7 @@ const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ open, onClose, onSave
                         <Select
                             id="goal-priority"
                             value={priority}
-                            onChange={v => setPriority(v as GoalPriority)}
+                            onChange={e => setPriority(e.target.value as GoalPriority)}
                         >
                             {PRIORITY_OPTIONS.map(opt => (
                                 <option key={opt.value} value={opt.value}>
@@ -325,7 +326,7 @@ const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ open, onClose, onSave
                         <Select
                             id="goal-frequency"
                             value={frequency}
-                            onChange={setFrequency}
+                            onChange={e => setFrequency(e.target.value)}
                         >
                             {FREQUENCY_OPTIONS.map(opt => (
                                 <option key={opt.value} value={opt.value}>
@@ -346,7 +347,7 @@ const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ open, onClose, onSave
                         <Select
                             id="goal-reminder"
                             value={reminder}
-                            onChange={setReminder}
+                            onChange={e => setReminder(e.target.value)}
                         >
                             {REMINDER_OPTIONS.map(opt => (
                                 <option key={opt} value={opt}>

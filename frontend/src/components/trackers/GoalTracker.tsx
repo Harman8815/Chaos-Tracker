@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog';
-import { Goal, GoalCategory, GoalStatus, GoalPriority, CreateGoalPayload } from '../../types';
+import { Goal, GoalCategory, GoalStatus, GoalPriority } from '../../types';
 import goalService, { CreateGoalPayload as ServiceGoalPayload } from '../../services/goalService';
 import CreateGoalModal from '../CreateGoalModal';
 import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp, MoreHorizontal, Clock, AlertCircle } from 'lucide-react';
@@ -332,7 +332,7 @@ const GoalTracker: React.FC = () => {
         fetchGoals();
     }, []);
 
-    const handleCreateGoal = async (payload: CreateGoalPayload) => {
+    const handleCreateGoal = async (payload: ServiceGoalPayload) => {
         try {
             const servicePayload: ServiceGoalPayload = {
                 text: payload.text,

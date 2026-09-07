@@ -151,7 +151,7 @@ export interface Goal {
     description?: string;
     start_date?: string;
     due_date?: string;
-    priority: GoalPriority;
+    priority?: GoalPriority;
     frequency?: GoalFrequency;
     reminders?: string[];
     completion_criteria?: string;
