@@ -4,49 +4,103 @@
       "text": "Exercise for 30 minutes daily",
       "category": "daily",
       "status": "active",
-      "tags": ["health", "fitness"]
+      "tags": ["health", "fitness"],
+      "target": 30,
+      "completed_tasks": 15,
+      "priority": "high",
+      "frequency": "daily",
+      "due_date": "2026-09-30",
+      "description": "Maintain a consistent daily exercise routine for overall health and fitness."
     },
     {
       "text": "Read 20 pages every day",
       "category": "daily",
       "status": "active",
-      "tags": ["learning", "personal"]
+      "tags": ["learning", "personal"],
+      "target": 20,
+      "completed_tasks": 8,
+      "priority": "medium",
+      "frequency": "daily"
     },
     {
       "text": "Meditate for 10 minutes",
       "category": "daily",
       "status": "completed",
-      "tags": ["mindfulness", "health"]
+      "tags": ["mindfulness", "health"],
+      "target": 1,
+      "completed_tasks": 1,
+      "priority": "low",
+      "frequency": "daily",
+      "completion_criteria": "Meditate for 10 consecutive minutes without distraction.",
+      "notes": "Started on a Monday for consistency."
     },
     {
       "text": "Complete online course certification",
       "category": "monthly",
       "status": "active",
-      "tags": ["career", "learning"]
+      "tags": ["career", "learning"],
+      "target": 4,
+      "completed_tasks": 2,
+      "priority": "high",
+      "start_date": "2026-09-01",
+      "due_date": "2026-10-15",
+      "frequency": "weekly",
+      "reminders": ["1 day before"],
+      "completion_criteria": "Finish all 4 modules and pass the final exam.",
+      "description": "Complete the advanced React certification course."
     },
     {
       "text": "Save $500 for emergency fund",
       "category": "monthly",
       "status": "active",
-      "tags": ["finance", "planning"]
+      "tags": ["finance", "planning"],
+      "target": 500,
+      "completed_tasks": 250,
+      "priority": "high",
+      "start_date": "2026-09-01",
+      "due_date": "2026-09-30",
+      "frequency": "monthly"
     },
     {
       "text": "Learn a new programming language",
       "category": "future",
       "status": "active",
-      "tags": ["career", "technology"]
+      "tags": ["career", "technology"],
+      "target": 1,
+      "completed_tasks": 0,
+      "priority": "high",
+      "start_date": "2026-10-01",
+      "due_date": "2027-03-31",
+      "frequency": "none",
+      "reminders": ["1 week before"],
+      "completion_criteria": "Achieve conversational proficiency and build a project.",
+      "notes": "Choosing between Go and Rust."
     },
     {
       "text": "Buy a house",
       "category": "future",
       "status": "active",
-      "tags": ["finance", "life"]
+      "tags": ["finance", "life"],
+      "target": 3,
+      "completed_tasks": 1,
+      "priority": "high",
+      "start_date": "2026-09-07",
+      "due_date": "2027-12-31",
+      "frequency": "none",
+      "completion_criteria": "Find a house, secure mortgage approval, and close the purchase."
     },
     {
       "text": "Write a book",
       "category": "future",
       "status": "blocked",
-      "tags": ["creative", "personal"]
+      "tags": ["creative", "personal"],
+      "target": 10,
+      "completed_tasks": 3,
+      "priority": "medium",
+      "start_date": "2026-09-01",
+      "reminders": ["1 month before"],
+      "completion_criteria": "Complete first draft of 30,000 words and get it edited.",
+      "description": "Write a novel about personal growth and resilience."
     }
   ]
 }

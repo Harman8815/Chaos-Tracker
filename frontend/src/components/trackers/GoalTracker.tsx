@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog';
-import { Goal, GoalCategory, GoalStatus } from '../../types';
-import goalService from '../../services/goalService';
-import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp, MoreHorizontal } from 'lucide-react';
+import { Goal, GoalCategory, GoalStatus, GoalPriority, CreateGoalPayload } from '../../types';
+import goalService, { CreateGoalPayload as ServiceGoalPayload } from '../../services/goalService';
+import CreateGoalModal from '../CreateGoalModal';
+import { Trash2, Ban, Check, X, Eye, EyeOff, Search, Plus, Filter, Calendar, Target, TrendingUp, MoreHorizontal, Clock, AlertCircle } from 'lucide-react';
 import { PieChart, BarChart } from './charts';
 
 const TrashIcon = Trash2;
@@ -27,6 +28,8 @@ const TargetIcon = Target;
 const TrendingUpIcon = TrendingUp;
 const MoreIcon = MoreHorizontal;
 
+const INITIAL_VISIBLE = 5;
+
 const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals, onClose }) => {
     const stats = useMemo(() => {
         const completed = goals.filter(g => g.status === 'completed');
@@ -38,12 +41,12 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
 
         const completedWithDates = completed.filter(g => g.completed_at && g.created_at);
         const totalCompletionTime = completedWithDates.reduce((sum, g) => {
-            const start = new Date(g.created_at!).getTime();
-            const end = new Date(g.completed_at!).getTime();
+            const start = new Date(g.completed_at!).getTime();
+            const end = new Date(g.created_at!).getTime();
             return sum + (end - start);
         }, 0);
         const avgCompletionTime = completedWithDates.length > 0
-            ? (totalCompletionTime / completedWithDates.length) / (1000 * 60 * 60 * 24) // in days
+            ? (totalCompletionTime / completedWithDates.length) / (1000 * 60 * 60 * 24)
             : 0;
 
         return {
@@ -122,76 +125,62 @@ const GoalDashboard: React.FC<{ goals: Goal[]; onClose: () => void }> = ({ goals
     );
 };
 
-const GoalCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
-    const statusColors = {
-        active: 'border-accent-primary/30',
-        completed: 'border-success/30',
-        blocked: 'border-warning/30',
-        trashed: 'border-error/30'
-    };
-
-    return (
-        <div className={`p-4 rounded-xl border ${statusColors[goal.status]} bg-white/[0.03] backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.05] hover:border-white/20 group`}>
-            <div className="flex items-start gap-3">
-                <button 
-                    onClick={() => onToggle(goal.id)} 
-                    className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-white/20 hover:border-accent-primary'}`}
-                >
-                    {goal.status === 'completed' && <CheckIcon className="text-white w-3 h-3" />}
-                </button>
-                <div className="flex-grow min-w-0">
-                    <p className={`text-white font-medium ${goal.status === 'completed' ? 'line-through text-text-tertiary' : ''} ${goal.status === 'blocked' || goal.status === 'trashed' ? 'text-text-tertiary' : ''}`}>
-                        {goal.text}
-                    </p>
-                    {goal.tags && goal.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                            {goal.tags.map(tag => (
-                                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-text-secondary border border-white/10">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    {goal.status !== 'completed' && (
-                        <button onClick={() => onUpdateStatus(goal.id, 'blocked')} title="Block" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-text-secondary hover:text-warning transition-colors">
-                            <BlockIcon className="w-4 h-4" />
-                        </button>
-                    )}
-                    <button onClick={() => onDelete(goal.id)} title="Delete" className="p-1.5 rounded-lg hover:bg-white/[0.08] text-text-secondary hover:text-error transition-colors">
-                        <TrashIcon className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+const priorityLabel: Record<GoalPriority, string> = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
 };
 
-// --- Main Component ---
+const priorityColor: Record<GoalPriority, string> = {
+    low: 'text-info',
+    medium: 'text-warning',
+    high: 'text-error',
+};
 
-const GoalMasonryCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; onUpdateStatus: (id: number, status: GoalStatus) => void; onDelete: (id: number) => void; }> = ({ goal, onToggle, onUpdateStatus, onDelete }) => {
+const statusColors = {
+    active: 'border-accent-primary/30',
+    completed: 'border-success/30',
+    blocked: 'border-warning/30',
+    trashed: 'border-error/30'
+};
+
+const statusBg = {
+    active: 'bg-accent-primary/10',
+    completed: 'bg-success/10',
+    blocked: 'bg-warning/10',
+    trashed: 'bg-error/10'
+};
+
+const statusLabel: Record<GoalStatus, string> = {
+    active: 'Active',
+    completed: 'Completed',
+    blocked: 'Blocked',
+    trashed: 'Trashed',
+};
+
+const categoryLabel: Record<GoalCategory, string> = {
+    daily: 'Daily',
+    monthly: 'Monthly',
+    future: 'Future',
+};
+
+interface TaskCardProps {
+    goal: Goal;
+    onToggle: (id: number) => void;
+    onUpdateStatus: (id: number, status: GoalStatus) => void;
+    onDelete: (id: number) => void;
+    expanded?: boolean;
+}
+
+const IndividualTaskCard: React.FC<TaskCardProps> = ({ goal, onToggle, onUpdateStatus, onDelete, expanded }) => {
     const progress = goal.target > 0 ? Math.round((goal.completed_tasks / goal.target) * 100) : 0;
-    const statusColors = {
-        active: 'border-accent-primary/30',
-        completed: 'border-success/30',
-        blocked: 'border-warning/30',
-        trashed: 'border-error/30'
-    };
-    const statusBg = {
-        active: 'bg-accent-primary/10',
-        completed: 'bg-success/10',
-        blocked: 'bg-warning/10',
-        trashed: 'bg-error/10'
-    };
-
     return (
-        <div className={`p-4 rounded-xl border ${statusColors[goal.status]} bg-white/[0.03] backdrop-blur-sm transition-all duration-200 hover:bg-white/[0.05] hover:border-white/20 group break-inside-avoid`}>
-            <div className="flex items-start justify-between gap-2 mb-2">
+        <div className={`p-4 rounded-xl border ${statusColors[goal.status]} bg-blue-400/[0.04] backdrop-blur-sm transition-all duration-200 hover:bg-blue-400/[0.07] hover:border-blue-400/30 group break-inside-avoid mb-4`}>
+            <div className={`flex items-start justify-between gap-2 mb-2 ${expanded ? 'pb-2 border-b border-white/[0.06]' : ''}`}>
                 <div className="flex items-center gap-2 flex-grow min-w-0">
-                    <button 
-                        onClick={() => onToggle(goal.id)} 
-                        className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-white/20 hover:border-accent-primary'}`}
+                    <button
+                        onClick={() => onToggle(goal.id)}
+                        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${goal.status === 'completed' ? 'bg-accent-primary border-accent-primary' : 'border-white/20 hover:border-accent-primary'}`}
                     >
                         {goal.status === 'completed' && <Check className="text-white w-2.5 h-2.5" />}
                     </button>
@@ -199,23 +188,53 @@ const GoalMasonryCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; on
                         {goal.text}
                     </p>
                 </div>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full capitalize flex-shrink-0 ${statusBg[goal.status]} ${statusColors[goal.status].replace('/30', '')}`}>
-                    {goal.status}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full capitalize flex-shrink-0 ${statusBg[goal.status]} border ${statusColors[goal.status].replace('/30', '')} border-white/10`}>
+                    {statusLabel[goal.status]}
                 </span>
             </div>
-            
+
+            {goal.category && (
+                <div className="mb-2">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-text-secondary border border-white/10">
+                        {categoryLabel[goal.category]}
+                    </span>
+                </div>
+            )}
+
+            {goal.due_date && (
+                <div className="flex items-center gap-1 mb-2">
+                    <CalendarIcon className="w-3 h-3 text-text-tertiary" />
+                    <span className="text-xs text-text-tertiary">Due: {goal.due_date}</span>
+                </div>
+            )}
+
+            {goal.priority && (
+                <div className="flex items-center gap-1 mb-2">
+                    <AlertCircle className="w-3 h-3 text-text-tertiary" />
+                    <span className={`text-xs font-medium ${priorityColor[goal.priority]}`}>
+                        {priorityLabel[goal.priority]} Priority
+                    </span>
+                </div>
+            )}
+
             <div className="mt-3">
                 <div className="flex items-center justify-between text-xs mb-1">
                     <span className="text-text-secondary">Progress</span>
                     <span className="text-text-secondary">{goal.completed_tasks}/{goal.target}</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                    <div 
+                    <div
                         className="h-full rounded-full bg-accent-primary transition-all duration-300"
                         style={{ width: `${Math.min(progress, 100)}%` }}
                     />
                 </div>
             </div>
+
+            {goal.completion_criteria && expanded && (
+                <div className="mt-2">
+                    <p className="text-xs text-text-tertiary">{goal.completion_criteria}</p>
+                </div>
+            )}
 
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/[0.06]">
                 <span className="text-[11px] text-text-secondary">
@@ -236,6 +255,57 @@ const GoalMasonryCard: React.FC<{ goal: Goal; onToggle: (id: number) => void; on
     );
 };
 
+interface CategoryCardProps {
+    categoryName: string;
+    goals: Goal[];
+    onToggle: (id: number) => void;
+    onUpdateStatus: (id: number, status: GoalStatus) => void;
+    onDelete: (id: number) => void;
+}
+
+const CategoryCard: React.FC<CategoryCardProps> = ({ categoryName, goals, onToggle, onUpdateStatus, onDelete }) => {
+    const [expanded, setExpanded] = useState(false);
+    const allGoals = goals.filter(g => g.status !== 'trashed');
+    const visibleGoals = expanded ? allGoals : allGoals.slice(0, INITIAL_VISIBLE);
+    const hasMore = allGoals.length > INITIAL_VISIBLE;
+
+    return (
+        <div className="mb-4 break-inside-avoid">
+            <div className="p-4 rounded-xl border border-yellow-400/30 bg-yellow-400/[0.05] backdrop-blur-sm transition-all duration-200 hover:bg-yellow-400/[0.08] group">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-yellow-400/[0.15]">
+                    <h3 className="text-lg font-semibold text-white capitalize">{categoryName}</h3>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-400/[0.15] text-yellow-300 border border-yellow-400/30">
+                        {allGoals.length} {allGoals.length === 1 ? 'goal' : 'goals'}
+                    </span>
+                </div>
+
+                <div className="space-y-2">
+                    {visibleGoals.map((goal) => (
+                        <IndividualTaskCard
+                            key={goal.id}
+                            goal={goal}
+                            onToggle={onToggle}
+                            onUpdateStatus={onUpdateStatus}
+                            onDelete={onDelete}
+                            expanded={false}
+                        />
+                    ))}
+                </div>
+
+                {hasMore && (
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className="w-full mt-2 py-1.5 text-sm text-accent-primary hover:text-white hover:bg-white/[0.06] rounded-md transition-all flex items-center justify-center gap-1"
+                    >
+                        <MoreIcon className="w-3.5 h-3.5" />
+                        {expanded ? 'Show Less' : `Show More (${allGoals.length - INITIAL_VISIBLE} more)`}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const GoalTracker: React.FC = () => {
     const trackerInfo = TRACKERS.find(t => t.id === 'goals')!;
     const [goals, setGoals] = useState<Goal[]>([]);
@@ -243,44 +313,47 @@ const GoalTracker: React.FC = () => {
     const [activeTab, setActiveTab] = useState<GoalCategory>('daily');
     const [showDashboard, setShowDashboard] = useState(false);
     const [showCompleted, setShowCompleted] = useState(true);
-    const [newGoalText, setNewGoalText] = useState('');
-    const [newGoalTags, setNewGoalTags] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [showAllGoals, setShowAllGoals] = useState(false);
-
-    const isFutureTab = activeTab === 'future';
-
-    const fetchGoals = useCallback(async () => {
-        try {
-            setLoading(true);
-            const response = await goalService.getAllGoals();
-            setGoals(response.goals || []);
-        } catch (error) {
-            console.error('Error fetching goals:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     useEffect(() => {
+        const fetchGoals = async () => {
+            try {
+                setLoading(true);
+                const response = await goalService.getAllGoals();
+                setGoals(response.goals || []);
+            } catch (error) {
+                console.error('Error fetching goals:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchGoals();
-    }, [fetchGoals]);
+    }, []);
 
-    const handleAddGoal = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newGoalText.trim() === '') return;
-        const tags = newGoalTags.split(',').map(tag => tag.trim().toLowerCase()).filter(Boolean);
-
+    const handleCreateGoal = async (payload: CreateGoalPayload) => {
         try {
-            await goalService.createGoal({
-                text: newGoalText.trim(),
-                category: activeTab,
-                tags: tags.length > 0 ? tags : undefined,
-            });
-            await fetchGoals();
-            setNewGoalText('');
-            setNewGoalTags('');
+            const servicePayload: ServiceGoalPayload = {
+                text: payload.text,
+                category: payload.category,
+                tags: payload.tags,
+                target: payload.target || 1,
+                completed_tasks: payload.completed_tasks || 0,
+            };
+
+            if (payload.description) servicePayload.description = payload.description;
+            if (payload.start_date) servicePayload.start_date = payload.start_date;
+            if (payload.due_date) servicePayload.due_date = payload.due_date;
+            if (payload.priority) servicePayload.priority = payload.priority;
+            if (payload.frequency) servicePayload.frequency = payload.frequency as any;
+            if (payload.reminders) servicePayload.reminders = payload.reminders;
+            if (payload.completion_criteria) servicePayload.completion_criteria = payload.completion_criteria;
+            if (payload.notes) servicePayload.notes = payload.notes;
+
+            await goalService.createGoal(servicePayload);
+            const response = await goalService.getAllGoals();
+            setGoals(response.goals || []);
         } catch (error) {
             console.error('Error creating goal:', error);
         }
@@ -289,11 +362,10 @@ const GoalTracker: React.FC = () => {
     const handleToggleGoal = async (id: number) => {
         const goal = goals.find(g => g.id === id);
         if (!goal) return;
-
         const newStatus = goal.status === 'completed' ? 'active' : 'completed';
         try {
             await goalService.updateGoal(id, { status: newStatus });
-            await fetchGoals();
+            setGoals(prev => prev.map(g => g.id === id ? { ...g, status: newStatus as GoalStatus } : g));
         } catch (error) {
             console.error('Error toggling goal:', error);
         }
@@ -302,7 +374,7 @@ const GoalTracker: React.FC = () => {
     const handleUpdateStatus = async (id: number, status: GoalStatus) => {
         try {
             await goalService.updateGoal(id, { status });
-            await fetchGoals();
+            setGoals(prev => prev.map(g => g.id === id ? { ...g, status } : g));
         } catch (error) {
             console.error('Error updating goal status:', error);
         }
@@ -312,51 +384,49 @@ const GoalTracker: React.FC = () => {
         if (!confirm('Are you sure you want to delete this goal?')) return;
         try {
             await goalService.deleteGoal(id);
-            await fetchGoals();
+            setGoals(prev => prev.filter(g => g.id !== id));
         } catch (error) {
             console.error('Error deleting goal:', error);
         }
     };
 
-    const filteredGoals = useMemo(() => {
-        let result = goals.filter(g => g.status !== 'trashed');
+    const groupedGoals = useMemo(() => {
+        const filtered = goals.filter(g => g.status !== 'trashed' && g.category === activeTab);
 
-        // Filter by active tab/category
+        let result = filtered;
         if (selectedCategory !== 'all') {
-            result = result.filter(g => g.category === selectedCategory);
+            result = result.filter(g => (g.tags || []).includes(selectedCategory));
         }
-
-        // Filter by search query
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
-            result = result.filter(g => 
+            result = result.filter(g =>
                 g.text.toLowerCase().includes(query) ||
                 g.tags?.some(tag => tag.toLowerCase().includes(query))
             );
         }
 
-        // Group by tags
-        const groups: Record<string, Goal[]> = {};
-        result.forEach(goal => {
-            const goalTags = goal.tags && goal.tags.length > 0 ? goal.tags : ['uncategorized'];
-            goalTags.forEach(tag => {
-                const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
-                if (!groups[capitalizedTag]) {
-                    groups[capitalizedTag] = [];
-                }
-                groups[capitalizedTag].push(goal);
-            });
-        });
-        return groups;
-    }, [goals, selectedCategory, searchQuery]);
-
-    const visibleGoals = useMemo(() => {
-        let result = goals.filter(g => g.status !== 'trashed' && g.category === activeTab);
         if (!showCompleted) {
             result = result.filter(g => g.status !== 'completed');
         }
-        return result;
-    }, [goals, activeTab, showCompleted]);
+
+        const categoryGroups: Record<string, Goal[]> = {};
+        const untagged: Goal[] = [];
+
+        result.forEach(goal => {
+            const tags = goal.tags || [];
+            if (tags.length > 0) {
+                const categoryKey = tags[0].toLowerCase();
+                if (!categoryGroups[categoryKey]) {
+                    categoryGroups[categoryKey] = [];
+                }
+                categoryGroups[categoryKey].push(goal);
+            } else {
+                untagged.push(goal);
+            }
+        });
+
+        return { categoryGroups, untagged };
+    }, [goals, activeTab, selectedCategory, searchQuery, showCompleted]);
 
     if (loading && goals.length === 0) {
         return (
@@ -368,11 +438,18 @@ const GoalTracker: React.FC = () => {
         );
     }
 
+    const visibleCategories = Object.entries(groupedGoals.categoryGroups);
+
     return (
         <TrackerWrapper tracker={trackerInfo}>
             {showDashboard && <GoalDashboard goals={goals} onClose={() => setShowDashboard(false)} />}
+            <CreateGoalModal
+                open={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSave={handleCreateGoal}
+            />
 
-            {/* Header with title and dashboard button */}
+            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                     <TargetIcon className="w-8 h-8 text-accent-primary" />
@@ -381,10 +458,16 @@ const GoalTracker: React.FC = () => {
                         <p className="text-sm text-text-secondary">Track and manage your objectives</p>
                     </div>
                 </div>
-                <Button onClick={() => setShowDashboard(true)} className="flex items-center gap-2">
-                    <TrendingUpIcon className="w-4 h-4" />
-                    Dashboard
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button onClick={() => setShowDashboard(true)} className="flex items-center gap-2">
+                        <TrendingUpIcon className="w-4 h-4" />
+                        Dashboard
+                    </Button>
+                    <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+                        <PlusIcon className="w-4 h-4" />
+                        Create Goal
+                    </Button>
+                </div>
             </div>
 
             {/* Search and Filter Bar */}
@@ -410,19 +493,26 @@ const GoalTracker: React.FC = () => {
                             <option value="monthly">Monthly</option>
                             <option value="future">Future</option>
                         </Select>
+                        <button
+                            onClick={() => setShowCompleted(!showCompleted)}
+                            className={`p-2 rounded-lg transition-colors ${showCompleted ? 'bg-accent-primary/20 text-accent-primary' : 'hover:bg-white/[0.06] text-text-secondary'}`}
+                            title={showCompleted ? 'Hide completed' : 'Show completed'}
+                        >
+                            {showCompleted ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                        </button>
                     </div>
                 </div>
             </Card>
 
-            {/* Category Tabs */}
+            {/* Goal Type Tabs */}
             <div className="flex border-b border-white/10 mb-6">
                 {(['daily', 'monthly', 'future'] as GoalCategory[]).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`px-6 py-3 text-sm font-semibold transition-all relative ${
-                            activeTab === tab 
-                                ? 'text-white' 
+                            activeTab === tab
+                                ? 'text-white'
                                 : 'text-text-secondary hover:text-white'
                         }`}
                     >
@@ -438,104 +528,54 @@ const GoalTracker: React.FC = () => {
                 ))}
             </div>
 
-            {/* Create New Goal Container */}
-            <Card className="mb-6 glass">
-                <form onSubmit={handleAddGoal} className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
-                        <PlusIcon className="w-5 h-5 text-accent-primary" />
-                        <h3 className="text-lg font-semibold text-white">Create New Goal</h3>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-3">
-                        <Input
-                            type="text"
-                            value={newGoalText}
-                            onChange={e => setNewGoalText(e.target.value)}
-                            placeholder={`What's your ${activeTab} goal?`}
-                            className="flex-grow"
-                            required
-                        />
-                        <Input
-                            type="text"
-                            value={newGoalTags}
-                            onChange={e => setNewGoalTags(e.target.value)}
-                            placeholder="Tags (comma-separated)"
-                            className="md:w-64"
-                        />
-                        <Button type="submit" className="flex items-center gap-2">
-                            <PlusIcon className="w-4 h-4" />
-                            Add Goal
-                        </Button>
-                    </div>
-                </form>
-            </Card>
-
-            {/* Goals List */}
-            {visibleGoals.length > 0 ? (
-                <>
-                    <Masonry
-                        breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
-                        className="flex -mx-3"
-                        columnClassName="px-3"
-                    >
-                        {visibleGoals.slice(0, 5).map((goal, index) => (
-                            <div key={goal.id} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
-                                <GoalMasonryCard
-                                    goal={goal}
-                                    onToggle={handleToggleGoal}
-                                    onUpdateStatus={handleUpdateStatus}
-                                    onDelete={handleDeleteGoal}
-                                />
-                            </div>
-                        ))}
-                    </Masonry>
-                    {visibleGoals.length > 5 && (
-                        <div className="flex justify-center mt-6">
-                            <Button onClick={() => setShowAllGoals(true)} variant="outline" className="flex items-center gap-2">
-                                <MoreIcon className="w-4 h-4" />
-                                Show More ({visibleGoals.length - 5} more)
-                            </Button>
-                        </div>
-                    )}
-                </>
-            ) : (
+            {/* Goals Grid */}
+            {loading ? (
+                <Card className="glass text-center py-12">
+                    <div className="text-text-secondary">Loading goals...</div>
+                </Card>
+            ) : visibleCategories.length === 0 && groupedGoals.untagged.length === 0 ? (
                 <Card className="glass text-center py-12">
                     <TargetIcon className="w-12 h-12 text-text-secondary mx-auto mb-4 opacity-50" />
                     <p className="text-text-secondary text-lg">
-                        {searchQuery || selectedCategory !== 'all' 
-                            ? 'No goals match your search criteria.' 
-                            : 'No goals yet. Create your first goal above!'}
+                        {searchQuery || selectedCategory !== 'all'
+                            ? 'No goals match your search criteria.'
+                            : 'No goals yet. Click "Create Goal" to get started!'}
                     </p>
                 </Card>
-            )}
+            ) : (
+                <Masonry
+                    breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
+                    className="flex -mx-3"
+                    columnClassName="px-3"
+                >
+                    {/* Category Cards (yellow tint) */}
+                    {visibleCategories.map(([categoryName, categoryGoals]) => (
+                        <CategoryCard
+                            key={categoryName}
+                            categoryName={categoryName}
+                            goals={categoryGoals}
+                            onToggle={handleToggleGoal}
+                            onUpdateStatus={handleUpdateStatus}
+                            onDelete={handleDeleteGoal}
+                        />
+                    ))}
 
-            {/* Show All Goals Modal */}
-            <Dialog open={showAllGoals} onOpenChange={setShowAllGoals}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>All Goals</DialogTitle>
-                    </DialogHeader>
-                    <DialogClose />
-                    <Masonry
-                        breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
-                        className="flex -mx-3"
-                        columnClassName="px-3"
-                    >
-                        {visibleGoals.map((goal, index) => (
-                            <div key={goal.id} className="mb-4">
-                                <GoalMasonryCard
-                                    goal={goal}
-                                    onToggle={handleToggleGoal}
-                                    onUpdateStatus={handleUpdateStatus}
-                                    onDelete={handleDeleteGoal}
-                                />
-                            </div>
-                        ))}
-                    </Masonry>
-                </DialogContent>
-            </Dialog>
+                    {/* Individual Task Cards (blue tint) */}
+                    {groupedGoals.untagged.map((goal, index) => (
+                        <div key={goal.id} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                            <IndividualTaskCard
+                                goal={goal}
+                                onToggle={handleToggleGoal}
+                                onUpdateStatus={handleUpdateStatus}
+                                onDelete={handleDeleteGoal}
+                                expanded={false}
+                            />
+                        </div>
+                    ))}
+                </Masonry>
+            )}
         </TrackerWrapper>
     );
 };
 
 export default GoalTracker;
-
