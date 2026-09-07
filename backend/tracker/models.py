@@ -135,12 +135,18 @@ class Goal(models.Model):
         ('monthly', 'Monthly'),
         ('future', 'Future'),
     ]
-    
+
     GOAL_STATUS = [
         ('active', 'Active'),
         ('completed', 'Completed'),
         ('blocked', 'Blocked'),
         ('trashed', 'Trashed'),
+    ]
+
+    PRIORITY_LEVELS = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals')
@@ -153,6 +159,14 @@ class Goal(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     target = models.IntegerField(default=1)
     completed_tasks = models.IntegerField(default=0)
+    description = models.TextField(blank=True, null=True)
+    start_date = models.DateField(blank=True, null=True)
+    due_date = models.DateField(blank=True, null=True)
+    priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='medium')
+    frequency = models.CharField(max_length=50, blank=True, null=True)
+    reminders = models.JSONField(default=list, blank=True)
+    completion_criteria = models.TextField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['-created_at']
