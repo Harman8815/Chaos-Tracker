@@ -3,15 +3,19 @@ import { Achievement } from '../../../types';
 import Button from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { Textarea } from '../../ui/Textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '../../ui/Dialog';
+import { Label } from '../../ui/Label';
 
 interface AchievementModalProps {
     achievement?: Achievement | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
     onClose: () => void;
     onSave: (achievement: Omit<Achievement, 'id'> & { id?: string }) => void;
     onDelete: (id: string) => void;
 }
 
-const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClose, onSave, onDelete }) => {
+const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, open, onOpenChange, onClose, onSave, onDelete }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -52,50 +56,51 @@ const AchievementModal: React.FC<AchievementModalProps> = ({ achievement, onClos
     }
 
     return (
-        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="glass p-4 backdrop-blur-xl  rounded-xl shadow-[0_0_25px_rgba(124,58,237,0.35)] w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold mb-6 text-white">{achievement ? 'Edit' : 'Create'} Achievement</h2>
-                <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-4 -mr-4">
-                    <div>
-                        <label className="text-sm text-text-secondary">Title</label>
-                        <Input type="text" value={title} onChange={e => setTitle(e.target.value)} required />
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{achievement ? 'Edit' : 'Create'} Achievement</DialogTitle>
+                </DialogHeader>
+                <DialogClose />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input id="title" type="text" value={title} onChange={e => setTitle(e.target.value)} required />
                     </div>
-                     <div>
-                        <label className="text-sm text-text-secondary">Description</label>
-                        <Textarea value={description} onChange={e => setDescription(e.target.value)} />
+                     <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                             <label className="text-sm text-text-secondary">Date</label>
-                             <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+                        <div className="space-y-2">
+                             <Label htmlFor="date">Date</Label>
+                             <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} required />
                         </div>
-                        <div>
-                            <label className="text-sm text-text-secondary">Tags (comma-separated)</label>
-                            <Input type="text" value={tags} onChange={e => setTags(e.target.value)} />
+                        <div className="space-y-2">
+                            <Label htmlFor="tags">Tags (comma-separated)</Label>
+                            <Input id="tags" type="text" value={tags} onChange={e => setTags(e.target.value)} />
                         </div>
                      </div>
-                       <div>
-                        <label className="text-sm text-text-secondary">Cover Image URL</label>
-                        <Input type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)} />
+                       <div className="space-y-2">
+                        <Label htmlFor="coverImage">Cover Image URL</Label>
+                        <Input id="coverImage" type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)} />
                     </div>
-                    <div>
-                        <label className="text-sm text-text-secondary">Gallery Image URLs (one per line)</label>
-                        <Textarea value={images} onChange={e => setImages(e.target.value)} />
+                    <div className="space-y-2">
+                        <Label htmlFor="images">Gallery Image URLs (one per line)</Label>
+                        <Textarea id="images" value={images} onChange={e => setImages(e.target.value)} />
                     </div>
-                    <div className="flex justify-between items-center pt-4 mt-auto">
-                        <div>
-                           {achievement && (
-                              <Button type="button" onClick={handleDelete} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete</Button>
-                            )}
-                        </div>
-                        <div className="flex gap-4">
-                            <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
+                    <DialogFooter>
+                        {achievement && (
+                            <Button type="button" variant="destructive" onClick={handleDelete}>Delete</Button>
+                        )}
+                        <div className="flex gap-2">
+                            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
                             <Button type="submit">Save</Button>
                         </div>
-                    </div>
+                    </DialogFooter>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 };
 

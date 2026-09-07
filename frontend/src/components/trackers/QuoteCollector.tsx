@@ -6,6 +6,8 @@ import Button from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { Select } from '../ui/Select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '../ui/Dialog';
+import { Label } from '../ui/Label';
 import quoteService, { SearchResult } from '../../services/quoteService';
 import { Search, ChevronLeft, Home, Pencil, Trash2, Plus } from 'lucide-react';
 
@@ -33,7 +35,7 @@ const HighlightText: React.FC<{ text: string; highlight: string }> = ({ text, hi
 
 
 // --- Modals ---
-const SourceModal: React.FC<{ source?: QuoteSource | null; onClose: () => void; onSave: (source: QuoteSource) => void; }> = ({ source, onClose, onSave }) => {
+const SourceModal: React.FC<{ source?: QuoteSource | null; open: boolean; onOpenChange: (open: boolean) => void; onClose: () => void; onSave: (source: QuoteSource) => void; }> = ({ source, open, onOpenChange, onClose, onSave }) => {
     const [title, setTitle] = useState(source?.title || '');
     const [type, setType] = useState<QuoteSource['type']>(source?.type || 'Movie');
     const [coverImage, setCoverImage] = useState(source?.coverImage || '');
@@ -51,28 +53,40 @@ const SourceModal: React.FC<{ source?: QuoteSource | null; onClose: () => void; 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="glass p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold mb-6">{source ? 'Edit' : 'Add'} Source</h2>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{source ? 'Edit' : 'Add'} Source</DialogTitle>
+                </DialogHeader>
+                <DialogClose />
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} required />
-                    <Select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])}>
-                        <option>Movie</option>
-                        <option>Web Series</option>
-                        <option>Book</option>
-                    </Select>
-                    <Input placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} required />
-                    <div className="flex justify-end gap-4 pt-4">
-                        <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
-                        <Button type="submit">Save Source</Button>
+                    <div className="space-y-2">
+                        <Label htmlFor="source-title">Title</Label>
+                        <Input id="source-title" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} required />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="source-type">Type</Label>
+                        <Select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])}>
+                            <option>Movie</option>
+                            <option>Web Series</option>
+                            <option>Book</option>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="source-cover">Cover Image URL</Label>
+                        <Input id="source-cover" placeholder="Cover Image URL" value={coverImage} onChange={e => setCoverImage(e.target.value)} required />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                        <Button type="submit">Save Source</Button>
+                    </DialogFooter>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 };
 
-const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: (quote: Quote) => void; }> = ({ quote, onClose, onSave }) => {
+const QuoteModal: React.FC<{ quote?: Quote | null; open: boolean; onOpenChange: (open: boolean) => void; onClose: () => void; onSave: (quote: Quote) => void; }> = ({ quote, open, onOpenChange, onClose, onSave }) => {
     const [text, setText] = useState(quote?.text || '');
     const [author, setAuthor] = useState(quote?.author || '');
     const [tags, setTags] = useState(quote?.tags?.join(', ') || '');
@@ -91,21 +105,36 @@ const QuoteModal: React.FC<{ quote?: Quote | null; onClose: () => void; onSave: 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="glass p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold mb-6">{quote ? 'Edit' : 'Add'} Quote</h2>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{quote ? 'Edit' : 'Add'} Quote</DialogTitle>
+                </DialogHeader>
+                <DialogClose />
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <Textarea placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} required />
-                    <Input placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} required />
-                    <Input placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} />
-                    <Input placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} />
-                    <div className="flex justify-end gap-4 pt-4">
-                        <Button type="button" onClick={onClose} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Cancel</Button>
-                        <Button type="submit">Save Quote</Button>
+                    <div className="space-y-2">
+                        <Label htmlFor="quote-text">Quote text</Label>
+                        <Textarea id="quote-text" placeholder="Quote text..." value={text} onChange={e => setText(e.target.value)} required />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="quote-author">Author</Label>
+                        <Input id="quote-author" placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)} required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="quote-tags">Tags (comma-separated)</Label>
+                        <Input id="quote-tags" placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="quote-image">Optional Image URL</Label>
+                        <Input id="quote-image" placeholder="Optional Image URL" value={image} onChange={e => setImage(e.target.value)} />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                        <Button type="submit">Save Quote</Button>
+                    </DialogFooter>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 };
 
@@ -367,8 +396,8 @@ const QuoteCollector: React.FC = () => {
     if (selectedSource) {
         return (
             <div className="p-6 h-full overflow-y-auto animate-fade-in relative">
-                {modalState?.quote !== undefined && <QuoteModal quote={modalState.quote} onClose={() => setModalState(null)} onSave={handleSaveQuote} />}
-                {modalState?.source !== undefined && <SourceModal source={modalState.source} onClose={() => setModalState(null)} onSave={handleSaveSource} />}
+                <QuoteModal quote={modalState?.quote || null} open={!!modalState?.quote} onOpenChange={(open) => { if (!open) setModalState(null); }} onClose={() => setModalState(null)} onSave={handleSaveQuote} />
+                <SourceModal source={modalState?.source || null} open={!!modalState?.source} onOpenChange={(open) => { if (!open) setModalState(null); }} onClose={() => setModalState(null)} onSave={handleSaveSource} />
                 {error && (
                     <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
                         {error}
@@ -376,8 +405,8 @@ const QuoteCollector: React.FC = () => {
                 )}
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <Button onClick={resetToHome} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)] mr-2 !p-0 w-12 h-12 flex items-center justify-center"><HomeIcon className="w-6 h-6" /></Button>
-                        <Button onClick={() => setSelectedSource(null)} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">
+                        <Button onClick={resetToHome} variant="ghost" className="mr-2 !p-0 w-12 h-12 flex items-center justify-center"><HomeIcon className="w-6 h-6" /></Button>
+                        <Button onClick={() => setSelectedSource(null)} variant="outline">
                             <BackIcon className="inline-block -ml-1 mr-2 w-5 h-5" />
                             Back to Results
                         </Button>
@@ -390,8 +419,8 @@ const QuoteCollector: React.FC = () => {
                         <p className="text-text-secondary mb-4">{selectedSource.type}</p>
                         <div className="flex gap-2">
                             <Button onClick={() => setModalState({ quote: null })} className="flex items-center"><PlusIcon className="mr-2" /> Add Quote</Button>
-                            <Button onClick={() => setModalState({ source: selectedSource })} className="bg-white/[0.06] text-white hover:bg-[rgba(139,92,246,0.35)]">Edit Source</Button>
-                            <Button onClick={() => handleDeleteSource(selectedSource.id)} className="bg-red-500/20 text-red-400 hover:bg-red-500/40">Delete Source</Button>
+                            <Button onClick={() => setModalState({ source: selectedSource })} variant="outline">Edit Source</Button>
+                            <Button onClick={() => handleDeleteSource(selectedSource.id)} variant="destructive">Delete Source</Button>
                         </div>
                     </div>
                 </div>
@@ -404,8 +433,8 @@ const QuoteCollector: React.FC = () => {
                                 {quotes.map(quote => (
                                     <blockquote key={quote.id} className="p-4 border-l-4 border-accent-primary/35 bg-[rgba(15,10,30,0.75)] rounded-r-lg shadow-sm group relative">
                                         <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setModalState({ quote })} className="p-1 rounded bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)]"><EditIcon /></button>
-                                            <button onClick={() => handleDeleteQuote(quote.id)} className="p-1 rounded bg-white/[0.06] hover:bg-[rgba(139,92,246,0.35)] text-red-400"><TrashIcon /></button>
+                                            <Button variant="ghost" size="icon" onClick={() => setModalState({ quote })}><EditIcon /></Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteQuote(quote.id)} className="text-red-400 hover:text-red-300"><TrashIcon /></Button>
                                         </div>
                                         {quote.image && <img src={quote.image} alt={`Visual for "${quote.text}"`} className="w-full h-auto max-h-64 object-contain rounded-lg mb-4" />}
                                         <p className="text-lg italic text-white">"{quote.text}"</p>
@@ -429,7 +458,7 @@ const QuoteCollector: React.FC = () => {
                     </div>
                 )}
                 <div className="flex justify-between items-center mb-6 sticky top-0 z-10 py-4 bg-background -mt-6 -mx-6 px-6">
-                    <Button onClick={resetToHome} className="bg-white/[0.06] text-white hover:bg-white/[0.1] !p-0 w-12 h-12 flex items-center justify-center">
+                    <Button onClick={resetToHome} variant="ghost" className="!p-0 w-12 h-12 flex items-center justify-center">
                         <HomeIcon className="w-6 h-6" />
                     </Button>
                     <form onSubmit={handleSearch} className="flex-grow ml-4">
@@ -461,7 +490,7 @@ const QuoteCollector: React.FC = () => {
 
     return (
         <>
-            {modalState?.source !== undefined && <SourceModal source={modalState.source} onClose={() => setModalState(null)} onSave={handleSaveSource} />}
+            <SourceModal source={modalState?.source || null} open={!!modalState?.source} onOpenChange={(open) => { if (!open) setModalState(null); }} onClose={() => setModalState(null)} onSave={handleSaveSource} />
             {error && (
                 <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
                     {error}
@@ -531,7 +560,7 @@ const QuoteCollector: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <Button onClick={() => setModalState({ source: null })} className="!p-0 w-16 h-16 flex items-center justify-center rounded-full" title="Add New Source"><PlusIcon className="w-8 h-8" /></Button>
+                        <Button onClick={() => setModalState({ source: null })} variant="ghost" className="!p-0 w-16 h-16 flex items-center justify-center rounded-full" title="Add New Source"><PlusIcon className="w-8 h-8" /></Button>
                     </div>
                 </div>
             </div>
@@ -540,4 +569,3 @@ const QuoteCollector: React.FC = () => {
 };
 
 export default QuoteCollector;
-

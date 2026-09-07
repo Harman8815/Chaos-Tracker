@@ -10,6 +10,8 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../ui/Dialog';
+import { Select } from '../ui/Select';
+import { Label } from '../ui/Label';
 import achievementService from '../../services/achievementService';
 
 type View = 'timeline' | 'grid';
@@ -132,6 +134,8 @@ const Achievements: React.FC = () => {
             {modalState && (
                 <AchievementModal
                     achievement={modalState.achievement}
+                    open={!!modalState}
+                    onOpenChange={(open) => { if (!open) setModalState(null); }}
                     onClose={() => setModalState(null)}
                     onSave={handleSaveAchievement}
                     onDelete={handleDeleteAchievement}
@@ -142,7 +146,7 @@ const Achievements: React.FC = () => {
                     <div className="flex items-center gap-4">
                         <div className="flex space-x-1 bg-white/[0.06] p-1 rounded-lg">
                             {(['timeline', 'grid'] as View[]).map(v => (
-                                <button key={v} onClick={() => setView(v)} className={`px-4 py-2 text-sm rounded-md capitalize transition-colors ${view === v ? 'bg-accent-primary text-white shadow' : 'hover:bg-[rgba(139,92,246,0.35)]'}`}>
+                                <button key={v} onClick={() => setView(v)} className={`px-4 py-2 text-sm rounded-md capitalize transition-colors ${view === v ? 'bg-accent-primary text-white shadow' : 'hover:bg-white/[0.06]'}`}>
                                     {v} View
                                 </button>
                             ))}
@@ -153,14 +157,10 @@ const Achievements: React.FC = () => {
 
                     <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-text-secondary">Sort by Date:</span>
-                        <select
-                            value={sortOrder}
-                            onChange={e => setSortOrder(e.target.value as SortOrder)}
-                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                        >
+                        <Select value={sortOrder} onChange={e => setSortOrder(e.target.value as SortOrder)}>
                             <option value="desc">Newest First</option>
                             <option value="asc">Oldest First</option>
-                        </select>
+                        </Select>
                     </div>
                 </div>
                 {allTags.length > 0 && (
@@ -214,8 +214,9 @@ const Achievements: React.FC = () => {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <label className="text-sm text-text-secondary">Username</label>
+                            <Label htmlFor="username">Username</Label>
                             <Input
+                                id="username"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
                                 placeholder="your_username"
@@ -223,8 +224,9 @@ const Achievements: React.FC = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm text-text-secondary">Password</label>
+                            <Label htmlFor="password">Password</Label>
                             <Input
+                                id="password"
                                 type="password"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
