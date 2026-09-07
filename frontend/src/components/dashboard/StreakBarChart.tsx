@@ -47,6 +47,7 @@ const StreakBarChart: React.FC<{ data: { name: string, streak: number }[] }> = (
                                 borderRadius: '6px',
                             }}
                             labelStyle={{ color: 'var(--color-text-primary)' }}
+                            itemStyle={{ color: 'var(--color-info)' }}
                         />
                         <Bar dataKey="streak" radius={[4, 4, 0, 0]}>
                             {displayData.map((entry, index) => (

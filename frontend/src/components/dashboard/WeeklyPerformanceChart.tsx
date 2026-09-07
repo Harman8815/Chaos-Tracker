@@ -46,6 +46,7 @@ const WeeklyPerformanceChart: React.FC<{ data: { day: string, score: number }[] 
                             borderRadius: '6px',
                         }}
                         labelStyle={{ color: 'var(--color-text-primary)' }}
+                        itemStyle={{ color: 'var(--color-info)' }}
                     />
                     <Bar dataKey="score" radius={[6, 6, 0, 0]}>
                         {data.map((entry) => (
