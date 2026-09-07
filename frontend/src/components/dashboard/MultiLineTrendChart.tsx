@@ -13,14 +13,14 @@ import {
 import { Habit } from '../../types';
 
 const CHART_COLORS = [
-  'hsl(var(--color-accent-primary))',
-  'hsl(var(--color-accent-secondary))',
-  'hsl(var(--color-info))',
-  'hsl(var(--color-success))',
-  'hsl(var(--color-warning))',
-  'hsl(var(--color-destructive))',
-  'hsl(var(--color-info))',
-  'hsl(var(--color-success))',
+  'var(--color-accent-primary)',
+  'var(--color-accent-secondary)',
+  'var(--color-info)',
+  'var(--color-success)',
+  'var(--color-warning)',
+  'var(--color-destructive)',
+  'var(--color-info)',
+  'var(--color-success)',
 ];
 
 const formatValue = (value: number) => Number(value.toFixed(2));
