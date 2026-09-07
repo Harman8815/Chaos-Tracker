@@ -26,9 +26,14 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
     );
   }
 
-  const outerRadius = 80;
+  const outerRadius = 200;
   const cx = '50%';
   const cy = '50%';
+
+  const gridSteps = 5;
+  const circleRadii = Array.from({ length: gridSteps }, (_, i) =>
+    Math.round((outerRadius / (gridSteps - 1)) * i)
+  );
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -39,16 +44,20 @@ const RadarChart: React.FC<{ data: { axis: string; value: number }[] }> = ({ dat
         outerRadius={outerRadius}
         margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
       >
-        <circle
-          cx={cx}
-          cy={cy}
-          r={outerRadius}
-          fill="none"
-          stroke="var(--color-border)"
-          strokeWidth={1.5}
-          strokeOpacity={0.6}
-        />
-        <PolarGrid stroke="var(--color-border)" strokeOpacity={0.25} />
+        {circleRadii.map((r, i) => (
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
+            stroke="var(--color-border)"
+            strokeWidth={1.5}
+            strokeOpacity={0.5}
+            strokeDasharray={i === gridSteps - 1 ? "none" : "4 4"}
+          />
+        ))}
+        <PolarGrid stroke="var(--color-accent-primary)" strokeOpacity={0.3} strokeWidth={1} />
         <PolarAngleAxis dataKey="axis" tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }} />
         <PolarRadiusAxis domain={domain} tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }} />
         <Radar

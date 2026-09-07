@@ -403,7 +403,7 @@ const Dashboard: React.FC = () => {
             <h3 className="font-bold text-xl text-white mb-4">
               Habit Performance (7 Days)
             </h3>
-            <div className="w-full h-[500px]">
+            <div className="w-full h-[700px]">
               <RadarChart data={radarData} />
             </div>
           </Card>
