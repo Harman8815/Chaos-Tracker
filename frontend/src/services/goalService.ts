@@ -1,9 +1,5 @@
 import { client as apiClient } from '../api/client';
-import { Goal, GoalCategory, GoalStatus } from '../types';
-
-/**
- * Goal Service - Handles all API calls for goal management
- */
+import { Goal, GoalCategory, GoalStatus, GoalPriority, GoalFrequency } from '../types';
 
 export interface GoalListResponse {
   success: boolean;
@@ -11,9 +7,23 @@ export interface GoalListResponse {
   goals: Goal[];
 }
 
-/**
- * Get all goals with optional filters
- */
+export interface CreateGoalPayload {
+  text: string;
+  category: GoalCategory;
+  tags?: string[];
+  target?: number;
+  completed_tasks?: number;
+  status?: GoalStatus;
+  description?: string;
+  start_date?: string;
+  due_date?: string;
+  priority?: GoalPriority;
+  frequency?: GoalFrequency;
+  reminders?: string[];
+  completion_criteria?: string;
+  notes?: string;
+}
+
 export const getAllGoals = async (params?: {
   category?: GoalCategory;
   status?: GoalStatus;
@@ -29,18 +39,12 @@ export const getAllGoals = async (params?: {
   return await apiClient.get<GoalListResponse>(endpoint);
 };
 
-/**
- * Create a new goal
- */
 export const createGoal = async (
-  goalData: { text: string; category: GoalCategory; tags?: string[] }
+  goalData: CreateGoalPayload
 ): Promise<GoalListResponse> => {
   return await apiClient.post<GoalListResponse>('/goals/', goalData);
 };
 
-/**
- * Update a goal (status, text, etc.)
- */
 export const updateGoal = async (
   goalId: number,
   updates: Partial<Goal>
@@ -51,9 +55,6 @@ export const updateGoal = async (
   );
 };
 
-/**
- * Delete a goal
- */
 export const deleteGoal = async (goalId: number): Promise<void> => {
   await apiClient.delete(`/goals/${goalId}/`);
 };

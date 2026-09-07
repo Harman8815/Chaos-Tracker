@@ -135,6 +135,8 @@ export interface QuoteSource {
 // Goal Types
 export type GoalStatus = 'active' | 'completed' | 'trashed' | 'blocked';
 export type GoalCategory = 'daily' | 'monthly' | 'future';
+export type GoalPriority = 'low' | 'medium' | 'high';
+export type GoalFrequency = 'none' | 'daily' | 'weekly' | 'monthly';
 
 export interface Goal {
     id: number;
@@ -146,6 +148,14 @@ export interface Goal {
     tags?: string[];
     target: number;
     completed_tasks: number;
+    description?: string;
+    start_date?: string;
+    due_date?: string;
+    priority: GoalPriority;
+    frequency?: GoalFrequency;
+    reminders?: string[];
+    completion_criteria?: string;
+    notes?: string;
 }
 
 export interface GoalData {
