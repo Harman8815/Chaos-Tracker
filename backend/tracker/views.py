@@ -1362,8 +1362,7 @@ class PopulateDataView(views.APIView):
                     print(f"Failed to create goal: {e}")
                     continue
 
-        return Response({
-            'success': True,
+        return success_response(data={
             'message': f'Successfully populated data for user {user.username}',
             'stats': {
                 'journal_entries_created': journal_count,
@@ -1373,7 +1372,7 @@ class PopulateDataView(views.APIView):
                 'expenses_created': expenses_count,
                 'goals_created': goals_count
             }
-        }, status=status.HTTP_201_CREATED)
+        }, status_code=status.HTTP_201_CREATED)
 
 
 
