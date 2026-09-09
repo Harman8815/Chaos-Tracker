@@ -71,7 +71,7 @@ dist/
 
 # Task list (AI-agent working instructions - stays untracked)
 Task.list
-
+CHAOS_TRACKER_FEATURE_ROADMAP.md
 # Graphify
 project-graph/
 graphify.config.json
