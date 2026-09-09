@@ -1996,8 +1996,7 @@ class PlannerDataView(views.APIView):
             defaults={'transform': {'scale': 1, 'panX': 0, 'panY': 0}}
         )
         
-        return Response({
-            'success': True,
+        return success_response(data={
             'planner': {
                 'blocks': blocks_data,
                 'links': links_data,
@@ -2055,10 +2054,7 @@ class PlannerDataView(views.APIView):
             defaults={'transform': transform_data}
         )
         
-        return Response({
-            'success': True,
-            'message': 'Planner data updated successfully'
-        })
+        return success_response(message='Planner data updated successfully')
 
     def patch(self, request):
         """
@@ -2122,10 +2118,7 @@ class PlannerDataView(views.APIView):
                 defaults={'transform': data['transform']}
             )
         
-        return Response({
-            'success': True,
-            'message': 'Planner data updated successfully'
-        })
+        return success_response(message='Planner data updated successfully')
 
 
 class PlannerBlockDetailView(views.APIView):
@@ -2156,8 +2149,7 @@ class PlannerBlockDetailView(views.APIView):
             for task in block.tasks.all()
         ]
         
-        return Response({
-            'success': True,
+        return success_response(data={
             'block': {
                 'id': block.id,
                 'title': block.title,
@@ -2194,10 +2186,7 @@ class PlannerBlockDetailView(views.APIView):
                     order=idx
                 )
         
-        return Response({
-            'success': True,
-            'message': 'Block updated successfully'
-        })
+        return success_response(message='Block updated successfully')
 
     def delete(self, request, block_id):
         """Delete a specific block and its associated links"""
@@ -2212,10 +2201,7 @@ class PlannerBlockDetailView(views.APIView):
         # Delete the block (tasks will be cascade deleted)
         block.delete()
         
-        return Response({
-            'success': True,
-            'message': 'Block deleted successfully'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return success_response(message='Block deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
@@ -2237,6 +2223,19 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             }
         )
         return profile
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Profile updated successfully')
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
