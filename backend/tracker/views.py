@@ -1381,6 +1381,18 @@ class AchievementListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(data=serializer.data, count=queryset.count())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
+
 
 class AchievementDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AchievementSerializer
@@ -1389,6 +1401,24 @@ class AchievementDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Achievement.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Achievement updated successfully')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return success_response(message='Achievement deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== EXPENSE VIEWS ====================
@@ -1496,10 +1526,7 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({
-            'success': True,
-            'expense': serializer.data
-        })
+        return success_response(data={'expense': serializer.data})
     
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -1508,19 +1535,15 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         
-        return Response({
-            'success': True,
-            'message': 'Expense updated successfully',
-            'expense': serializer.data
-        })
+        return success_response(
+            data={'expense': serializer.data},
+            message='Expense updated successfully'
+        )
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({
-            'success': True,
-            'message': 'Expense deleted successfully'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return success_response(message='Expense deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 class ExpenseSummaryView(views.APIView):
@@ -1886,15 +1909,14 @@ class GoalListCreateView(generics.ListCreateAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         
-        # Group by category for easier frontend consumption if needed, 
-        # but standard list is usually better for REST.
-        # Let's stick to standard list response but maybe add stats?
-        
-        return Response({
-            'success': True,
-            'count': queryset.count(),
-            'goals': serializer.data
-        })
+        return success_response(data=serializer.data, count=queryset.count())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
 class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -1920,6 +1942,11 @@ class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             serializer.save()
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -1927,19 +1954,12 @@ class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         
-        return Response({
-            'success': True,
-            'message': 'Goal updated successfully',
-            'goal': serializer.data
-        })
+        return success_response(data=serializer.data, message='Goal updated successfully')
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({
-            'success': True,
-            'message': 'Goal deleted successfully'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return success_response(message='Goal deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== PLANNER VIEWS ====================
