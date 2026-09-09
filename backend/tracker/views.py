@@ -216,14 +216,18 @@ class JournalEntryDetailView(views.APIView):
         entry = self.get_object(date)
         if entry:
             serializer = JournalEntrySerializer(entry)
-            return Response(serializer.data)
-        return Response({'date': date, 'content': ''}, status=status.HTTP_200_OK)
+            return success_response(data=serializer.data)
+        return success_response(data={'date': date, 'content': ''})
 
     def put(self, request, date):
         try:
             date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
         except ValueError:
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(
+                message='Invalid date format',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
         entry = self.get_object(date)
         
@@ -237,15 +241,24 @@ class JournalEntryDetailView(views.APIView):
 
         if serializer.is_valid():
             serializer.save(user=request.user)
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return success_response(data=serializer.data)
+        return error_response(
+            message='Validation failed',
+            code='VALIDATION_ERROR',
+            details=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, date):
         entry = self.get_object(date)
         if entry:
             entry.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+            return success_response(status_code=status.HTTP_204_NO_CONTENT)
+        return error_response(
+            message='Journal entry not found',
+            code='NOT_FOUND',
+            status_code=status.HTTP_404_NOT_FOUND
+        )
 
 
 # ==================== QUOTE SOURCE VIEWS ====================
@@ -733,7 +746,7 @@ class DailyHabitScoreView(views.APIView):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         
-        queryset = DailyHabitScore.objects.filter(user=request.user)
+        queryset = DailyHabitScore.objects.filter(user=self.request.user)
         
         if start_date:
             queryset = queryset.filter(date__gte=start_date)
@@ -741,7 +754,7 @@ class DailyHabitScoreView(views.APIView):
             queryset = queryset.filter(date__lte=end_date)
             
         serializer = DailyHabitScoreSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return success_response(data=serializer.data, count=queryset.count())
 
     def post(self, request):
         date = request.data.get('date')
@@ -749,19 +762,23 @@ class DailyHabitScoreView(views.APIView):
         score = request.data.get('score')
         
         if not all([date, habit_id, score is not None]):
-            return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(
+                message='Missing required fields',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
             
-        habit = get_object_or_404(Habit, id=habit_id, user=request.user)
+        habit = get_object_or_404(Habit, id=habit_id, user=self.request.user)
         
         score_obj, created = DailyHabitScore.objects.update_or_create(
-            user=request.user,
+            user=self.request.user,
             date=date,
             habit=habit,
             defaults={'score': score}
         )
         
         serializer = DailyHabitScoreSerializer(score_obj)
-        return Response(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class PointsDataView(views.APIView):
@@ -776,11 +793,11 @@ class PointsDataView(views.APIView):
 
     def get(self, request):
         # Fetch habits and rules
-        habits = Habit.objects.filter(user=request.user)
-        rules = ScoringRule.objects.filter(user=request.user)
+        habits = Habit.objects.filter(user=self.request.user)
+        rules = ScoringRule.objects.filter(user=self.request.user)
         
         # Fetch daily scores
-        daily_scores = DailyHabitScore.objects.filter(user=request.user)
+        daily_scores = DailyHabitScore.objects.filter(user=self.request.user)
         
         # Build the daily data dictionary
         daily_data = {}
@@ -802,7 +819,7 @@ class PointsDataView(views.APIView):
                 total_score = sum(data['habitScores'].values())
                 data['points'] = round(total_score / habit_count)
 
-        return Response({
+        return success_response(data={
             'habits': HabitSerializer(habits, many=True).data,
             'rules': ScoringRuleSerializer(rules, many=True).data,
             'dailyData': daily_data
@@ -816,12 +833,12 @@ class PointsAnalyticsStreaksView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        habits = Habit.objects.filter(user=request.user)
+        habits = Habit.objects.filter(user=self.request.user)
         results = []
 
         for habit in habits:
             # Get all scores for this habit ordered by date
-            scores = DailyHabitScore.objects.filter(user=request.user, habit=habit).order_by('date')
+            scores = DailyHabitScore.objects.filter(user=self.request.user, habit=habit).order_by('date')
 
             # Compute best streak and current streak
             best = 0
@@ -849,7 +866,7 @@ class PointsAnalyticsStreaksView(views.APIView):
             today = datetime.date.today()
             day_cursor = today
             while True:
-                score_obj = DailyHabitScore.objects.filter(user=request.user, habit=habit, date=day_cursor).first()
+                score_obj = DailyHabitScore.objects.filter(user=self.request.user, habit=habit, date=day_cursor).first()
                 if score_obj and (score_obj.score or 0) > 0:
                     current += 1
                     day_cursor = day_cursor - timedelta(days=1)
@@ -863,7 +880,7 @@ class PointsAnalyticsStreaksView(views.APIView):
                 'best_streak': best
             })
 
-        return Response({'success': True, 'streaks': results})
+        return success_response(data={'streaks': results})
 
 
 class PointsAnalyticsTodayDistributionView(views.APIView):
@@ -875,13 +892,13 @@ class PointsAnalyticsTodayDistributionView(views.APIView):
     def get(self, request):
         today = datetime.date.today()
 
-        habits = list(Habit.objects.filter(user=request.user))
+        habits = list(Habit.objects.filter(user=self.request.user))
         # Build per-habit score list
         habit_list = []
         total_score = 0
 
         for habit in habits:
-            score_obj = DailyHabitScore.objects.filter(user=request.user, habit=habit, date=today).first()
+            score_obj = DailyHabitScore.objects.filter(user=self.request.user, habit=habit, date=today).first()
             score_val = int(score_obj.score) if score_obj and score_obj.score is not None else 0
             habit_list.append({
                 'habit_id': habit.id,
@@ -894,7 +911,11 @@ class PointsAnalyticsTodayDistributionView(views.APIView):
         for h in habit_list:
             h['percentage'] = round((h['score'] / total_score) * 100, 1) if total_score > 0 else 0
 
-        return Response({'success': True, 'date': today.isoformat(), 'total': total_score, 'habits': habit_list})
+        return success_response(data={
+            'date': today.isoformat(),
+            'total': total_score,
+            'habits': habit_list
+        })
 
 
 class PointsAnalyticsHabitPerformance7View(views.APIView):
@@ -934,7 +955,11 @@ class PointsAnalyticsHabitPerformance7View(views.APIView):
                 'average': avg
             })
 
-        return Response({'success': True, 'start_date': start_date.isoformat(), 'end_date': end_date.isoformat(), 'data': results})
+        return success_response(data={
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat(),
+            'data': results
+        })
 
 
 class PointsAnalyticsHabitTrend30View(views.APIView):
@@ -986,7 +1011,11 @@ class PointsAnalyticsHabitTrend30View(views.APIView):
                 'series': series
             })
 
-        return Response({'success': True, 'start_date': start_date.isoformat(), 'end_date': end_date.isoformat(), 'data': results})
+        return success_response(data={
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat(),
+            'data': results
+        })
 
 
 class PopulateDataView(views.APIView):
