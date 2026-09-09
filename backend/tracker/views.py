@@ -266,23 +266,19 @@ class QuoteSourceListCreateView(views.APIView):
         )
         
         # Optional filtering by type
-        source_type = request.query_params.get('type')
+        source_type = request.request.query_params.get('type')
         if source_type:
             sources = sources.filter(type=source_type)
         
         # Determine serializer based on query param
-        include_quotes = request.query_params.get('include_quotes', 'true').lower() == 'true'
+        include_quotes = request.request.query_params.get('include_quotes', 'true').lower() == 'true'
         
         if include_quotes:
             serializer = QuoteSourceSerializer(sources, many=True)
         else:
             serializer = QuoteSourceListSerializer(sources, many=True)
         
-        return Response({
-            'success': True,
-            'count': sources.count(),
-            'sources': serializer.data
-        })
+        return success_response(data=serializer.data, count=sources.count())
 
     def post(self, request):
         """Create a new quote source"""
@@ -299,15 +295,14 @@ class QuoteSourceListCreateView(views.APIView):
             ).first()
             
             response_serializer = QuoteSourceSerializer(source)
-            return Response({
-                'success': True,
-                'source': response_serializer.data
-            }, status=status.HTTP_201_CREATED)
+            return success_response(data={'source': response_serializer.data}, status_code=status.HTTP_201_CREATED)
         
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message='Validation failed',
+            code='VALIDATION_ERROR',
+            details=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class QuoteSourceDetailView(views.APIView):
@@ -331,10 +326,7 @@ class QuoteSourceDetailView(views.APIView):
         """Get a specific quote source with all its quotes"""
         source = self.get_object(source_id)
         serializer = QuoteSourceSerializer(source)
-        return Response({
-            'success': True,
-            'source': serializer.data
-        })
+        return success_response(data={'source': serializer.data})
 
     def put(self, request, source_id):
         """Update a quote source"""
@@ -347,24 +339,20 @@ class QuoteSourceDetailView(views.APIView):
             # Return updated source
             updated_source = self.get_object(source_id)
             response_serializer = QuoteSourceSerializer(updated_source)
-            return Response({
-                'success': True,
-                'source': response_serializer.data
-            })
+            return success_response(data={'source': response_serializer.data})
         
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message='Validation failed',
+            code='VALIDATION_ERROR',
+            details=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, source_id):
         """Delete a quote source and all its quotes"""
         source = self.get_object(source_id)
         source.delete()
-        return Response({
-            'success': True,
-            'message': 'Quote source deleted successfully'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return success_response(message='Quote source deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== QUOTE VIEWS ====================
@@ -390,11 +378,7 @@ class QuoteListCreateView(views.APIView):
             quotes = quotes.filter(tags__tag__icontains=tag).distinct()
         
         serializer = QuoteSerializer(quotes, many=True)
-        return Response({
-            'success': True,
-            'count': quotes.count(),
-            'quotes': serializer.data
-        })
+        return success_response(data=serializer.data, count=quotes.count())
 
     def post(self, request, source_id):
         """Create a new quote for a source"""
@@ -410,15 +394,14 @@ class QuoteListCreateView(views.APIView):
             ).prefetch_related('tags').first()
             
             response_serializer = QuoteSerializer(quote)
-            return Response({
-                'success': True,
-                'quote': response_serializer.data
-            }, status=status.HTTP_201_CREATED)
+            return success_response(data={'quote': response_serializer.data}, status_code=status.HTTP_201_CREATED)
         
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message='Validation failed',
+            code='VALIDATION_ERROR',
+            details=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class QuoteDetailView(views.APIView):
@@ -443,25 +426,24 @@ class QuoteDetailView(views.APIView):
         """Get a specific quote"""
         quote = self.get_object(quote_id)
         if not quote:
-            return Response({
-                'success': False,
-                'error': 'Quote not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return error_response(
+                message='Quote not found',
+                code='NOT_FOUND',
+                status_code=status.HTTP_404_NOT_FOUND
+            )
         
         serializer = QuoteSerializer(quote)
-        return Response({
-            'success': True,
-            'quote': serializer.data
-        })
+        return success_response(data={'quote': serializer.data})
 
     def put(self, request, quote_id):
         """Update a quote"""
         quote = self.get_object(quote_id)
         if not quote:
-            return Response({
-                'success': False,
-                'error': 'Quote not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return error_response(
+                message='Quote not found',
+                code='NOT_FOUND',
+                status_code=status.HTTP_404_NOT_FOUND
+            )
         
         serializer = QuoteCreateUpdateSerializer(quote, data=request.data, partial=True)
         
@@ -471,30 +453,27 @@ class QuoteDetailView(views.APIView):
             # Return updated quote
             updated_quote = self.get_object(quote_id)
             response_serializer = QuoteSerializer(updated_quote)
-            return Response({
-                'success': True,
-                'quote': response_serializer.data
-            })
+            return success_response(data={'quote': response_serializer.data})
         
-        return Response({
-            'success': False,
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message='Validation failed',
+            code='VALIDATION_ERROR',
+            details=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, quote_id):
         """Delete a quote"""
         quote = self.get_object(quote_id)
         if not quote:
-            return Response({
-                'success': False,
-                'error': 'Quote not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return error_response(
+                message='Quote not found',
+                code='NOT_FOUND',
+                status_code=status.HTTP_404_NOT_FOUND
+            )
         
         quote.delete()
-        return Response({
-            'success': True,
-            'message': 'Quote deleted successfully'
-        }, status=status.HTTP_204_NO_CONTENT)
+        return success_response(message='Quote deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== FUZZY SEARCH VIEW ====================
@@ -2258,6 +2237,19 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             }
         )
         return profile
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Profile updated successfully')
 
 
 class ExportDataView(views.APIView):
