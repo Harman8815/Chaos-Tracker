@@ -21,6 +21,7 @@ from .serializers import (
     DailyHabitScoreSerializer,
     UserProfileSerializer
 )
+from .utils import success_response, error_response
 import datetime
 from datetime import timedelta
 import random
@@ -181,6 +182,24 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
             serializer.save(user=self.request.user)
         else:
             serializer.save(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        })
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class JournalEntryDetailView(views.APIView):
@@ -634,6 +653,18 @@ class HabitListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, id=str(uuid.uuid4()))
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(data=serializer.data, count=queryset.count())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
+
 
 class HabitDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = HabitSerializer
@@ -642,6 +673,24 @@ class HabitDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Habit.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Habit updated successfully')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return success_response(message='Habit deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 class ScoringRuleListCreateView(generics.ListCreateAPIView):
@@ -654,6 +703,18 @@ class ScoringRuleListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, id=str(uuid.uuid4()))
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(data=serializer.data, count=queryset.count())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
+
 
 class ScoringRuleDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ScoringRuleSerializer
@@ -662,6 +723,24 @@ class ScoringRuleDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return ScoringRule.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Scoring rule updated successfully')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return success_response(message='Scoring rule deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
 
 
 class DailyHabitScoreView(views.APIView):
