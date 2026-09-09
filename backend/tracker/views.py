@@ -1605,8 +1605,7 @@ class ExpenseSummaryView(views.APIView):
         # Get unique categories count
         categories = set(expense.category for expense in queryset)
         
-        return Response({
-            'success': True,
+        return success_response(data={
             'summary': {
                 'total_expenses': total_expenses,
                 'total_amount': float(total_amount),
@@ -1662,11 +1661,7 @@ class ExpenseCategoriesView(views.APIView):
             reverse=True
         )
         
-        return Response({
-            'success': True,
-            'count': len(sorted_categories),
-            'categories': sorted_categories
-        })
+        return success_response(data=sorted_categories, count=len(sorted_categories))
 
 
 class ExpenseAnalyticsView(views.APIView):
@@ -1695,10 +1690,11 @@ class ExpenseAnalyticsView(views.APIView):
                 year = int(year)
                 month = int(month)
             except (ValueError, TypeError):
-                return Response({
-                    'success': False,
-                    'error': 'Invalid year or month parameter'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return error_response(
+                    message='Invalid year or month parameter',
+                    code='VALIDATION_ERROR',
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
         
         # Get expenses for the month
         queryset = Expense.objects.filter(
@@ -1809,8 +1805,7 @@ class ExpenseMonthlyStatsView(views.APIView):
         # Calculate year total
         year_total = sum(month['total'] for month in monthly_list)
         
-        return Response({
-            'success': True,
+        return success_response(data={
             'year': year,
             'total_amount': year_total,
             'monthly_stats': monthly_list
@@ -1872,11 +1867,7 @@ class ExpenseTopItemsView(views.APIView):
             reverse=True
         )[:limit]
         
-        return Response({
-            'success': True,
-            'count': len(sorted_expenses),
-            'top_expenses': sorted_expenses
-        })
+        return success_response(data=sorted_expenses, count=len(sorted_expenses))
 
 
 # ==================== GOAL VIEWS ====================
