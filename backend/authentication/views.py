@@ -3,6 +3,9 @@ from rest_framework import status, views
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from tracker.utils import success_response, error_response
 from .serializers import SignupSerializer, LoginSerializer, UserSerializer
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SignupView(views.APIView):
     """
@@ -16,6 +19,7 @@ class SignupView(views.APIView):
         if serializer.is_valid():
             user = serializer.save()
             login(request, user)
+            logger.info("User signed up: username=%s id=%s", user.username, user.id)
             return success_response(
                 data={
                     'message': 'Account created successfully',
@@ -23,6 +27,7 @@ class SignupView(views.APIView):
                 },
                 status_code=status.HTTP_201_CREATED
             )
+        logger.warning("Signup validation failed: %s", serializer.errors)
         return error_response(
             message=serializer.errors,
             code='VALIDATION_ERROR',
@@ -45,6 +50,7 @@ class LoginView(views.APIView):
             
             if user is not None:
                 login(request, user)
+                logger.info("User logged in: username=%s id=%s", user.username, user.id)
                 return success_response(
                     data={
                         'message': 'Login successful',
@@ -53,12 +59,14 @@ class LoginView(views.APIView):
                     status_code=status.HTTP_200_OK
                 )
             
+            logger.warning("Invalid login attempt for username=%s", username)
             return error_response(
                 message='Invalid credentials',
                 code='AUTH_ERROR',
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
         
+        logger.warning("Login validation failed: %s", serializer.errors)
         return error_response(
             message=serializer.errors,
             code='VALIDATION_ERROR',

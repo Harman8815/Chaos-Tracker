@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
+import logging
 from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile
 from .serializers import (
     JournalEntrySerializer,
@@ -18,9 +19,9 @@ from .serializers import (
     GoalSerializer,
     HabitSerializer,
     ScoringRuleSerializer,
-    DailyHabitScoreSerializer,
-    UserProfileSerializer
 )
+
+logger = logging.getLogger(__name__)
 from .utils import success_response, error_response
 import datetime
 from datetime import timedelta
