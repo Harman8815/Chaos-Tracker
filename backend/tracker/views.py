@@ -19,6 +19,7 @@ from .serializers import (
     GoalSerializer,
     HabitSerializer,
     ScoringRuleSerializer,
+    UserProfileSerializer,
 )
 
 logger = logging.getLogger(__name__)

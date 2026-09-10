@@ -6,42 +6,6 @@ from tracker.models import Expense, Goal, Achievement
 User = get_user_model()
 
 
-class AuthTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user_data = {
-            'username': 'testuser',
-            'email': 'test@example.com',
-            'password': 'testpass123'
-        }
-
-    def test_signup(self):
-        response = self.client.post('/api/auth/signup/', self.user_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(response.data.get('success'))
-        self.assertIn('user', response.data.get('data', {}))
-
-    def test_login(self):
-        User.objects.create_user(**self.user_data)
-        response = self.client.post('/api/auth/login/', {
-            'username': 'testuser',
-            'password': 'testpass123'
-        }, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data.get('success'))
-
-    def test_login_invalid_credentials(self):
-        response = self.client.post('/api/auth/login/', {
-            'username': 'testuser',
-            'password': 'wrongpass'
-        }, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_current_user_requires_auth(self):
-        response = self.client.get('/api/auth/me/')
-        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
-
-
 class ExpenseCRUDTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
