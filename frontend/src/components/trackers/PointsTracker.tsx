@@ -58,6 +58,7 @@ const PointsTracker: React.FC = () => {
     const [view, setView] = useState<View>('daily');
     const [isEditable, setIsEditable] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date(today));
+    const [loading, setLoading] = useState(false);
 
     const gridBodyRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,7 @@ const PointsTracker: React.FC = () => {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
+                setLoading(true);
                 const [habitsData, rulesData] = await Promise.all([
                     pointsService.getHabits(),
                     pointsService.getRules(),
@@ -87,7 +89,8 @@ const PointsTracker: React.FC = () => {
                 setScoringRules(rulesData);
             } catch (error) {
                 console.error("Error fetching initial points data:", error);
-                // Optionally, show an error message to the user
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -258,6 +261,27 @@ const PointsTracker: React.FC = () => {
     };
 
     const trackerInfo = TRACKERS.find(t => t.id === 'points')!;
+
+    if (loading) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-text-secondary">Loading points...</div>
+                </div>
+            </TrackerWrapper>
+        );
+    }
+
+    if (habits.length === 0) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="text-center text-text-secondary py-12">
+                    <p className="text-lg font-medium mb-2">No habits tracked yet</p>
+                    <p className="text-sm">Add habits to start scoring your days.</p>
+                </div>
+            </TrackerWrapper>
+        );
+    }
 
     return (
         <TrackerWrapper tracker={trackerInfo}>

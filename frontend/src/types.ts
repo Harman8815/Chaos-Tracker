@@ -185,5 +185,7 @@ export interface DataContextType {
     setAchievements: Dispatch<SetStateAction<Achievement[]>>;
     userProfile: UserProfile;
     setUserProfile: Dispatch<SetStateAction<UserProfile>>;
+    dataLoading: boolean;
+    setDataLoading: Dispatch<SetStateAction<boolean>>;
     logout: () => void;
 }

@@ -38,23 +38,46 @@ class ApiClient {
             clearTimeout(id);
 
             if (!response.ok) {
-                // Try to parse error message from response
                 const text = await response.text();
                 let errorMessage = `API call failed: ${response.status} ${response.statusText}`;
                 
                 try {
                     const errorData = JSON.parse(text);
+                    if (errorData.error && typeof errorData.error === 'object') {
+                        errorMessage = errorData.error.message || errorData.message || errorMessage;
+                        const apiError = new Error(errorMessage) as any;
+                        apiError.code = errorData.error.code;
+                        apiError.details = errorData.error.details;
+                        throw apiError;
+                    }
                     errorMessage = errorData.error || errorData.message || errorMessage;
+                    const apiError = new Error(errorMessage) as any;
+                    apiError.code = errorData.code;
+                    apiError.details = errorData.details;
+                    throw apiError;
                 } catch {
-                    // If response isn't JSON, use default message
+                    throw new Error(errorMessage);
                 }
-                
-                throw new Error(errorMessage);
             }
             
-            // Handle 204 No Content or empty responses gracefully
             const text = await response.text();
-            return text ? JSON.parse(text) : {} as T;
+            if (!text) return {} as T;
+            
+            const parsed = JSON.parse(text);
+            
+            if (parsed && typeof parsed === 'object') {
+                if (parsed.success === true && 'data' in parsed) {
+                    return parsed.data as T;
+                }
+                if (parsed.success === false) {
+                    const apiError = new Error(parsed.error || 'API request failed') as any;
+                    apiError.code = parsed.code;
+                    apiError.details = parsed.details;
+                    throw apiError;
+                }
+            }
+            
+            return parsed as T;
         } catch (error) {
             clearTimeout(id);
             // Re-throw to be handled by service layer

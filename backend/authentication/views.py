@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status, views
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from tracker.utils import success_response, error_response
 from .serializers import SignupSerializer, LoginSerializer, UserSerializer
 
 class SignupView(views.APIView):
@@ -15,22 +15,18 @@ class SignupView(views.APIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            # Automatically log in the user after signup
             login(request, user)
-            return Response(
-                {
-                    'success': True,
+            return success_response(
+                data={
                     'message': 'Account created successfully',
                     'user': UserSerializer(user).data
                 },
-                status=status.HTTP_201_CREATED
+                status_code=status.HTTP_201_CREATED
             )
-        return Response(
-            {
-                'success': False,
-                'error': serializer.errors
-            },
-            status=status.HTTP_400_BAD_REQUEST
+        return error_response(
+            message=serializer.errors,
+            code='VALIDATION_ERROR',
+            status_code=status.HTTP_400_BAD_REQUEST
         )
 
 class LoginView(views.APIView):
@@ -49,29 +45,24 @@ class LoginView(views.APIView):
             
             if user is not None:
                 login(request, user)
-                return Response(
-                    {
-                        'success': True,
+                return success_response(
+                    data={
                         'message': 'Login successful',
                         'user': UserSerializer(user).data
                     },
-                    status=status.HTTP_200_OK
+                    status_code=status.HTTP_200_OK
                 )
             
-            return Response(
-                {
-                    'success': False,
-                    'error': 'Invalid credentials'
-                },
-                status=status.HTTP_401_UNAUTHORIZED
+            return error_response(
+                message='Invalid credentials',
+                code='AUTH_ERROR',
+                status_code=status.HTTP_401_UNAUTHORIZED
             )
         
-        return Response(
-            {
-                'success': False,
-                'error': serializer.errors
-            },
-            status=status.HTTP_400_BAD_REQUEST
+        return error_response(
+            message=serializer.errors,
+            code='VALIDATION_ERROR',
+            status_code=status.HTTP_400_BAD_REQUEST
         )
 
 class LogoutView(views.APIView):
@@ -83,12 +74,9 @@ class LogoutView(views.APIView):
     
     def post(self, request):
         logout(request)
-        return Response(
-            {
-                'success': True,
-                'message': 'Logged out successfully'
-            },
-            status=status.HTTP_200_OK
+        return success_response(
+            data={'message': 'Logged out successfully'},
+            status_code=status.HTTP_200_OK
         )
 
 class CurrentUserView(views.APIView):
@@ -99,10 +87,7 @@ class CurrentUserView(views.APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        return Response(
-            {
-                'success': True,
-                'user': UserSerializer(request.user).data
-            },
-            status=status.HTTP_200_OK
+        return success_response(
+            data={'user': UserSerializer(request.user).data},
+            status_code=status.HTTP_200_OK
         )

@@ -8,7 +8,6 @@ import { Expense } from '../types';
 // ==================== TYPES ====================
 
 export interface ExpenseListResponse {
-  success: boolean;
   count: number;
   total_amount: number;
   category_breakdown: Record<string, number>;
@@ -16,7 +15,6 @@ export interface ExpenseListResponse {
 }
 
 export interface ExpenseSummary {
-  success: boolean;
   summary: {
     total_expenses: number;
     total_amount: number;
@@ -27,7 +25,6 @@ export interface ExpenseSummary {
 }
 
 export interface CategoryBreakdown {
-  success: boolean;
   count: number;
   categories: Array<{
     name: string;
@@ -37,7 +34,6 @@ export interface CategoryBreakdown {
 }
 
 export interface ExpenseAnalytics {
-  success: boolean;
   analytics: {
     year: number;
     month: number;
@@ -50,7 +46,6 @@ export interface ExpenseAnalytics {
 }
 
 export interface MonthlyStats {
-  success: boolean;
   year: number;
   total_amount: number;
   monthly_stats: Array<{
@@ -62,7 +57,6 @@ export interface MonthlyStats {
 }
 
 export interface TopExpenses {
-  success: boolean;
   count: number;
   top_expenses: Array<{
     id: number;
@@ -104,8 +98,8 @@ export const getAllExpenses = async (params?: {
 /**
  * Get a specific expense by ID
  */
-export const getExpenseById = async (id: string): Promise<{ success: boolean; expense: Expense }> => {
-  return await apiClient.get<{ success: boolean; expense: Expense }>(`/expenses/${id}/`);
+export const getExpenseById = async (id: string): Promise<{ expense: Expense }> => {
+  return await apiClient.get<{ expense: Expense }>(`/expenses/${id}/`);
 };
 
 /**
@@ -131,7 +125,7 @@ export const createExpense = async (
 export const updateExpense = async (
   expenseId: string,
   updates: Partial<Expense>
-): Promise<{ success: boolean; message: string; expense: Expense }> => {
+): Promise<{ message: string; expense: Expense }> => {
   const payload: any = {};
   
   if (updates.date) payload.date = updates.date;
@@ -140,7 +134,7 @@ export const updateExpense = async (
   if (updates.quantity !== undefined) payload.quantity = updates.quantity;
   if (updates.price !== undefined) payload.price = updates.price;
   
-  return await apiClient.patch<{ success: boolean; message: string; expense: Expense }>(
+  return await apiClient.patch<{ message: string; expense: Expense }>(
     `/expenses/${expenseId}/`,
     payload
   );

@@ -10,7 +10,7 @@ const MIN_SCALE = 0.2;
 const MAX_SCALE = 2;
 
 const Planner: React.FC = () => {
-    const { plannerData, setPlannerData } = useContext(DataContext);
+    const { plannerData, setPlannerData, dataLoading } = useContext(DataContext);
     const {
         blocks = [],
         links = [],
@@ -133,6 +133,29 @@ const Planner: React.FC = () => {
     }, [blocks]);
 
     const trackerInfo = TRACKERS.find(t => t.id === 'planner')!;
+
+    if (dataLoading) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-text-secondary">Loading planner...</div>
+                </div>
+            </TrackerWrapper>
+        );
+    }
+
+    if (blocks.length === 0) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-center text-text-secondary">
+                        <p className="text-lg font-medium mb-2">No planner blocks yet</p>
+                        <p className="text-sm">Add your first block to get started!</p>
+                    </div>
+                </div>
+            </TrackerWrapper>
+        );
+    }
 
     return (
         <TrackerWrapper tracker={trackerInfo}>

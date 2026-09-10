@@ -128,6 +128,17 @@ const Achievements: React.FC = () => {
         );
     }
 
+    if (achievements.length === 0) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="text-center text-text-secondary py-12">
+                    <p className="text-lg font-medium mb-2">No achievements yet</p>
+                    <p className="text-sm">Keep tracking to unlock badges!</p>
+                </div>
+            </TrackerWrapper>
+        );
+    }
+
     return (
         <TrackerWrapper tracker={trackerInfo}>
             {gallery && <GalleryModal gallery={gallery} onClose={() => setGallery(null)} />}

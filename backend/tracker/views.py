@@ -139,8 +139,7 @@ class SyncView(views.APIView):
             defaults={'transform': {'scale': 1, 'panX': 0, 'panY': 0}}
         )
         
-        return Response({
-            'success': True,
+        return success_response(data={
             'data': data,
             'habits': habits_serializer.data,
             'rules': rules_serializer.data,
@@ -157,7 +156,7 @@ class SyncView(views.APIView):
                 'email': request.user.email,
                 'joinDate': request.user.date_joined.isoformat() if request.user.date_joined else None
             }
-        }, status=status.HTTP_200_OK)
+        })
 
 
 
@@ -186,20 +185,18 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'success': True,
-            'data': serializer.data
-        })
+        return success_response(data={'data': serializer.data})
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response({
-            'success': True,
-            'data': serializer.data
-        }, status=status.HTTP_201_CREATED, headers=headers)
+        return success_response(
+            data={'data': serializer.data},
+            status_code=status.HTTP_201_CREATED,
+            headers=headers
+        )
 
 
 class JournalEntryDetailView(views.APIView):
@@ -511,16 +508,18 @@ class QuoteFuzzySearchView(views.APIView):
         query = request.query_params.get('q', '').strip()
         
         if not query:
-            return Response({
-                'success': False,
-                'error': 'Search query is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(
+                message='Search query is required',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         
         if len(query) < 2:
-            return Response({
-                'success': False,
-                'error': 'Search query must be at least 2 characters'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(
+                message='Search query must be at least 2 characters',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         
         # Get all sources for the user
         sources = QuoteSource.objects.filter(user=request.user).prefetch_related(
@@ -604,12 +603,13 @@ class QuoteFuzzySearchView(views.APIView):
                 'match_type': result['match_type']
             })
         
-        return Response({
-            'success': True,
-            'query': query,
-            'count': len(serialized_results),
-            'results': serialized_results
-        })
+        return success_response(
+            data={
+                'query': query,
+                'count': len(serialized_results),
+                'results': serialized_results
+            }
+        )
 
 
 # ==================== TAGS VIEW ====================
@@ -626,11 +626,12 @@ class QuoteTagsView(views.APIView):
             quote__source__user=request.user
         ).values_list('tag', flat=True).distinct().order_by('tag')
         
-        return Response({
-            'success': True,
-            'count': len(tags),
-            'tags': list(tags)
-        })
+        return success_response(
+            data={
+                'count': len(tags),
+                'tags': list(tags)
+            }
+        )
 
 
 # ==================== POINTS VIEWS ====================
@@ -1033,7 +1034,11 @@ class PopulateDataView(views.APIView):
             User = get_user_model()
             user = User.objects.first()
             if not user:
-                return Response({'error': 'No users found to assign data to'}, status=status.HTTP_400_BAD_REQUEST)
+                return error_response(
+                    message='No users found to assign data to',
+                    code='VALIDATION_ERROR',
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
 
         # --- Populate Habits ---
         habits_data = [
@@ -1508,13 +1513,14 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
                 categories[expense.category] = 0
             categories[expense.category] += float(expense.total)
         
-        return Response({
-            'success': True,
-            'count': total_expenses,
-            'total_amount': total_amount,
-            'category_breakdown': categories,
-            'expenses': serializer.data
-        })
+        return success_response(
+            data={
+                'count': total_expenses,
+                'total_amount': total_amount,
+                'category_breakdown': categories,
+                'expenses': serializer.data
+            }
+        )
 
 
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -1739,18 +1745,19 @@ class ExpenseAnalyticsView(views.APIView):
         import calendar
         days_in_month = calendar.monthrange(year, month + 1)[1]
         
-        return Response({
-            'success': True,
-            'analytics': {
-                'year': year,
-                'month': month,
-                'days_in_month': days_in_month,
-                'total_amount': total_month,
-                'daily_breakdown': daily_data,
-                'category_breakdown': category_data,
-                'average_per_day': total_month / days_in_month if days_in_month > 0 else 0
+        return success_response(
+            data={
+                'analytics': {
+                    'year': year,
+                    'month': month,
+                    'days_in_month': days_in_month,
+                    'total_amount': total_month,
+                    'daily_breakdown': daily_data,
+                    'category_breakdown': category_data,
+                    'average_per_day': total_month / days_in_month if days_in_month > 0 else 0
+                }
             }
-        })
+        )
 
 
 class ExpenseMonthlyStatsView(views.APIView):
@@ -1773,10 +1780,11 @@ class ExpenseMonthlyStatsView(views.APIView):
             try:
                 year = int(year)
             except (ValueError, TypeError):
-                return Response({
-                    'success': False,
-                    'error': 'Invalid year parameter'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return error_response(
+                    message='Invalid year parameter',
+                    code='VALIDATION_ERROR',
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
         
         # Get all expenses for the year
         queryset = Expense.objects.filter(
@@ -2291,14 +2299,16 @@ class ExportDataView(views.APIView):
             elif format_type == 'pdf':
                 return self._export_pdf(data)
             else:
-                return Response(
-                    {'error': 'Invalid format. Use json, csv, or pdf'},
-                    status=status.HTTP_400_BAD_REQUEST
+                return error_response(
+                    message='Invalid format. Use json, csv, or pdf',
+                    code='VALIDATION_ERROR',
+                    status_code=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            return error_response(
+                message=str(e),
+                code='SERVER_ERROR',
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def _gather_user_data(self, user):
@@ -2530,59 +2540,65 @@ class ImportDataView(views.APIView):
             elif format_type == 'csv':
                 return self._import_csv(request)
             else:
-                return Response(
-                    {'error': 'Invalid format. Use json or csv'},
-                    status=status.HTTP_400_BAD_REQUEST
+                return error_response(
+                    message='Invalid format. Use json or csv',
+                    code='VALIDATION_ERROR',
+                    status_code=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            return error_response(
+                message=str(e),
+                code='SERVER_ERROR',
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def _import_json(self, request):
         """Import data from JSON file"""
         if 'file' not in request.FILES:
-            return Response(
-                {'error': 'No file provided'},
-                status=status.HTTP_400_BAD_REQUEST
+            return error_response(
+                message='No file provided',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         file = request.FILES['file']
         if not file.name.endswith('.json'):
-            return Response(
-                {'error': 'Invalid file format. Please upload a JSON file'},
-                status=status.HTTP_400_BAD_REQUEST
+            return error_response(
+                message='Invalid file format. Please upload a JSON file',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
             content = json.loads(file.read().decode('utf-8'))
             results = self._process_import_data(request.user, content)
             
-            return Response({
-                'success': True,
+            return success_response(data={
                 'message': 'Data imported successfully',
                 'results': results
             })
         except json.JSONDecodeError:
-            return Response(
-                {'error': 'Invalid JSON format'},
-                status=status.HTTP_400_BAD_REQUEST
+            return error_response(
+                message='Invalid JSON format',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     def _import_csv(self, request):
         """Import data from CSV zip file"""
         if 'file' not in request.FILES:
-            return Response(
-                {'error': 'No file provided'},
-                status=status.HTTP_400_BAD_REQUEST
+            return error_response(
+                message='No file provided',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         file = request.FILES['file']
         if not file.name.endswith('.zip'):
-            return Response(
-                {'error': 'Invalid file format. Please upload a ZIP file containing CSV files'},
-                status=status.HTTP_400_BAD_REQUEST
+            return error_response(
+                message='Invalid file format. Please upload a ZIP file containing CSV files',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         
         import zipfile
@@ -2613,15 +2629,15 @@ class ImportDataView(views.APIView):
                     reader = csv.DictReader(io.StringIO(content))
                     results['goals'] = self._import_goals(request.user, list(reader))
             
-            return Response({
-                'success': True,
+            return success_response(data={
                 'message': 'Data imported successfully',
                 'results': results
             })
         except Exception as e:
-            return Response(
-                {'error': f'Error processing ZIP file: {str(e)}'},
-                status=status.HTTP_400_BAD_REQUEST
+            return error_response(
+                message=f'Error processing ZIP file: {str(e)}',
+                code='VALIDATION_ERROR',
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     def _process_import_data(self, user, data):
@@ -2781,14 +2797,16 @@ class AnalyticsView(views.APIView):
             elif period == 'yearly':
                 return self._get_yearly_analytics(request.user)
             else:
-                return Response(
-                    {'error': 'Invalid period. Use monthly or yearly'},
-                    status=status.HTTP_400_BAD_REQUEST
+                return error_response(
+                    message='Invalid period. Use monthly or yearly',
+                    code='VALIDATION_ERROR',
+                    status_code=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            return error_response(
+                message=str(e),
+                code='SERVER_ERROR',
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def _get_monthly_analytics(self, user):
@@ -2844,7 +2862,7 @@ class AnalyticsView(views.APIView):
             if habit_performance[habit]['days_tracked'] > 0:
                 habit_performance[habit]['average_score'] = habit_performance[habit]['total_score'] / habit_performance[habit]['days_tracked']
         
-        return Response({
+        return success_response(data={
             'period': 'monthly',
             'month': now.strftime('%B %Y'),
             'journal': {
@@ -2946,7 +2964,7 @@ class AnalyticsView(views.APIView):
         
         top_categories = sorted(expense_categories.items(), key=lambda x: x[1], reverse=True)[:5]
         
-        return Response({
+        return success_response(data={
             'period': 'yearly',
             'year': now.year,
             'summary': {
@@ -3080,18 +3098,17 @@ class TempDataView(views.APIView):
                 date=achievement_date
             )
         
-        return Response({
-            'success': True,
+        return success_response(data={
             'message': '12 months of historical data inserted successfully',
             'timestamp': current_datetime.isoformat(),
             'data': {
                 'expenses': expenses_created,
                 'goals': goals_created,
                 'habits': habits_created,
-                'journal_entries': journal_entries_created,
+                'journal_entries_created': journal_entries_created,
                 'months_generated': 12,
                 'habit_scores_created': habits_created * 30,
                 'achievements_created': len(achievement_titles)
             }
-        }, status=status.HTTP_201_CREATED)
+        }, status_code=status.HTTP_201_CREATED)
 

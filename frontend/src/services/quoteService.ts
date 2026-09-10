@@ -25,8 +25,8 @@ export const getAllQuoteSources = async (params?: {
   }
   
   const url = `/quotes/sources/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  const response = await apiClient.get<{ sources: QuoteSource[] }>(url);
-  return response.sources;
+  const response = await apiClient.get<QuoteSource[]>(url);
+  return response;
 };
 
 /**
@@ -97,8 +97,8 @@ export const getQuotesForSource = async (
     ? `/quotes/sources/${sourceId}/quotes/?tag=${encodeURIComponent(tag)}`
     : `/quotes/sources/${sourceId}/quotes/`;
   
-  const response = await apiClient.get<{ quotes: Quote[] }>(url);
-  return response.quotes.map(transformQuoteFromAPI);
+  const response = await apiClient.get<Quote[]>(url);
+  return response.map(transformQuoteFromAPI);
 };
 
 /**

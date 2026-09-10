@@ -181,6 +181,17 @@ const ExpenseTracker: React.FC = () => {
         );
     }
 
+    if (!loading && expenses.length === 0) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="text-center text-text-secondary py-12">
+                    <p className="text-lg font-medium mb-2">No expenses recorded yet</p>
+                    <p className="text-sm">Add your first expense to start tracking.</p>
+                </div>
+            </TrackerWrapper>
+        );
+    }
+
     return (
         <TrackerWrapper tracker={trackerInfo}>
             {isModalOpen && <AddExpenseModal onClose={() => setIsModalOpen(false)} onAdd={handleAddExpense} />}

@@ -30,11 +30,13 @@ Create a new user account.
 ```json
 {
   "success": true,
-  "message": "Account created successfully",
-  "user": {
-    "id": 1,
-    "username": "johndoe",
-    "email": "john@example.com"
+  "data": {
+    "message": "Account created successfully",
+    "user": {
+      "id": 1,
+      "username": "johndoe",
+      "email": "john@example.com"
+    }
   }
 }
 ```
@@ -54,11 +56,13 @@ Authenticate user and create session.
 ```json
 {
   "success": true,
-  "message": "Login successful",
-  "user": {
-    "id": 1,
-    "username": "johndoe",
-    "email": "john@example.com"
+  "data": {
+    "message": "Login successful",
+    "user": {
+      "id": 1,
+      "username": "johndoe",
+      "email": "john@example.com"
+    }
   }
 }
 ```
@@ -70,7 +74,9 @@ End user session.
 ```json
 {
   "success": true,
-  "message": "Logged out successfully"
+  "data": {
+    "message": "Logged out successfully"
+  }
 }
 ```
 
@@ -81,15 +87,17 @@ Get current authenticated user information.
 ```json
 {
   "success": true,
-  "user": {
-    "id": 1,
-    "username": "johndoe",
-    "email": "john@example.com",
-    "profile": {
-      "bio": "Software developer",
-      "avatar_url": "",
-      "location": "New York",
-      "timezone": "UTC"
+  "data": {
+    "user": {
+      "id": 1,
+      "username": "johndoe",
+      "email": "john@example.com",
+      "profile": {
+        "bio": "Software developer",
+        "avatar_url": "",
+        "location": "New York",
+        "timezone": "UTC"
+      }
     }
   }
 }
@@ -115,26 +123,28 @@ List all expenses with optional filtering.
 ```json
 {
   "success": true,
-  "count": 45,
-  "total_amount": 5234.50,
-  "category_breakdown": {
-    "Food": 1234.50,
-    "Transport": 890.00,
-    "Entertainment": 450.00
-  },
-  "expenses": [
-    {
-      "id": 1,
-      "date": "2025-12-01",
-      "item": "Groceries",
-      "category": "Food",
-      "quantity": 1,
-      "price": "150.00",
-      "total": "150.00",
-      "created_at": "2025-12-01T10:30:00Z",
-      "updated_at": "2025-12-01T10:30:00Z"
-    }
-  ]
+  "data": {
+    "count": 45,
+    "total_amount": 5234.50,
+    "category_breakdown": {
+      "Food": 1234.50,
+      "Transport": 890.00,
+      "Entertainment": 450.00
+    },
+    "expenses": [
+      {
+        "id": 1,
+        "date": "2025-12-01",
+        "item": "Groceries",
+        "category": "Food",
+        "quantity": 1,
+        "price": "150.00",
+        "total": "150.00",
+        "created_at": "2025-12-01T10:30:00Z",
+        "updated_at": "2025-12-01T10:30:00Z"
+      }
+    ]
+  }
 }
 ```
 
@@ -195,19 +205,21 @@ List all goals with optional filtering.
 ```json
 {
   "success": true,
-  "count": 5,
-  "goals": [
-    {
-      "id": 1,
-      "text": "Drink 8 glasses of water",
-      "category": "daily",
-      "status": "active",
-      "tags": ["health"],
-      "created_at": "2025-12-01T10:30:00Z",
-      "updated_at": "2025-12-01T10:30:00Z",
-      "completed_at": null
-    }
-  ]
+  "data": {
+    "count": 5,
+    "goals": [
+      {
+        "id": 1,
+        "text": "Drink 8 glasses of water",
+        "category": "daily",
+        "status": "active",
+        "tags": ["health"],
+        "created_at": "2025-12-01T10:30:00Z",
+        "updated_at": "2025-12-01T10:30:00Z",
+        "completed_at": null
+      }
+    ]
+  }
 }
 ```
 
@@ -245,7 +257,7 @@ Get all planner data for the authenticated user.
 ```json
 {
   "success": true,
-  "planner": {
+  "data": {
     "blocks": [
       {
         "id": "block-uuid-1",
@@ -402,16 +414,18 @@ Insert comprehensive historical data for the past 12 months.
 ```json
 {
   "success": true,
-  "message": "12 months of historical data inserted successfully",
-  "timestamp": "2025-12-21T10:30:00Z",
   "data": {
-    "expenses": 120,
-    "goals": 42,
-    "habits": 5,
-    "journal_entries": 24,
-    "months_generated": 12,
-    "habit_scores_created": 150,
-    "achievements_created": 4
+    "message": "12 months of historical data inserted successfully",
+    "timestamp": "2025-12-21T10:30:00Z",
+    "data": {
+      "expenses": 120,
+      "goals": 42,
+      "habits": 5,
+      "journal_entries": 24,
+      "months_generated": 12,
+      "habit_scores_created": 150,
+      "achievements_created": 4
+    }
   }
 }
 ```
@@ -437,12 +451,14 @@ Populate database with sample data for testing.
 ```json
 {
   "success": true,
-  "message": "Sample data populated successfully",
-  "created": {
-    "expenses": 50,
-    "goals": 20,
-    "habits": 5,
-    "achievements": 10
+  "data": {
+    "message": "Sample data populated successfully",
+    "created": {
+      "expenses": 50,
+      "goals": 20,
+      "habits": 5,
+      "achievements": 10
+    }
   }
 }
 ```
@@ -456,9 +472,11 @@ Populate database with sample data for testing.
 ```json
 {
   "success": false,
-  "error": "Error message",
-  "code": "ERROR_CODE",
-  "details": {}
+  "error": {
+    "message": "Error message",
+    "code": "ERROR_CODE",
+    "details": {}
+  }
 }
 ```
 

@@ -346,7 +346,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="relative h-full overflow-y-auto p-6">
-      <div className="space-y-6">
+      {habits.length === 0 && Object.keys(data).length === 0 ? (
+        <NoData />
+      ) : (
+        <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-4xl font-black tracking-tight text-white">
@@ -591,10 +594,11 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-          </Card>
-        </div>
-      </div>
-    </div>
+           </Card>
+         </div>
+       </div>
+     )}
+   </div>
   );
 };
 

@@ -167,6 +167,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [quotes, setQuotes] = useLocalStorage<QuoteSource[]>('tracker-quotes', DUMMY_QUOTES);
     const [achievements, setAchievements] = useLocalStorage<Achievement[]>('tracker-achievements', DUMMY_ACHIEVEMENTS);
     const [userProfile, setUserProfile] = useLocalStorage<UserProfile>('tracker-user-profile', DEFAULT_USER_PROFILE);
+    const [dataLoading, setDataLoading] = useState(false);
 
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
         theme: 'dark',
@@ -224,6 +225,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             if (!isAuthenticated) return;
 
             try {
+                setDataLoading(true);
                 console.log('Attempting to sync with remote server...');
                 const apiData = await fetchAppData();
 
@@ -241,6 +243,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 }
             } catch (error) {
                 console.warn("API sync failed or unavailable. Using local fallback data.", error);
+            } finally {
+                setDataLoading(false);
             }
         };
 
@@ -249,7 +253,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
-            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, dataLoading, setDataLoading, logout }}>
                 <ToolsProvider>
                     <VantaBackground />
                     {!mounted ? (

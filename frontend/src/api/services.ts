@@ -40,11 +40,9 @@ export const fetchAppData = async (): Promise<AppDataResponse | null> => {
 
         if (pointsRes.status === 'fulfilled' && pointsRes.value) {
             const pd = pointsRes.value as any;
-            if (pd.data) aggregated.data = pd.data as any;
             if (pd.habits) aggregated.habits = pd.habits as any;
             if (pd.rules) aggregated.rules = pd.rules as any;
-            // Some backends return combined object shapes; also accept `dailyData` or `points` naming
-            if (!aggregated.data && pd.dailyData) aggregated.data = pd.dailyData as any;
+            if (pd.dailyData) aggregated.data = pd.dailyData as any;
         }
 
         if (plannerRes.status === 'fulfilled') aggregated.planner = plannerRes.value as any;
