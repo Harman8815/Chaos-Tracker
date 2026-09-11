@@ -20,6 +20,8 @@ from .serializers import (
     HabitSerializer,
     ScoringRuleSerializer,
     UserProfileSerializer,
+    MoodSerializer,
+    WaterSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -1382,6 +1384,106 @@ class PopulateDataView(views.APIView):
         }, status_code=status.HTTP_201_CREATED)
 
 
+class MoodListCreateView(generics.ListCreateAPIView):
+    serializer_class = MoodSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Mood.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(data=serializer.data, count=queryset.count())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
+
+
+class MoodDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MoodSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Mood.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Mood updated successfully')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return success_response(message='Mood deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+
+
+class WaterListCreateView(generics.ListCreateAPIView):
+    serializer_class = WaterSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Water.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(data=serializer.data, count=queryset.count())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
+
+
+class WaterDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = WaterSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Water.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return success_response(data=serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return success_response(data=serializer.data, message='Water intake updated successfully')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return success_response(message='Water intake deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+
+
 
 # ==================== ACHIEVEMENT VIEWS ====================
 
@@ -2266,19 +2368,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         self.perform_update(serializer)
         return success_response(data=serializer.data, message='Profile updated successfully')
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return success_response(data=serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return success_response(data=serializer.data, message='Profile updated successfully')
-
 
 class ExportDataView(views.APIView):
     """
@@ -2353,7 +2442,7 @@ class ExportDataView(views.APIView):
         expense_data = [
             {
                 'id': expense.id,
-                'amount': float(expense.amount),
+                'amount': float(expense.total),
                 'category': expense.category,
                 'description': expense.description,
                 'date': expense.date.strftime('%Y-%m-%d'),
@@ -2843,10 +2932,10 @@ class AnalyticsView(views.APIView):
         )
         
         # Calculate metrics
-        total_expenses = sum(expense.amount for expense in expenses)
+        total_expenses = sum(expense.total for expense in expenses)
         expense_by_category = {}
         for expense in expenses:
-            expense_by_category[expense.category] = expense_by_category.get(expense.category, 0) + float(expense.amount)
+            expense_by_category[expense.category] = expense_by_category.get(expense.category, 0) + float(expense.total)
         
         habit_performance = {}
         for score in habit_scores:
@@ -2881,15 +2970,15 @@ class AnalyticsView(views.APIView):
                 'total_amount': float(total_expenses),
                 'transaction_count': expenses.count(),
                 'by_category': expense_by_category,
-                'recent_expenses': [
-                    {
-                        'date': expense.date.strftime('%Y-%m-%d'),
-                        'amount': float(expense.amount),
-                        'category': expense.category,
-                        'description': expense.description
-                    }
-                    for expense in expenses.order_by('-date')[:5]
-                ]
+                    'recent_expenses': [
+                        {
+                            'date': expense.date.strftime('%Y-%m-%d'),
+                            'amount': float(expense.total),
+                            'category': expense.category,
+                            'description': expense.description
+                        }
+                        for expense in expenses.order_by('-date')[:5]
+                    ]
             },
             'goals': {
                 'total_goals': goals.count(),
@@ -2930,7 +3019,7 @@ class AnalyticsView(views.APIView):
                 date__gte=month_start.date(),
                 date__lte=month_end.date()
             )
-            month_total = sum(expense.amount for expense in month_expenses)
+            month_total = sum(expense.total for expense in month_expenses)
             
             monthly_data.append({
                 'month': month_start.strftime('%B'),
@@ -2945,7 +3034,7 @@ class AnalyticsView(views.APIView):
             date__gte=current_year_start.date(),
             date__lte=now.date()
         )
-        total_expenses = sum(expense.amount for expense in yearly_expenses)
+        total_expenses = sum(expense.total for expense in yearly_expenses)
         
         yearly_journal = JournalEntry.objects.filter(
             user=user,
@@ -2962,7 +3051,7 @@ class AnalyticsView(views.APIView):
         # Top expense categories for the year
         expense_categories = {}
         for expense in yearly_expenses:
-            expense_categories[expense.category] = expense_categories.get(expense.category, 0) + float(expense.amount)
+            expense_categories[expense.category] = expense_categories.get(expense.category, 0) + float(expense.total)
         
         top_categories = sorted(expense_categories.items(), key=lambda x: x[1], reverse=True)[:5]
         

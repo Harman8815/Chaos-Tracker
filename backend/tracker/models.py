@@ -349,3 +349,51 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
+
+class Mood(models.Model):
+    MOOD_CHOICES = [
+        ('happy', 'Happy'),
+        ('sad', 'Sad'),
+        ('neutral', 'Neutral'),
+        ('excited', 'Excited'),
+        ('tired', 'Tired'),
+        ('grateful', 'Grateful'),
+        ('anxious', 'Anxious'),
+        ('energetic', 'Energetic'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='moods')
+    date = models.DateField()
+    mood = models.CharField(max_length=20, choices=MOOD_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['user', 'date']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date} - {self.mood}"
+
+
+class Water(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='water_entries')
+    date = models.DateField()
+    glasses = models.IntegerField(default=0)
+    target = models.IntegerField(default=8)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['user', 'date']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date} - {self.glasses}/{self.target} glasses"
+

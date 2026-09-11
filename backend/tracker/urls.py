@@ -38,6 +38,10 @@ from .views import (
     ImportDataView,
     AnalyticsView,
     TempDataView,
+    MoodListCreateView,
+    MoodDetailView,
+    WaterListCreateView,
+    WaterDetailView,
 )
 
 urlpatterns = [
@@ -108,6 +112,14 @@ urlpatterns = [
 
     # User Profile endpoints
     path('user/profile/', UserProfileView.as_view(), name='user-profile'),
+
+    # Mood endpoints
+    path('mood/', MoodListCreateView.as_view(), name='mood-list-create'),
+    path('mood/<int:id>/', MoodDetailView.as_view(), name='mood-detail'),
+
+    # Water endpoints
+    path('water/', WaterListCreateView.as_view(), name='water-list-create'),
+    path('water/<int:id>/', WaterDetailView.as_view(), name='water-detail'),
 
     # Export endpoints
     path('export/<str:format_type>/', ExportDataView.as_view(), name='export-data'),

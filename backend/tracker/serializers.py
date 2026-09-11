@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water
 
 import base64
 
@@ -283,4 +283,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
             instance.user.save()
         
         return super().update(instance, validated_data)
+
+
+class MoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mood
+        fields = ['id', 'date', 'mood', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class WaterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Water
+        fields = ['id', 'date', 'glasses', 'target', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
