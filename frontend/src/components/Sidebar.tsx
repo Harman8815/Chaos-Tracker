@@ -3,7 +3,7 @@ import React, { useContext, useMemo, useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, LayoutDashboard, Settings, Menu, Activity, Target, Calendar, Wallet, BookOpen, Smile, Droplets, Footprints, Star, Trophy, Quote } from 'lucide-react';
+import { Home, LayoutDashboard, Settings, Menu, Activity, Target, Calendar, Wallet, BookOpen, Smile, Droplets, Footprints, Star, Trophy, Quote, X } from 'lucide-react';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { TRACKERS } from '../constants';
@@ -13,6 +13,7 @@ const HomeIcon = Home;
 const DashboardIcon = LayoutDashboard;
 const SettingsIcon = Settings;
 const MenuIcon = Menu;
+const CloseIcon = X;
 
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -22,6 +23,7 @@ const Sidebar: React.FC = () => {
     const { setIsSettingsModalOpen } = useContext(SettingsContext);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
     const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
 
@@ -92,15 +94,26 @@ const Sidebar: React.FC = () => {
 
     const initials = userProfile.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'GU';
 
-    return (
-        <aside className={`relative bg-sidebar-bg/80 backdrop-blur-xl flex flex-col items-center transition-all duration-200 z-20 flex-shrink-0 shadow-[0_0_30px_rgba(99,102,241,0.1)] ${isExpanded ? 'w-64 py-6' : 'w-24 py-6'}`}>
-            <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none mb-4 hover:bg-input-bg"
-                aria-label={isExpanded ? 'Collapse menu' : 'Expand menu'}
-            >
-                <MenuIcon className="w-6 h-6" />
-            </button>
+    const sidebarContent = (
+        <>
+            <div className="flex items-center justify-between w-full px-4 mb-4">
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="hidden lg:flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
+                    aria-label={isExpanded ? 'Collapse menu' : 'Expand menu'}
+                >
+                    <MenuIcon className="w-6 h-6" />
+                </button>
+                {mobileOpen && (
+                    <button
+                        onClick={() => setMobileOpen(false)}
+                        className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
+                        aria-label="Close menu"
+                    >
+                        <CloseIcon className="w-6 h-6" />
+                    </button>
+                )}
+            </div>
 
             <div className={`flex flex-col items-center justify-between h-full w-full ${isExpanded ? 'px-4' : ''}`}>
                 <div className="relative flex flex-col items-center justify-center space-y-3 flex-grow w-full">
@@ -113,6 +126,7 @@ const Sidebar: React.FC = () => {
                                 href={href}
                                 ref={el => { itemRefs.current[index] = el; }}
                                 prefetch
+                                onClick={() => { if (mobileOpen) setMobileOpen(false); }}
                                 className={`relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 focus:outline-none z-10 gap-3
                                 ${isSelected ? 'text-warning' : 'text-sidebar-icon hover:text-text-primary hover:bg-input-bg'}
                             `}
@@ -150,6 +164,7 @@ const Sidebar: React.FC = () => {
                     <Link
                         href="/profile"
                         prefetch
+                        onClick={() => { if (mobileOpen) setMobileOpen(false); setIsSettingsModalOpen(false); }}
                         className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-colors duration-200 focus:outline-none overflow-hidden
                              ${selectedPage === 'profile' ? 'ring-2 ring-accent-primary' : 'hover:ring-2 hover:ring-border'}
                         `}
@@ -165,7 +180,7 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     <button
-                        onClick={() => setIsSettingsModalOpen(true)}
+                        onClick={() => { setIsSettingsModalOpen(true); if (mobileOpen) setMobileOpen(false); }}
                         className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200 text-sidebar-icon hover:text-text-primary focus:outline-none hover:bg-input-bg"
                         aria-label="Settings"
                     >
@@ -173,7 +188,26 @@ const Sidebar: React.FC = () => {
                     </button>
                 </div>
             </div>
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* Desktop sidebar */}
+            <aside className={`hidden lg:flex relative bg-sidebar-bg/80 backdrop-blur-xl flex-col items-center transition-all duration-200 z-20 flex-shrink-0 shadow-[0_0_30px_rgba(99,102,241,0.1)] ${isExpanded ? 'w-64 py-6' : 'w-24 py-6'}`}>
+                {sidebarContent}
+            </aside>
+
+            {/* Mobile sidebar overlay */}
+            {mobileOpen && (
+                <div className="lg:hidden fixed inset-0 z-50">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+                    <aside className="relative bg-sidebar-bg/95 backdrop-blur-xl flex flex-col items-center transition-all duration-200 w-64 h-full shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+                        {sidebarContent}
+                    </aside>
+                </div>
+            )}
+        </>
     );
 };
 

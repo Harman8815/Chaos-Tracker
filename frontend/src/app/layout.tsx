@@ -26,7 +26,7 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <div className="flex h-screen w-full">
+          <div className="flex h-screen w-full relative">
             <Sidebar />
             <main className="flex-1 h-full overflow-y-auto">
               <ErrorBoundary>
