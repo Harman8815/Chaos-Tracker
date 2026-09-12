@@ -760,6 +760,47 @@ class RecurringExpense(models.Model):
         return self.quantity * self.price
 
 
+class RecurringIncome(models.Model):
+    """Recurring income template for automatic creation."""
+
+    FREQUENCY_CHOICES = [
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+
+    SOURCE_TYPES = [
+        ('salary', 'Salary'),
+        ('freelance', 'Freelance'),
+        ('investment', 'Investment'),
+        ('gift', 'Gift'),
+        ('refund', 'Refund'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recurring_incomes')
+    name = models.CharField(max_length=255)
+    source = models.CharField(max_length=20, choices=SOURCE_TYPES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    day_of_month = models.IntegerField(null=True, blank=True, help_text='Day of month for monthly frequency (1-31)')
+    next_occurrence = models.DateField(help_text='Next date this recurring income should be created')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['next_occurrence']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['next_occurrence']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.get_frequency_display()} - ${self.amount}"
+
+
 class BudgetAlert(models.Model):
     """Budget threshold alerts (P4-03)."""
 
@@ -867,4 +908,193 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.name} - ${self.amount}/{self.get_billing_cycle_display()}"
+
+
+class Notification(models.Model):
+    """In-app notification for user (P6-01)."""
+
+    TYPE_CHOICES = [
+        ('goal_deadline', 'Goal Deadline'),
+        ('habit_reminder', 'Habit Reminder'),
+        ('budget_alert', 'Budget Alert'),
+        ('streak_alert', 'Streak Alert'),
+        ('achievement_earned', 'Achievement Earned'),
+        ('weekly_summary', 'Weekly Summary'),
+        ('monthly_summary', 'Monthly Summary'),
+        ('recurring_transaction', 'Recurring Transaction'),
+        ('system', 'System'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('normal', 'Normal'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=30, choices=TYPE_CHOICES)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    data = models.JSONField(default=dict, blank=True, help_text='Extra context data')
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+            models.Index(fields=['user', 'type']),
+            models.Index(fields=['user', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.type} - {self.title[:50]}"
+
+
+class NotificationPreference(models.Model):
+    """User notification preferences (P6-02, P6-15)."""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_preferences')
+
+    # Type-specific toggles
+    goal_deadline_enabled = models.BooleanField(default=True)
+    habit_reminder_enabled = models.BooleanField(default=True)
+    budget_alert_enabled = models.BooleanField(default=True)
+    streak_alert_enabled = models.BooleanField(default=True)
+    achievement_enabled = models.BooleanField(default=True)
+    weekly_summary_enabled = models.BooleanField(default=True)
+    monthly_summary_enabled = models.BooleanField(default=True)
+    recurring_transaction_enabled = models.BooleanField(default=True)
+    system_enabled = models.BooleanField(default=True)
+
+    # Delivery channels
+    in_app_enabled = models.BooleanField(default=True)
+    email_enabled = models.BooleanField(default=False)
+    push_enabled = models.BooleanField(default=False)
+
+    # Quiet hours (P6-15)
+    quiet_hours_start = models.TimeField(null=True, blank=True, help_text='Start of quiet hours (24h format)')
+    quiet_hours_end = models.TimeField(null=True, blank=True, help_text='End of quiet hours (24h format)')
+    timezone = models.CharField(max_length=50, default='UTC')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Notification preferences'
+
+    def __str__(self):
+        return f"{self.user.username}'s notification preferences"
+
+    def is_type_enabled(self, notification_type):
+        """Check if a specific notification type is enabled."""
+        field_map = {
+            'goal_deadline': 'goal_deadline_enabled',
+            'habit_reminder': 'habit_reminder_enabled',
+            'budget_alert': 'budget_alert_enabled',
+            'streak_alert': 'streak_alert_enabled',
+            'achievement_earned': 'achievement_enabled',
+            'weekly_summary': 'weekly_summary_enabled',
+            'monthly_summary': 'monthly_summary_enabled',
+            'recurring_transaction': 'recurring_transaction_enabled',
+            'system': 'system_enabled',
+        }
+        field = field_map.get(notification_type)
+        return getattr(self, field, True) if field else True
+
+    def is_in_quiet_hours(self, check_time=None):
+        """Check if current time is within quiet hours."""
+        from django.utils import timezone
+        if not self.quiet_hours_start or not self.quiet_hours_end:
+            return False
+        if check_time is None:
+            check_time = timezone.now().time()
+        if self.quiet_hours_start <= self.quiet_hours_end:
+            return self.quiet_hours_start <= check_time <= self.quiet_hours_end
+        # Crosses midnight
+        return check_time >= self.quiet_hours_start or check_time <= self.quiet_hours_end
+
+
+class ScheduledJob(models.Model):
+    """Background job for recurring operations (P6-04, P6-12)."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('running', 'Running'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    JOB_TYPES = [
+        ('goal_deadline_check', 'Goal Deadline Check'),
+        ('habit_reminder', 'Habit Reminder'),
+        ('budget_alert_check', 'Budget Alert Check'),
+        ('streak_alert_check', 'Streak Alert Check'),
+        ('weekly_summary', 'Weekly Summary'),
+        ('monthly_summary', 'Monthly Summary'),
+        ('recurring_expense_process', 'Recurring Expense Process'),
+        ('recurring_income_process', 'Recurring Income Process'),
+        ('subscription_billing', 'Subscription Billing'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scheduled_jobs', null=True, blank=True)
+    job_type = models.CharField(max_length=50, choices=JOB_TYPES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    scheduled_at = models.DateTimeField()
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True, help_text='Job-specific data')
+    result = models.JSONField(default=dict, blank=True, help_text='Job result data')
+    error_message = models.TextField(blank=True, default='')
+    retry_count = models.IntegerField(default=0)
+    max_retries = models.IntegerField(default=3)
+    next_retry_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['scheduled_at']
+        indexes = [
+            models.Index(fields=['status', 'scheduled_at']),
+            models.Index(fields=['job_type', 'status']),
+            models.Index(fields=['user', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.job_type} - {self.status} - {self.scheduled_at}"
+
+    def can_retry(self):
+        return self.retry_count < self.max_retries and self.status == 'failed'
+
+    def schedule_retry(self, delay_minutes=5):
+        from django.utils import timezone
+        from datetime import timedelta
+        self.retry_count += 1
+        self.next_retry_at = timezone.now() + timedelta(minutes=delay_minutes)
+        self.status = 'pending'
+        self.error_message = ''
+        self.save(update_fields=['retry_count', 'next_retry_at', 'status', 'error_message', 'updated_at'])
+
+
+class NotificationDeduplication(models.Model):
+    """Track recently sent notifications to avoid spam (P6-14)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notification_dedupes')
+    notification_type = models.CharField(max_length=30)
+    dedupe_key = models.CharField(max_length=255, help_text='Unique key for deduplication (e.g., goal_id, habit_id)')
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'notification_type', 'dedupe_key']
+        indexes = [
+            models.Index(fields=['user', 'notification_type']),
+            models.Index(fields=['sent_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.notification_type} - {self.dedupe_key}"
 
