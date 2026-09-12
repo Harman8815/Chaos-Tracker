@@ -6,6 +6,7 @@ and domain errors. These tests exercise the domain layer directly
 """
 import decimal
 import datetime
+from datetime import date
 import calendar
 import enum
 
@@ -36,6 +37,14 @@ from tracker.domain.services.events import event_service
 from tracker.domain.services.habits import habit_service
 from tracker.domain.services.budgets import budget_service
 from tracker.domain.services.analytics import analytics_service
+from tracker.domain.services.milestones import milestone_service
+from tracker.domain.services.points import points_engine
+from tracker.domain.services.productivity import productivity_service
+from tracker.domain.services.recurring import recurring_service
+from tracker.domain.services.planner_templates import (
+    planner_template_service, planner_search_service,
+)
+from tracker.domain.services.achievement_engine import achievement_engine
 from tracker.domain.services.quotes import (
     quote_source_service, quote_service,
 )
@@ -1113,3 +1122,164 @@ class CrossDomainTests(TestCase):
     def test_get_day_computes_if_missing(self):
         aggregate = analytics_service.get_day(self.user, "2025-06-03")
         self.assertEqual(aggregate.date.isoformat(), "2025-06-03")
+
+
+# ============================================================================
+# PHASE 3 PRODUCTIVITY CORE TESTS (P3-01 .. P3-15)
+# ============================================================================
+
+
+class HabitEnhancementsTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("habits3", "habits3@test.com")
+
+    def test_create_with_schedule_and_reminders(self):
+        habit = habit_service.create(self.user, {
+            "name": "Run", "schedule": "weekly",
+            "schedule_days": [0, 2, 4], "reminders": [{"at": "07:00"}],
+            "grace_period": 1,
+        })
+        self.assertEqual(habit.schedule, "weekly")
+        self.assertEqual(habit.schedule_days, [0, 2, 4])
+        self.assertEqual(habit.grace_period, 1)
+
+    def test_history_returns_scores(self):
+        habit = habit_service.create(self.user, {"name": "Read"})
+        habit_service.log_score(self.user, habit.id, date="2025-06-01", score=5)
+        habit_service.log_score(self.user, habit.id, date="2025-06-02", score=0)
+        history = habit_service.history(self.user, habit.id)
+        self.assertEqual(len(history), 2)
+
+    def test_is_due_today_daily(self):
+        habit = habit_service.create(self.user, {"name": "Daily"})
+        self.assertTrue(habit_service.is_due_today(habit))
+
+    def test_is_due_today_weekly_matching(self):
+        habit = habit_service.create(self.user, {
+            "name": "Weekly", "schedule": "weekly", "schedule_days": [date.today().weekday()],
+        })
+        self.assertTrue(habit_service.is_due_today(habit))
+
+    def test_is_due_today_weekly_non_matching(self):
+        habit = habit_service.create(self.user, {
+            "name": "Weekly", "schedule": "weekly", "schedule_days": [],
+        })
+        self.assertFalse(habit_service.is_due_today(habit))
+
+    def test_log_score_updates_streak(self):
+        habit = habit_service.create(self.user, {"name": "Run"})
+        habit_service.log_score(self.user, habit.id, date=date.today().isoformat(), score=5)
+        habit.refresh_from_db()
+        self.assertGreaterEqual(habit.streak, 1)
+
+
+class GoalMilestoneTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("milestones", "milestones@test.com")
+
+    def test_create_milestone_and_complete(self):
+        goal = goal_service.create(self.user, {"text": "Big", "category": "future", "target": 5})
+        milestone = milestone_service.create(self.user, goal.id, {"title": "Step 1"})
+        self.assertEqual(milestone.goal, goal)
+        milestone_service.complete(self.user, milestone.id, completed=True)
+        goal.refresh_from_db()
+        self.assertEqual(goal.completed_tasks, 1)
+
+    def test_milestone_other_user_not_found(self):
+        other = _make_user("other3", "other3@test.com")
+        goal = goal_service.create(self.user, {"text": "Mine", "category": "daily"})
+        milestone = milestone_service.create(self.user, goal.id, {"title": "Step"})
+        with self.assertRaises(NotFoundError):
+            milestone_service.get_by_id(other, milestone.id)
+
+
+class PointsEngineTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("points", "points@test.com")
+
+    def test_score_day_empty(self):
+        self.assertEqual(points_engine.score_day(self.user, "2025-06-01"), 0)
+
+    def test_score_day_with_data(self):
+        Habit.objects.create(id="h-pt", user=self.user, name="Run")
+        habit_service.log_score(self.user, "h-pt", date="2025-06-01", score=5)
+        analytics_service.compute_day(self.user, "2025-06-01")
+        score = points_engine.score_day(self.user, "2025-06-01")
+        self.assertGreater(score, 0)
+
+
+class ProductivityTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("prod", "prod@test.com")
+
+    def test_daily_summary_empty(self):
+        summary = productivity_service.daily(self.user, "2025-06-01")
+        self.assertEqual(summary["date"], "2025-06-01")
+        self.assertEqual(summary["points"], 0)
+
+    def test_weekly_summary(self):
+        summary = productivity_service.weekly(self.user, week_start="2025-06-02")
+        self.assertEqual(len(summary["days"]), 7)
+
+
+class RecurringTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("recur", "recur@test.com")
+
+    def test_generate_daily_goal(self):
+        goal_service.create(self.user, {
+            "text": "Daily goal", "category": "daily", "recurrence": "daily",
+            "start_date": "2025-06-01",
+        })
+        created = recurring_service.generate_goals(self.user, up_to_date="2025-06-05")
+        self.assertGreaterEqual(len(created), 1)
+        self.assertEqual(created[0].recurrence, "daily")
+
+    def test_generate_weekly_task(self):
+        block = PlannerBlock.objects.create(id="b-rec", user=self.user, title="B")
+        PlannerTask.objects.create(
+            id="t-rec", block=block, text="Weekly", recurrence="weekly",
+            due_date="2025-06-01",
+        )
+        created = recurring_service.generate_tasks(self.user, up_to_date="2025-06-30")
+        self.assertGreaterEqual(len(created), 1)
+
+
+class PlannerTemplateAndSearchTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("templates", "templates@test.com")
+
+    def test_create_and_apply_template(self):
+        template = planner_template_service.create(self.user, {
+            "name": "Morning",
+            "data": {"blocks": [{"id": "b1", "title": "B", "x": 0, "y": 0, "tasks": []}], "links": []},
+        })
+        blocks, links = planner_template_service.apply(self.user, template.id)
+        self.assertEqual(blocks, 1)
+        self.assertEqual(links, 0)
+
+    def test_search_blocks_and_tasks(self):
+        block = PlannerBlock.objects.create(id="b-search", user=self.user, title="Health Block")
+        PlannerTask.objects.create(id="t-search", block=block, text="Run daily")
+        result = planner_search_service.search(self.user, "Run")
+        self.assertEqual(len(result["tasks"]), 1)
+        result2 = planner_search_service.search(self.user, "Health")
+        self.assertEqual(len(result2["blocks"]), 1)
+
+
+class AchievementEngineTests(TestCase):
+    def setUp(self):
+        self.user = _make_user("achengine", "achengine@test.com")
+
+    def test_awards_after_threshold(self):
+        for _ in range(7):
+            event_service.record(self.user, "planner_task_completed")
+        awarded = achievement_engine.evaluate(self.user)
+        self.assertGreaterEqual(len(awarded), 1)
+        self.assertEqual(awarded[0].trigger_rule["event_type"], "planner_task_completed")
+
+    def test_no_award_below_threshold(self):
+        for _ in range(2):
+            event_service.record(self.user, "planner_task_completed")
+        awarded = achievement_engine.evaluate(self.user)
+        self.assertEqual(len(awarded), 0)
