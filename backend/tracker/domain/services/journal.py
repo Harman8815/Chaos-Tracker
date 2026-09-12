@@ -7,10 +7,10 @@ from datetime import date, datetime
 
 from django.db import transaction
 
-from ..models import JournalEntry
-from . import permissions, validation
-from .exceptions import NotFoundError, ValidationError
-from .logging import get_logger
+from ...models import JournalEntry
+from .. import permissions, validation
+from ..exceptions import NotFoundError, ValidationError
+from ..logging import get_logger
 
 logger = get_logger("tracker.domain.journal")
 
@@ -29,6 +29,14 @@ class JournalService:
         """
         d = validation.parse_date(date_value, field="date")
         return JournalEntry.objects.filter(user=user, date=d).first()
+
+    def get_by_id(self, user, entry_id):
+        """Return the entry with ``entry_id`` or raise :class:`NotFoundError`."""
+        from ..exceptions import NotFoundError
+        instance = JournalEntry.objects.filter(id=entry_id, user=user).first()
+        if instance is None:
+            raise NotFoundError("Journal entry not found")
+        return instance
 
     def upsert(self, user, *, date_value, content):
         """Create or update the journal entry for ``date_value``.

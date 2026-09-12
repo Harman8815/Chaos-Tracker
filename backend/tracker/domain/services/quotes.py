@@ -9,10 +9,10 @@ import uuid
 from django.db import transaction
 from django.db.models import Count, Prefetch
 
-from ..models import Quote, QuoteSource, QuoteTag
-from . import validation
-from .exceptions import NotFoundError, ValidationError
-from .logging import get_logger
+from ...models import Quote, QuoteSource, QuoteTag
+from .. import validation
+from ..exceptions import NotFoundError, ValidationError
+from ..logging import get_logger
 
 logger = get_logger("tracker.domain.quotes")
 
@@ -70,6 +70,9 @@ class QuoteSourceService:
                 Prefetch("quotes", queryset=Quote.objects.prefetch_related("tags"))
             )
         return list(qs)
+
+    def get_by_id(self, user, source_id):
+        return _get_source(user, source_id)
 
     def create(self, user, data):
         title = validation.bounded_text(
@@ -142,6 +145,9 @@ class QuoteService:
         if tag:
             qs = qs.filter(tags__tag__icontains=tag).distinct()
         return list(qs)
+
+    def get(self, user, quote_id):
+        return _get_quote(user, quote_id)
 
     def create(self, user, source_id, data):
         source = _get_source(user, source_id)

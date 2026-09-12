@@ -2,10 +2,10 @@
 import uuid
 from datetime import datetime
 
-from ..models import Goal
-from . import validation
-from .exceptions import NotFoundError
-from .logging import get_logger
+from ...models import Goal
+from .. import validation
+from ..exceptions import NotFoundError
+from ..logging import get_logger
 
 logger = get_logger("tracker.domain.goals")
 
@@ -22,6 +22,13 @@ class GoalService:
         if status:
             qs = qs.filter(status=status)
         return list(qs)
+
+    def get_by_id(self, user, goal_id):
+        from ..exceptions import NotFoundError
+        goal = Goal.objects.filter(id=goal_id, user=user).first()
+        if goal is None:
+            raise NotFoundError("Goal not found")
+        return goal
 
     def create(self, user, data):
         text = validation.bounded_text(data.get("text"), max_length=500, field="text")

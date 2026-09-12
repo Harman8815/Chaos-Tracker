@@ -2,10 +2,10 @@
 import uuid
 from datetime import date
 
-from ..models import Achievement
-from . import validation
-from .exceptions import NotFoundError
-from .logging import get_logger
+from ...models import Achievement
+from .. import validation
+from ..exceptions import NotFoundError
+from ..logging import get_logger
 
 logger = get_logger("tracker.domain.achievements")
 
@@ -13,6 +13,13 @@ logger = get_logger("tracker.domain.achievements")
 class AchievementService:
     def list(self, user):
         return list(Achievement.objects.filter(user=user))
+
+    def get_by_id(self, user, achievement_id):
+        from ..exceptions import NotFoundError
+        achievement = Achievement.objects.filter(id=achievement_id, user=user).first()
+        if achievement is None:
+            raise NotFoundError("Achievement not found")
+        return achievement
 
     def create(self, user, data):
         title = validation.bounded_text(data.get("title"), max_length=255, field="title")

@@ -7,10 +7,10 @@ from datetime import date, datetime
 
 from django.db.models import Sum
 
-from ..models import Expense
-from . import validation
-from .exceptions import NotFoundError
-from .logging import get_logger
+from ...models import Expense
+from .. import validation
+from ..exceptions import NotFoundError, ValidationError
+from ..logging import get_logger
 
 logger = get_logger("tracker.domain.finance")
 
@@ -22,19 +22,19 @@ def _apply_filters(qs, *, year, month, start_date, end_date):
             m = int(month) + 1
             qs = qs.filter(date__year=y, date__month=m)
         except (TypeError, ValueError):
-            from .exceptions import ValidationError
+            from ..exceptions import ValidationError
             raise ValidationError("Invalid year or month")
     if start_date:
         try:
             qs = qs.filter(date__gte=datetime.strptime(start_date, "%Y-%m-%d").date())
         except ValueError:
-            from .exceptions import ValidationError
+            from ..exceptions import ValidationError
             raise ValidationError("Invalid start_date format")
     if end_date:
         try:
             qs = qs.filter(date__lte=datetime.strptime(end_date, "%Y-%m-%d").date())
         except ValueError:
-            from .exceptions import ValidationError
+            from ..exceptions import ValidationError
             raise ValidationError("Invalid end_date format")
     return qs
 
@@ -46,6 +46,13 @@ class ExpenseService:
         if category:
             qs = qs.filter(category__iexact=category)
         return list(qs)
+
+    def get_by_id(self, user, expense_id):
+        from ..exceptions import NotFoundError
+        expense = Expense.objects.filter(id=expense_id, user=user).first()
+        if expense is None:
+            raise NotFoundError("Expense not found")
+        return expense
 
     def create(self, user, data):
         item = validation.bounded_text(data.get("item"), max_length=255, field="item")
@@ -129,7 +136,7 @@ class ExpenseService:
             y = int(year) if year else today.year
             m = int(month) + 1 if month is not None else today.month
         except (TypeError, ValueError):
-            from .exceptions import ValidationError
+            from ..exceptions import ValidationError
             raise ValidationError("Invalid year or month")
 
         qs = Expense.objects.filter(user=user, date__year=y, date__month=m)
@@ -165,7 +172,7 @@ class ExpenseService:
         try:
             y = int(year) if year else today.year
         except (TypeError, ValueError):
-            from .exceptions import ValidationError
+            from ..exceptions import ValidationError
             raise ValidationError("Invalid year")
 
         monthly_data = {}

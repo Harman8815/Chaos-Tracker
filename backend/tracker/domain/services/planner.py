@@ -9,10 +9,10 @@ import uuid
 from django.db import transaction
 from django.db.models import Q
 
-from ..models import PlannerBlock, PlannerLink, PlannerSettings, PlannerTask
-from . import validation
-from .exceptions import NotFoundError, ValidationError
-from .logging import get_logger
+from ...models import PlannerBlock, PlannerLink, PlannerSettings, PlannerTask
+from .. import validation
+from ..exceptions import NotFoundError, ValidationError
+from ..logging import get_logger
 
 logger = get_logger("tracker.domain.planner")
 
@@ -44,6 +44,9 @@ class PlannerService:
             "links": links,
             "transform": settings.transform,
         }
+
+    def get_block_by_id(self, user, block_id):
+        return _get_block(user, block_id)
 
     @transaction.atomic
     def replace_all(self, user, data):
