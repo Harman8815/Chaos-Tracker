@@ -205,6 +205,13 @@ class PlannerService:
             completed=bool(raw.get("completed", False)),
             order=validation.non_negative_int(raw.get("order", idx), field="order"),
             goal=goal,
+            due_date=validation.parse_date(raw["due_date"], field="due_date") if raw.get("due_date") else None,
+            priority=validation.choice(
+                raw.get("priority", "medium"), Goal.PRIORITY_LEVELS_KEYS, field="priority",
+            ),
+            recurrence=validation.choice(
+                raw.get("recurrence", "none"), PlannerTask.RECURRENCE_KEYS, field="recurrence",
+            ),
         )
         if task.completed and goal is not None:
             self._increment_goal_progress(block.user, goal)

@@ -54,6 +54,9 @@ class GoalService:
         frequency = validation.bounded_text(
             data.get("frequency", ""), max_length=50, field="frequency", allow_blank=True,
         )
+        recurrence = validation.choice(
+            data.get("recurrence", Goal.RECURRENCE_NONE), Goal.RECURRENCE_KEYS, field="recurrence",
+        )
         reminders = validation.bounded_list(data.get("reminders", []), max_length=50, field="reminders")
         completion_criteria = validation.bounded_text(
             data.get("completion_criteria", ""), max_length=2000, field="completion_criteria", allow_blank=True,
@@ -76,6 +79,7 @@ class GoalService:
             due_date=due_date,
             priority=priority,
             frequency=frequency,
+            recurrence=recurrence,
             reminders=reminders,
             completion_criteria=completion_criteria,
             notes=notes,
