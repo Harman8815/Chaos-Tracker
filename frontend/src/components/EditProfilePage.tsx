@@ -9,7 +9,8 @@ import { UserProfile } from '../types';
 
 const EditProfilePage: React.FC = () => {
     const { userProfile, setUserProfile, setSelectedPage } = useContext(DataContext);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
@@ -25,6 +26,7 @@ const EditProfilePage: React.FC = () => {
     useEffect(() => {
         const loadProfile = async () => {
             try {
+                setLoading(true);
                 const profile = await profileService.getProfile();
                 if (profile) {
                     // Map profileService fields to types.ts UserProfile fields
@@ -49,6 +51,8 @@ const EditProfilePage: React.FC = () => {
                 }
             } catch (err) {
                 setError('Failed to load profile data');
+            } finally {
+                setLoading(false);
             }
         };
         
@@ -56,7 +60,7 @@ const EditProfilePage: React.FC = () => {
     }, [setUserProfile]);
 
     const handleSave = async () => {
-        setLoading(true);
+        setSaving(true);
         setError(null);
         setSuccess(null);
         
@@ -96,7 +100,7 @@ const EditProfilePage: React.FC = () => {
         } catch (err) {
             setError('An error occurred while updating your profile');
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
@@ -111,7 +115,9 @@ const EditProfilePage: React.FC = () => {
                 <h1 className="text-3xl font-bold text-white">Edit Profile</h1>
                 <div className="flex gap-3">
                     <Button onClick={handleCancel} className="bg-white/[0.06] text-white hover:bg-border">Cancel</Button>
-                    <Button onClick={handleSave}>Save Changes</Button>
+                    <Button onClick={handleSave} disabled={saving || loading}>
+                        {saving ? 'Saving...' : 'Save Changes'}
+                    </Button>
                 </div>
             </div>
 
@@ -127,7 +133,12 @@ const EditProfilePage: React.FC = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {loading ? (
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-text-secondary">Loading profile...</div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Left Column: Avatar & Basic Info */}
                 <div className="md:col-span-1 space-y-6">
                     <Card>
@@ -212,6 +223,7 @@ const EditProfilePage: React.FC = () => {
                     </Card>
                 </div>
             </div>
+            )}
         </div>
     );
 };

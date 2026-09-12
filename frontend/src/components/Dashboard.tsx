@@ -55,6 +55,7 @@ const Dashboard: React.FC = () => {
   const { settings, t } = useContext(SettingsContext);
   const [summary, setSummary] = useState("Generating reflection...");
   const [isLoading, setIsLoading] = useState(true);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [serverStreaks, setServerStreaks] = useState<any[] | null>(null);
   const [todayDistributionServer, setTodayDistributionServer] = useState<
     any | null
@@ -83,6 +84,7 @@ const Dashboard: React.FC = () => {
 
     const fetchAnalytics = async () => {
       try {
+        setAnalyticsLoading(true);
         const streaksRes = await dashboardService.getStreaks();
         if (mounted && streaksRes?.streaks)
           setServerStreaks(
@@ -100,6 +102,8 @@ const Dashboard: React.FC = () => {
         if (mounted && perfRes?.data) setHabitPerf7Server(perfRes.data);
       } catch (e) {
         console.debug("Analytics endpoints unavailable or failed", e);
+      } finally {
+        if (mounted) setAnalyticsLoading(false);
       }
     };
 

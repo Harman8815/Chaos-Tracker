@@ -4,6 +4,15 @@ import Card from './ui/Card';
 import Button from './ui/Button';
 import { AllData, DailyData } from '../types';
 
+const FALLBACK_COVER = 'https://placehold.co/600x400/0a0a0a/7c3aed/png?text=No+Image';
+
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallback: string) => {
+    const img = e.currentTarget;
+    if (img.src !== fallback) {
+        img.src = fallback;
+    }
+};
+
 // --- Icons ---
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
@@ -231,11 +240,16 @@ const BadgesSection: React.FC<{ achievements: any[] }> = ({ achievements }) => {
                 {recent.length > 0 ? recent.map((ach, i) => (
                     <div key={ach.id} className="flex flex-col items-center text-center group">
                          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-accent-primary/20 to-accent-primary/5 border border-accent-primary/30 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
-                             {ach.coverImage ? (
-                                 <img src={ach.coverImage} alt={ach.title} className="w-full h-full object-cover rounded-lg opacity-80 group-hover:opacity-100"/>
-                             ) : (
-                                 <AwardIcon className="w-8 h-8 text-accent-primary" />
-                             )}
+                              {ach.coverImage ? (
+                                  <img 
+                                      src={ach.coverImage} 
+                                      alt={ach.title} 
+                                      className="w-full h-full object-cover rounded-lg opacity-80 group-hover:opacity-100"
+                                      onError={(e) => handleImageError(e, FALLBACK_COVER)}
+                                  />
+                              ) : (
+                                  <AwardIcon className="w-8 h-8 text-accent-primary" />
+                              )}
                          </div>
                          <span className="text-xs font-medium line-clamp-2">{ach.title}</span>
                          <span className="text-[10px] text-text-secondary mt-1">{new Date(ach.date).getFullYear()}</span>
