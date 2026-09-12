@@ -368,6 +368,8 @@ class Mood(models.Model):
         ('energetic', 'Energetic'),
     ]
 
+    MOOD_CHOICES_KEYS = [k for k, _ in MOOD_CHOICES]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='moods')
     date = models.DateField()
     mood = models.CharField(max_length=20, choices=MOOD_CHOICES)

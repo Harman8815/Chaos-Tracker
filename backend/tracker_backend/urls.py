@@ -20,5 +20,8 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('authentication.urls')),
+    # Versioned API: new clients should target /api/v1/...
+    path('api/v1/', include('tracker.api.v1.urls')),
+    # Legacy unversioned routes (kept for backward compatibility during migration)
     path('api/', include('tracker.urls')),
 ]
