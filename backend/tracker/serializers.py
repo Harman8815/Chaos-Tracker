@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, BudgetAlert, Transfer, Subscription
 
 import base64
 
@@ -300,5 +300,65 @@ class WaterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Water
         fields = ['id', 'date', 'glasses', 'target', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    period = serializers.CharField(read_only=True)
+    
+    class Meta:
+        model = Budget
+        fields = ['id', 'category', 'year', 'month', 'amount', 'period', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'period', 'created_at', 'updated_at']
+
+
+class IncomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Income
+        fields = ['id', 'date', 'source', 'amount', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['id', 'name', 'account_type', 'balance', 'currency', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class RecurringExpenseSerializer(serializers.ModelSerializer):
+    total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    
+    class Meta:
+        model = RecurringExpense
+        fields = ['id', 'item', 'category', 'quantity', 'price', 'total', 'frequency', 'start_date', 'end_date', 'day_of_month', 'day_of_week', 'next_occurrence', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'total', 'next_occurrence', 'created_at', 'updated_at']
+
+
+class BudgetAlertSerializer(serializers.ModelSerializer):
+    budget_category = serializers.CharField(source='budget.category', read_only=True)
+    budget_amount = serializers.DecimalField(source='budget.amount', max_digits=12, decimal_places=2, read_only=True)
+    budget_period = serializers.CharField(source='budget.period', read_only=True)
+    
+    class Meta:
+        model = BudgetAlert
+        fields = ['id', 'budget', 'budget_category', 'budget_amount', 'budget_period', 'alert_type', 'threshold_percent', 'message', 'is_read', 'is_dismissed', 'triggered_at', 'created_at']
+        read_only_fields = ['id', 'budget_category', 'budget_amount', 'budget_period', 'triggered_at', 'created_at']
+
+
+class TransferSerializer(serializers.ModelSerializer):
+    from_account_name = serializers.CharField(source='from_account.name', read_only=True)
+    to_account_name = serializers.CharField(source='to_account.name', read_only=True)
+    
+    class Meta:
+        model = Transfer
+        fields = ['id', 'from_account', 'from_account_name', 'to_account', 'to_account_name', 'amount', 'transfer_type', 'status', 'date', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'from_account_name', 'to_account_name', 'created_at', 'updated_at']
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ['id', 'name', 'category', 'amount', 'billing_cycle', 'next_billing_date', 'start_date', 'end_date', 'status', 'description', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
