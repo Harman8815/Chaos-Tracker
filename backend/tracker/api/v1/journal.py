@@ -4,7 +4,7 @@ Delegates all business logic to :class:`tracker.domain.services.JournalService`.
 """
 from rest_framework import status
 
-from .._base import TrackerAPIView
+from ._base import TrackerAPIView
 from ...domain.services import journal_service
 from ...serializers import JournalEntrySerializer
 

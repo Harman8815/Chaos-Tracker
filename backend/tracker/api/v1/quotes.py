@@ -3,7 +3,7 @@ import uuid
 
 from rest_framework import status
 
-from .._base import TrackerAPIView
+from ._base import TrackerAPIView
 from ...domain.services import (
     quote_source_service,
     quote_service,

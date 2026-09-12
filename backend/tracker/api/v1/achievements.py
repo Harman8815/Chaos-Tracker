@@ -1,7 +1,7 @@
 """Thin v1 controller for achievements."""
 from rest_framework import status
 
-from .._base import TrackerAPIView
+from ._base import TrackerAPIView
 from ...domain.services import achievement_service
 from ...serializers import AchievementSerializer
 

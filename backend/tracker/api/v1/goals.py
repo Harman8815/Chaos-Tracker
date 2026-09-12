@@ -1,7 +1,7 @@
 """Thin v1 controller for goals."""
 from rest_framework import status
 
-from .._base import TrackerAPIView
+from ._base import TrackerAPIView
 from ...domain.services import goal_service
 from ...serializers import GoalSerializer
 

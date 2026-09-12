@@ -1,7 +1,7 @@
 """Thin v1 controller for water entries."""
 from rest_framework import status
 
-from .._base import TrackerAPIView
+from ._base import TrackerAPIView
 from ...domain.services.health import _water_service
 from ...serializers import WaterSerializer
 

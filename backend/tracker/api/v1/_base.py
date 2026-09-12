@@ -8,18 +8,21 @@ Controllers here do exactly three things:
 All business rules live in :mod:`tracker.domain.services`.
 """
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ...domain.exceptions import DomainError
 from ...domain.logging import set_request_context, new_request_id
-from ...utils import success_response, error_response
+from ...utils import success_response
 
 
-class TrackerAPIView:
-    """Mixin providing request-context injection and error mapping."""
+class TrackerAPIView(APIView):
+    """Thin authenticated controller base with domain error mapping."""
+
+    permission_classes = [IsAuthenticated]
 
     def initial(self, request, *args, **kwargs):
-        # Inject structured logging context for the whole request.
         ctx = {
             "request_id": new_request_id(),
             "user_id": getattr(request.user, "id", None),
@@ -30,8 +33,32 @@ class TrackerAPIView:
         set_request_context(ctx)
         super().initial(request, *args, **kwargs)
 
+    def handle_exception(self, exc):
+        if isinstance(exc, DomainError):
+            return self.handle_domain_error(exc)
+        return super().handle_exception(exc)
+
+    def get(self, request, *args, **kwargs):
+        handler = getattr(self, "retrieve", None)
+        if handler is None:
+            handler = getattr(self, "list", None)
+        if handler is None:
+            return super().get(request, *args, **kwargs)
+        return handler(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
     def handle_domain_error(self, exc: DomainError):
-        """Translate a :class:`DomainError` into a DRF ``Response``."""
         payload = {
             "success": False,
             "error": {
