@@ -17,6 +17,7 @@ from tracker.models import (
     Expense, Goal, Achievement, JournalEntry, Mood, Water,
     PlannerBlock, PlannerTask, PlannerLink, PlannerSettings,
     QuoteSource, Quote, QuoteTag,
+    Budget, DailyActivityAggregate, DailyHabitScore, Habit,
 )
 from tracker.domain import validation
 from tracker.domain.permissions import owner_of, require_owner, require_owns
@@ -31,6 +32,10 @@ from tracker.domain.services.health import _mood_service as mood_service, _water
 from tracker.domain.services.goals import goal_service
 from tracker.domain.services.planner import planner_service
 from tracker.domain.services.achievements import achievement_service
+from tracker.domain.services.events import event_service
+from tracker.domain.services.habits import habit_service
+from tracker.domain.services.budgets import budget_service
+from tracker.domain.services.analytics import analytics_service
 from tracker.domain.services.quotes import (
     quote_source_service, quote_service,
 )
@@ -953,3 +958,158 @@ class ServiceOwnershipTests(TestCase):
         )
         with self.assertRaises(NotFoundError):
             quote_source_service.get_by_id(self.user, source.id)
+
+
+# ============================================================================
+# CROSS-DOMAIN INTEGRATION TESTS (Phase 2)
+# ============================================================================
+
+
+class CrossDomainTests(TestCase):
+    """Integration tests for cross-domain relationships (P2-02 .. P2-09)."""
+
+    def setUp(self):
+        self.user = _make_user("cross", "cross@test.com")
+        self.other = _make_user("other2", "other2@test.com")
+
+    # --- P2-09: UserEvent ---
+
+    def test_event_record_creates_event(self):
+        event = event_service.record(
+            self.user, "goal_created",
+            subject_type="Goal", subject_id="1",
+            payload={"text": "Run"},
+        )
+        self.assertEqual(event.user, self.user)
+        self.assertEqual(event.event_type, "goal_created")
+        self.assertEqual(event.subject_type, "Goal")
+        self.assertEqual(event.payload, {"text": "Run"})
+
+    def test_event_record_invalid_type_raises(self):
+        with self.assertRaises(ValidationError):
+            event_service.record(self.user, "bogus_type")
+
+    def test_event_count_by_type(self):
+        event_service.record(self.user, "goal_created")
+        event_service.record(self.user, "goal_created")
+        event_service.record(self.user, "expense_created")
+        counts = event_service.count_by_type(self.user)
+        self.assertEqual(counts["goal_created"], 2)
+        self.assertEqual(counts["expense_created"], 1)
+
+    def test_event_ownership_isolated(self):
+        event_service.record(self.user, "goal_created")
+        event_service.record(self.other, "goal_created")
+        self.assertEqual(len(event_service.list(self.user)), 1)
+        self.assertEqual(len(event_service.list(self.other)), 1)
+
+    # --- P2-02: Goal -> PlannerTask ---
+
+    def test_planner_task_can_link_to_goal(self):
+        goal = Goal.objects.create(user=self.user, text="Health", category="daily")
+        block = PlannerBlock.objects.create(id="b-cross", user=self.user, title="B")
+        task = PlannerTask.objects.create(id="t-cross", block=block, text="Run", goal=goal)
+        self.assertEqual(task.goal, goal)
+        self.assertEqual(goal.planner_tasks.count(), 1)
+
+    def test_set_task_goal_links_task_to_goal(self):
+        goal = Goal.objects.create(user=self.user, text="Health", category="daily")
+        block = PlannerBlock.objects.create(id="b-cross2", user=self.user, title="B")
+        task = PlannerTask.objects.create(id="t-cross2", block=block, text="Run")
+        planner_service.set_task_goal(self.user, task.id, goal.id)
+        task.refresh_from_db()
+        self.assertEqual(task.goal, goal)
+
+    def test_set_task_goal_other_user_goal_raises(self):
+        goal = Goal.objects.create(user=self.other, text="Secret", category="daily")
+        block = PlannerBlock.objects.create(id="b-cross3", user=self.user, title="B")
+        task = PlannerTask.objects.create(id="t-cross3", block=block, text="Run")
+        with self.assertRaises(ValidationError):
+            planner_service.set_task_goal(self.user, task.id, goal.id)
+
+    def test_complete_task_increments_goal_progress(self):
+        goal = Goal.objects.create(user=self.user, text="Health", category="daily", target=5)
+        block = PlannerBlock.objects.create(id="b-cross4", user=self.user, title="B")
+        task = PlannerTask.objects.create(id="t-cross4", block=block, text="Run", goal=goal, completed=False)
+        planner_service.complete_task(self.user, task.id, completed=True)
+        goal.refresh_from_db()
+        self.assertEqual(goal.completed_tasks, 1)
+
+    # --- P2-03: Goal -> Habit ---
+
+    def test_habit_can_link_to_goal(self):
+        goal = Goal.objects.create(user=self.user, text="Health", category="daily")
+        habit = Habit.objects.create(id="h-cross", user=self.user, name="Pushups", goal=goal)
+        self.assertEqual(habit.goal, goal)
+        self.assertEqual(goal.habits.count(), 1)
+
+    def test_habit_log_increments_goal_progress(self):
+        goal = Goal.objects.create(user=self.user, text="Health", category="daily", target=10)
+        habit = Habit.objects.create(id="h-cross2", user=self.user, name="Pushups", target=5, goal=goal)
+        habit_service.log_score(self.user, habit.id, date="2025-06-01", score=5, target=5)
+        goal.refresh_from_db()
+        self.assertEqual(goal.completed_tasks, 1)
+
+    def test_habit_goal_must_be_owned(self):
+        goal = Goal.objects.create(user=self.other, text="Secret", category="daily")
+        with self.assertRaises(ValidationError):
+            habit_service.create(self.user, {"name": "Bad", "goal": goal.id})
+
+    # --- P2-04: Achievement trigger_rule ---
+
+    def test_achievement_trigger_rule_stored(self):
+        achievement = achievement_service.create(self.user, {
+            "title": "Streak", "description": "7 days", "date": "2025-01-01",
+            "trigger_rule": {"event_type": "planner_task_completed", "count": 7},
+        })
+        self.assertEqual(achievement.trigger_rule, {"event_type": "planner_task_completed", "count": 7})
+
+    # --- P2-07: Expense -> Budget ---
+
+    def test_budget_create_and_actual_vs_budget(self):
+        budget = budget_service.create(self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "100.00"})
+        Expense.objects.create(user=self.user, date="2025-01-05", item="Coffee", category="Food", quantity=1, price="30.00")
+        Expense.objects.create(user=self.user, date="2025-01-06", item="Lunch", category="Food", quantity=1, price="90.00")
+        result = budget_service.actual_vs_budget(self.user, year=2025, month=1)
+        self.assertEqual(result["total_budget"], 100.0)
+        self.assertEqual(result["total_actual"], 120.0)
+        self.assertTrue(result["budgets"][0]["is_over_budget"])
+
+    def test_budget_unique_per_category_month(self):
+        budget_service.create(self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "100.00"})
+        with self.assertRaises(Exception):
+            budget_service.create(self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "50.00"})
+
+    # --- P2-08: DailyActivityAggregate ---
+
+    def test_compute_day_gathers_all_domains(self):
+        Habit.objects.create(id="h-ag", user=self.user, name="Run")
+        habit_service.log_score(self.user, "h-ag", date="2025-06-01", score=5, target=5)
+        Goal.objects.create(user=self.user, text="Health", category="daily", status="completed", completed_at="2025-06-01T00:00:00Z")
+        block = PlannerBlock.objects.create(id="b-ag", user=self.user, title="B")
+        PlannerTask.objects.create(id="t-ag", block=block, text="Run", completed=True)
+        JournalEntry.objects.create(user=self.user, date="2025-06-01", content="Hello")
+        Mood.objects.create(user=self.user, date="2025-06-01", mood="happy")
+        Water.objects.create(user=self.user, date="2025-06-01", glasses=8, target=8)
+        Expense.objects.create(user=self.user, date="2025-06-01", item="Coffee", category="Food", quantity=1, price="3.50")
+        Achievement.objects.create(user=self.user, title="Win", date="2025-06-01")
+
+        aggregate = analytics_service.compute_day(self.user, "2025-06-01")
+        self.assertEqual(aggregate.habits_completed, 1)
+        self.assertEqual(aggregate.habits_total, 1)
+        self.assertEqual(aggregate.goals_completed, 1)
+        self.assertTrue(aggregate.has_journal)
+        self.assertEqual(aggregate.mood, "happy")
+        self.assertEqual(aggregate.water_glasses, 8)
+        self.assertEqual(aggregate.expense_count, 1)
+        self.assertEqual(aggregate.achievements_earned, 1)
+        self.assertEqual(DailyActivityAggregate.objects.filter(user=self.user).count(), 1)
+
+    def test_compute_day_idempotent(self):
+        analytics_service.compute_day(self.user, "2025-06-02")
+        analytics_service.compute_day(self.user, "2025-06-02")
+        self.assertEqual(DailyActivityAggregate.objects.filter(user=self.user).count(), 1)
+
+    def test_get_day_computes_if_missing(self):
+        aggregate = analytics_service.get_day(self.user, "2025-06-03")
+        self.assertEqual(aggregate.date.isoformat(), "2025-06-03")
