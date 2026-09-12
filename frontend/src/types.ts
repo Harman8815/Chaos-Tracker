@@ -116,6 +116,134 @@ export interface Expense {
     price: number; // Price per item
 }
 
+// ==================== FINANCE TYPES ====================
+
+export type IncomeSource = 'salary' | 'freelance' | 'investment' | 'gift' | 'refund' | 'other';
+
+export interface Income {
+    id: string;
+    date: string; // YYYY-MM-DD
+    source: IncomeSource;
+    amount: number;
+    description?: string;
+}
+
+export type AccountType = 'checking' | 'savings' | 'credit' | 'cash' | 'investment' | 'other';
+
+export interface Account {
+    id: string;
+    name: string;
+    account_type: AccountType;
+    balance: number;
+    currency: string;
+    is_active: boolean;
+}
+
+export interface AccountSummary {
+    total_accounts: number;
+    total_balance: number;
+    type_breakdown: Record<string, number>;
+}
+
+export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface RecurringExpense {
+    id: string;
+    item: string;
+    category: string;
+    quantity: number;
+    price: number;
+    total: number;
+    frequency: RecurringFrequency;
+    start_date: string;
+    end_date?: string;
+    day_of_month?: number;
+    day_of_week?: number;
+    next_occurrence: string;
+    is_active: boolean;
+}
+
+export type TransferType = 'internal' | 'deposit' | 'withdrawal';
+export type TransferStatus = 'pending' | 'completed' | 'cancelled';
+
+export interface Transfer {
+    id: string;
+    from_account?: string;
+    from_account_name?: string;
+    to_account?: string;
+    to_account_name?: string;
+    amount: number;
+    transfer_type: TransferType;
+    status: TransferStatus;
+    date: string;
+    description?: string;
+}
+
+export type BillingCycle = 'monthly' | 'quarterly' | 'yearly';
+export type SubscriptionStatus = 'active' | 'cancelled' | 'paused';
+
+export interface Subscription {
+    id: string;
+    name: string;
+    category: string;
+    amount: number;
+    billing_cycle: BillingCycle;
+    next_billing_date: string;
+    start_date: string;
+    end_date?: string;
+    status: SubscriptionStatus;
+    description?: string;
+}
+
+export interface SubscriptionSummary {
+    active_count: number;
+    cancelled_count: number;
+    paused_count: number;
+    monthly_cost: number;
+    category_breakdown: Record<string, number>;
+}
+
+export type BudgetAlertType = 'threshold' | 'exceeded' | 'projected';
+
+export interface BudgetAlert {
+    id: string;
+    budget: string;
+    budget_category: string;
+    budget_amount: number;
+    budget_period: string;
+    alert_type: BudgetAlertType;
+    threshold_percent: number;
+    message: string;
+    is_read: boolean;
+    is_dismissed: boolean;
+    triggered_at: string;
+}
+
+export interface Budget {
+    id: string;
+    category: string;
+    year: number;
+    month: number;
+    amount: number;
+    period: string;
+}
+
+export interface BudgetActualVsBudget {
+    year: number;
+    month: number;
+    budgets: Array<{
+        id: string;
+        category: string;
+        budget_amount: number;
+        actual_amount: number;
+        remaining: number;
+        spent_percent: number;
+        is_over_budget: boolean;
+    }>;
+    total_budget: number;
+    total_actual: number;
+}
+
 export interface Quote {
   id: string;
   text: string;
