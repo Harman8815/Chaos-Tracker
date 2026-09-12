@@ -60,6 +60,16 @@ from .quotes import (
 )
 from .mood import MoodListCreateView, MoodDetailView
 from .water import WaterListCreateView, WaterDetailView
+from .analytics import (
+    ProductivityScoreView,
+    ConsistencyScoreView,
+    GoalVelocityView,
+    FinancialHealthView,
+    TrendsView,
+    CorrelationsView,
+    InsightsView,
+    AnalyticsDashboardView,
+)
 
 urlpatterns = [
     # Journal
@@ -143,4 +153,14 @@ urlpatterns = [
     # Water
     path('water/', WaterListCreateView.as_view(), name='water-list-create'),
     path('water/<int:id>/', WaterDetailView.as_view(), name='water-detail'),
+
+    # Analytics
+    path('analytics/productivity/', ProductivityScoreView.as_view(), name='analytics-productivity'),
+    path('analytics/consistency/', ConsistencyScoreView.as_view(), name='analytics-consistency'),
+    path('analytics/goal-velocity/', GoalVelocityView.as_view(), name='analytics-goal-velocity'),
+    path('analytics/financial-health/', FinancialHealthView.as_view(), name='analytics-financial-health'),
+    path('analytics/trends/', TrendsView.as_view(), name='analytics-trends'),
+    path('analytics/correlations/', CorrelationsView.as_view(), name='analytics-correlations'),
+    path('analytics/insights/', InsightsView.as_view(), name='analytics-insights'),
+    path('analytics/dashboard/', AnalyticsDashboardView.as_view(), name='analytics-dashboard'),
 ]
