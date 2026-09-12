@@ -160,6 +160,20 @@ class Goal(models.Model):
     GOAL_STATUS_KEYS = [k for k, _ in GOAL_STATUS]
     PRIORITY_LEVELS_KEYS = [k for k, _ in PRIORITY_LEVELS]
 
+    RECURRENCE_NONE = 'none'
+    RECURRENCE_DAILY = 'daily'
+    RECURRENCE_WEEKLY = 'weekly'
+    RECURRENCE_MONTHLY = 'monthly'
+
+    RECURRENCE_CHOICES = [
+        (RECURRENCE_NONE, 'None'),
+        (RECURRENCE_DAILY, 'Daily'),
+        (RECURRENCE_WEEKLY, 'Weekly'),
+        (RECURRENCE_MONTHLY, 'Monthly'),
+    ]
+
+    RECURRENCE_KEYS = [k for k, _ in RECURRENCE_CHOICES]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals')
     text = models.CharField(max_length=500)
     category = models.CharField(max_length=20, choices=GOAL_CATEGORIES, default='daily')
@@ -175,6 +189,7 @@ class Goal(models.Model):
     due_date = models.DateField(blank=True, null=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='medium')
     frequency = models.CharField(max_length=50, blank=True, null=True)
+    recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default=RECURRENCE_NONE)
     reminders = models.JSONField(default=list, blank=True)
     completion_criteria = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
@@ -184,10 +199,34 @@ class Goal(models.Model):
         indexes = [
             models.Index(fields=['user', 'category']),
             models.Index(fields=['user', 'status']),
+            models.Index(fields=['user', 'recurrence']),
         ]
 
     def __str__(self):
         return f"{self.category} - {self.text[:30]}"
+
+
+class GoalMilestone(models.Model):
+    """Break large goals into milestones (P3-06)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='milestones')
+    goal = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name='milestones')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    order = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['goal', 'order']),
+        ]
+
+    def __str__(self):
+        return f"{self.goal.text[:20]} - {self.title}"
 
 
 class PlannerBlock(models.Model):
@@ -216,6 +255,18 @@ class PlannerTask(models.Model):
     """
     Individual task within a planner block
     """
+    RECURRENCE_NONE = 'none'
+    RECURRENCE_DAILY = 'daily'
+    RECURRENCE_WEEKLY = 'weekly'
+
+    RECURRENCE_CHOICES = [
+        (RECURRENCE_NONE, 'None'),
+        (RECURRENCE_DAILY, 'Daily'),
+        (RECURRENCE_WEEKLY, 'Weekly'),
+    ]
+
+    RECURRENCE_KEYS = [k for k, _ in RECURRENCE_CHOICES]
+
     id = models.CharField(max_length=100, primary_key=True)
     block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='tasks')
     goal = models.ForeignKey(
@@ -225,6 +276,9 @@ class PlannerTask(models.Model):
     text = models.CharField(max_length=500)
     completed = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
+    due_date = models.DateField(blank=True, null=True)
+    priority = models.CharField(max_length=10, choices=Goal.PRIORITY_LEVELS, default='medium')
+    recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default=RECURRENCE_NONE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -233,10 +287,31 @@ class PlannerTask(models.Model):
         indexes = [
             models.Index(fields=['block', 'order']),
             models.Index(fields=['goal']),
+            models.Index(fields=['due_date']),
         ]
 
     def __str__(self):
         return f"{self.text[:30]} - {'✓' if self.completed else '○'}"
+
+
+class PlannerTemplate(models.Model):
+    """Reusable planning structure (P3-11)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='planner_templates')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    data = models.JSONField(default=dict, help_text='Snapshot of blocks/tasks/links')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return self.name
 
 
 class PlannerLink(models.Model):
@@ -279,6 +354,18 @@ class Habit(models.Model):
     """
     Represents a habit to be tracked
     """
+    SCHEDULE_DAILY = 'daily'
+    SCHEDULE_WEEKLY = 'weekly'
+    SCHEDULE_CUSTOM = 'custom'
+
+    SCHEDULE_CHOICES = [
+        (SCHEDULE_DAILY, 'Daily'),
+        (SCHEDULE_WEEKLY, 'Weekly'),
+        (SCHEDULE_CUSTOM, 'Custom'),
+    ]
+
+    SCHEDULE_KEYS = [k for k, _ in SCHEDULE_CHOICES]
+
     id = models.CharField(max_length=100, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
     goal = models.ForeignKey(
@@ -288,6 +375,12 @@ class Habit(models.Model):
     name = models.CharField(max_length=255)
     target = models.IntegerField(default=1)
     range_max = models.IntegerField(default=10)
+    schedule = models.CharField(max_length=20, choices=SCHEDULE_CHOICES, default=SCHEDULE_DAILY)
+    schedule_days = models.JSONField(default=list, blank=True, help_text='Weekdays (0=Mon..6=Sun) for weekly/custom schedules')
+    reminders = models.JSONField(default=list, blank=True, help_text='Optional reminder config list')
+    grace_period = models.IntegerField(default=0, help_text='Missed-day grace before streak breaks')
+    streak = models.IntegerField(default=0, help_text='Current consecutive-day streak')
+    completed_dates = models.JSONField(default=list, blank=True, help_text='ISO dates the habit was completed')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
