@@ -25,6 +25,8 @@ class QuoteSource(models.Model):
         ('Web Series', 'Web Series'),
         ('Book', 'Book'),
     ]
+
+    SOURCE_TYPES_KEYS = [k for k, _ in SOURCE_TYPES]
     
     id = models.CharField(max_length=100, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quote_sources')
@@ -148,6 +150,10 @@ class Goal(models.Model):
         ('medium', 'Medium'),
         ('high', 'High'),
     ]
+
+    GOAL_CATEGORIES_KEYS = [k for k, _ in GOAL_CATEGORIES]
+    GOAL_STATUS_KEYS = [k for k, _ in GOAL_STATUS]
+    PRIORITY_LEVELS_KEYS = [k for k, _ in PRIORITY_LEVELS]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals')
     text = models.CharField(max_length=500)
