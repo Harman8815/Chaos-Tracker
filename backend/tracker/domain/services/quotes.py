@@ -21,7 +21,11 @@ SOURCE_TYPE_KEYS = [k for k, _ in QuoteSource.SOURCE_TYPES]
 
 
 def _get_source(user, source_id):
-    source = QuoteSource.objects.filter(id=source_id, user=user).first()
+    source = (
+        QuoteSource.objects.annotate(quote_count=Count("quotes"))
+        .filter(id=source_id, user=user)
+        .first()
+    )
     if source is None:
         raise NotFoundError("Quote source not found")
     return source
@@ -120,7 +124,10 @@ class QuoteSourceService:
         return True
 
     def _load_source(self, user, source_id):
-        source = _get_source(user, source_id)
+        source = (
+            QuoteSource.objects.annotate(quote_count=Count("quotes"))
+            .get(id=source_id, user=user)
+        )
         return source
 
     def _create_quote(self, user, source, raw):
@@ -149,12 +156,53 @@ class QuoteService:
     def get(self, user, quote_id):
         return _get_quote(user, quote_id)
 
+    def fuzzy_search(self, user, query, limit=20):
+        query = query.strip()
+        if not query:
+            return []
+
+        query_lower = query.lower()
+        sources = (
+            QuoteSource.objects.filter(user=user)
+            .annotate(quote_count=Count("quotes"))
+            .prefetch_related("quotes", "quotes__tags")
+        )
+        results = []
+        for source in sources:
+            matched_quotes = []
+            match_types = []
+            source_matched = query_lower in (source.title or "").lower()
+            if source_matched:
+                match_types.append("title")
+
+            for quote in source.quotes.all():
+                quote_match_types = []
+                if query_lower in (quote.author or "").lower():
+                    quote_match_types.append("author")
+                if any(query_lower in tag.tag.lower() for tag in quote.tags.all()):
+                    quote_match_types.append("tag")
+                if query_lower in (quote.text or "").lower():
+                    quote_match_types.append("text")
+                if quote_match_types:
+                    matched_quotes.append(quote)
+                    for match_type in quote_match_types:
+                        if match_type not in match_types:
+                            match_types.append(match_type)
+
+            if source_matched or matched_quotes:
+                results.append({
+                    "source": source,
+                    "matched_quotes": matched_quotes,
+                    "relevance_score": len(matched_quotes) + (1 if source_matched else 0),
+                    "match_type": ", ".join(match_types),
+                })
+
+        results.sort(key=lambda result: result["relevance_score"], reverse=True)
+        return results[:limit]
+
     def create(self, user, source_id, data):
         source = _get_source(user, source_id)
         return QuoteSourceService()._create_quote(user, source, data)
-
-    def get(self, user, quote_id):
-        return _get_quote(user, quote_id)
 
     def update(self, user, quote_id, data, *, partial=True):
         quote = _get_quote(user, quote_id)

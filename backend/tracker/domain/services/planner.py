@@ -32,6 +32,18 @@ def _get_block_or_404(user, block_id):
     return _get_block(user, block_id)
 
 
+def _require_object(raw, label):
+    if not isinstance(raw, dict):
+        raise ValidationError(f"{label} must be an object")
+    return raw
+
+
+def _require_list(value, label):
+    if not isinstance(value, list):
+        raise ValidationError(f"{label} must be a list")
+    return value
+
+
 class PlannerService:
     def get(self, user):
         blocks = list(PlannerBlock.objects.filter(user=user).prefetch_related("tasks"))
@@ -50,14 +62,20 @@ class PlannerService:
 
     @transaction.atomic
     def replace_all(self, user, data):
+        if data is None:
+            data = {}
+        if not isinstance(data, dict):
+            raise ValidationError("Planner data must be an object")
+        blocks = _require_list(data.get("blocks", []), "blocks")
+        links = _require_list(data.get("links", []), "links")
         PlannerBlock.objects.filter(user=user).delete()
         PlannerLink.objects.filter(user=user).delete()
         created_blocks = 0
         created_links = 0
-        for raw in data.get("blocks", []):
+        for raw in blocks:
             self._create_block(user, raw)
             created_blocks += 1
-        for raw in data.get("links", []):
+        for raw in links:
             self._create_link(user, raw)
             created_links += 1
         transform = data.get("transform") or {"scale": 1, "panX": 0, "panY": 0}
@@ -72,15 +90,21 @@ class PlannerService:
 
     @transaction.atomic
     def patch(self, user, data):
+        if data is None:
+            data = {}
+        if not isinstance(data, dict):
+            raise ValidationError("Planner data must be an object")
         updated_blocks = 0
         updated_links = 0
         if "blocks" in data:
-            for raw in data["blocks"]:
+            blocks = _require_list(data["blocks"], "blocks")
+            for raw in blocks:
                 self._upsert_block(user, raw)
                 updated_blocks += 1
         if "links" in data:
+            links = _require_list(data["links"], "links")
             PlannerLink.objects.filter(user=user).delete()
-            for raw in data["links"]:
+            for raw in links:
                 self._create_link(user, raw)
                 updated_links += 1
         if "transform" in data:
@@ -98,6 +122,7 @@ class PlannerService:
 
     @transaction.atomic
     def update_block(self, user, block_id, data):
+        data = _require_object(data, "block update data")
         block = _get_block(user, block_id)
         if "title" in data:
             block.title = validation.bounded_text(data["title"], max_length=255, field="title")
@@ -107,8 +132,12 @@ class PlannerService:
             block.y = float(data["y"])
         block.save()
         if "tasks" in data:
+            tasks = _require_list(data["tasks"], "tasks")
+            task_ids = [raw.get("id") for raw in tasks if isinstance(raw, dict)]
+            if len(task_ids) != len(set(task_ids)):
+                raise ValidationError("Task ids must be unique")
             PlannerTask.objects.filter(block=block).delete()
-            for idx, raw in enumerate(data["tasks"]):
+            for idx, raw in enumerate(tasks):
                 self._create_task(block, raw, idx)
         logger.info("planner.update_block user_id=%s block_id=%s", user.id, block.id)
         return block
@@ -126,45 +155,67 @@ class PlannerService:
     # --- internal helpers ---
 
     def _create_block(self, user, raw):
+        raw = _require_object(raw, "block")
+        block_id = validation.bounded_text(raw.get("id"), max_length=100, field="id")
+        if not block_id:
+            raise ValidationError("id is required")
         block = PlannerBlock.objects.create(
-            id=raw["id"],
+            id=block_id,
             user=user,
-            title=raw.get("title", "New Block"),
+            title=validation.bounded_text(raw.get("title", "New Block"), max_length=255, field="title"),
             x=float(raw.get("x", 0)),
             y=float(raw.get("y", 0)),
         )
-        for idx, task_raw in enumerate(raw.get("tasks", [])):
+        tasks = _require_list(raw.get("tasks", []), "tasks")
+        for idx, task_raw in enumerate(tasks):
             self._create_task(block, task_raw, idx)
         return block
 
     def _upsert_block(self, user, raw):
+        raw = _require_object(raw, "block")
+        block_id = validation.bounded_text(raw.get("id"), max_length=100, field="id")
+        if not block_id:
+            raise ValidationError("id is required")
         block, created = PlannerBlock.objects.update_or_create(
-            id=raw["id"],
+            id=block_id,
             user=user,
             defaults={
-                "title": raw.get("title", "New Block"),
+                "title": validation.bounded_text(raw.get("title", "New Block"), max_length=255, field="title"),
                 "x": float(raw.get("x", 0)),
                 "y": float(raw.get("y", 0)),
             },
         )
         if "tasks" in raw:
+            tasks = _require_list(raw["tasks"], "tasks")
             PlannerTask.objects.filter(block=block).delete()
-            for idx, task_raw in enumerate(raw["tasks"]):
+            for idx, task_raw in enumerate(tasks):
                 self._create_task(block, task_raw, idx)
         return block, created
 
     def _create_task(self, block, raw, idx):
+        raw = _require_object(raw, "task")
+        task_id = validation.bounded_text(raw.get("id"), max_length=100, field="id")
+        if not task_id:
+            raise ValidationError("id is required")
         return PlannerTask.objects.create(
-            id=raw["id"],
+            id=task_id,
             block=block,
             text=validation.bounded_text(raw.get("text"), max_length=500, field="text"),
             completed=bool(raw.get("completed", False)),
-            order=int(raw.get("order", idx)),
+            order=validation.non_negative_int(raw.get("order", idx), field="order"),
         )
 
     def _create_link(self, user, raw):
-        from_block_id = raw["from"]
-        to_block_id = raw["to"]
+        raw = _require_object(raw, "link")
+        link_id = validation.bounded_text(raw.get("id"), max_length=100, field="id")
+        from_block_id = validation.bounded_text(raw.get("from"), max_length=100, field="from")
+        to_block_id = validation.bounded_text(raw.get("to"), max_length=100, field="to")
+        if not link_id:
+            raise ValidationError("id is required")
+        if not from_block_id or not to_block_id:
+            raise ValidationError("from and to are required")
+        if from_block_id == to_block_id:
+            raise ValidationError("A block cannot link to itself")
         # Verify both blocks belong to the user
         owned = set(
             PlannerBlock.objects.filter(
@@ -174,7 +225,7 @@ class PlannerService:
         if from_block_id not in owned or to_block_id not in owned:
             raise ValidationError("Link references a block you do not own")
         return PlannerLink.objects.create(
-            id=raw["id"],
+            id=link_id,
             user=user,
             from_block_id=from_block_id,
             to_block_id=to_block_id,

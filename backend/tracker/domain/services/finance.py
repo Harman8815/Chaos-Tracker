@@ -3,9 +3,7 @@
 Owns expense CRUD plus the analytics/summary queries. All queries are
 scoped to the requesting user.
 """
-from datetime import date, datetime
-
-from django.db.models import Sum
+from datetime import date
 
 from ...models import Expense
 from .. import validation
@@ -15,40 +13,87 @@ from ..logging import get_logger
 logger = get_logger("tracker.domain.finance")
 
 
-def _apply_filters(qs, *, year, month, start_date, end_date):
-    if year and month is not None:
-        try:
-            y = int(year)
-            m = int(month) + 1
-            qs = qs.filter(date__year=y, date__month=m)
-        except (TypeError, ValueError):
-            from ..exceptions import ValidationError
-            raise ValidationError("Invalid year or month")
+def _normalize_period(year, month):
+    today = date.today()
+    try:
+        y = int(year) if year is not None else today.year
+        m = int(month) + 1 if month is not None else None
+    except (TypeError, ValueError):
+        raise ValidationError("Invalid year or month")
+    if y < 1 or y > 9999:
+        raise ValidationError("Year must be between 1 and 9999")
+    if m is not None and (m < 1 or m > 12):
+        raise ValidationError("Month must be between 0 and 11")
+    return y, m
+
+
+def _apply_period_filters(qs, *, year, month):
+    y, m = _normalize_period(year, month)
+    if m is None:
+        return qs.filter(date__year=y)
+    return qs.filter(date__year=y, date__month=m)
+
+
+def _apply_filters(
+    qs,
+    *,
+    year=None,
+    month=None,
+    category=None,
+    start_date=None,
+    end_date=None,
+):
+    if year is not None or month is not None:
+        qs = _apply_period_filters(qs, year=year, month=month)
+    if category:
+        qs = qs.filter(category__iexact=category)
+    parsed_start_date = None
+    parsed_end_date = None
     if start_date:
-        try:
-            qs = qs.filter(date__gte=datetime.strptime(start_date, "%Y-%m-%d").date())
-        except ValueError:
-            from ..exceptions import ValidationError
-            raise ValidationError("Invalid start_date format")
+        parsed_start_date = validation.parse_date(start_date, field="start_date")
+        qs = qs.filter(date__gte=parsed_start_date)
     if end_date:
-        try:
-            qs = qs.filter(date__lte=datetime.strptime(end_date, "%Y-%m-%d").date())
-        except ValueError:
-            from ..exceptions import ValidationError
-            raise ValidationError("Invalid end_date format")
+        parsed_end_date = validation.parse_date(end_date, field="end_date")
+        qs = qs.filter(date__lte=parsed_end_date)
+    if parsed_start_date and parsed_end_date and parsed_start_date > parsed_end_date:
+        raise ValidationError("start_date must be on or before end_date")
     return qs
 
 
 class ExpenseService:
     def list(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
         qs = Expense.objects.filter(user=user)
-        qs = _apply_filters(qs, year=year, month=month, start_date=start_date, end_date=end_date)
-        if category:
-            qs = qs.filter(category__iexact=category)
+        qs = _apply_filters(
+            qs,
+            year=year,
+            month=month,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
+        )
         return list(qs)
 
+    def list_with_summary(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
+        expenses = self.list(
+            user,
+            year=year,
+            month=month,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        total_amount = sum(float(expense.total) for expense in expenses)
+        category_breakdown = {}
+        for expense in expenses:
+            category_breakdown[expense.category] = category_breakdown.get(expense.category, 0.0) + float(expense.total)
+        return {
+            "count": len(expenses),
+            "total_amount": round(total_amount, 2),
+            "category_breakdown": category_breakdown,
+            "expenses": expenses,
+        }
+
     def get_by_id(self, user, expense_id):
-        from ..exceptions import NotFoundError
         expense = Expense.objects.filter(id=expense_id, user=user).first()
         if expense is None:
             raise NotFoundError("Expense not found")
@@ -59,6 +104,8 @@ class ExpenseService:
         category = validation.bounded_text(data.get("category"), max_length=100, field="category")
         quantity = validation.positive_int(data.get("quantity", 1), field="quantity", minimum=1)
         price = validation.bounded_decimal(data.get("price"), field="price")
+        if price < 0:
+            raise ValidationError("price must be non-negative")
         expense_date = validation.parse_date(data.get("date"), field="date")
         expense = Expense.objects.create(
             user=user,
@@ -82,7 +129,10 @@ class ExpenseService:
         if "quantity" in data:
             expense.quantity = validation.positive_int(data["quantity"], field="quantity", minimum=1)
         if "price" in data:
-            expense.price = validation.bounded_decimal(data["price"], field="price")
+            price = validation.bounded_decimal(data["price"], field="price")
+            if price < 0:
+                raise ValidationError("price must be non-negative")
+            expense.price = price
         if "date" in data:
             expense.date = validation.parse_date(data["date"], field="date")
         expense.save()
@@ -99,10 +149,14 @@ class ExpenseService:
 
     # --- analytics ---
 
-    def summary(self, user, *, year=None, month=None, start_date=None, end_date=None):
+    def summary(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
         qs = _apply_filters(
             Expense.objects.filter(user=user),
-            year=year, month=month, start_date=start_date, end_date=end_date,
+            year=year,
+            month=month,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
         )
         expenses = list(qs)
         total_count = len(expenses)
@@ -117,9 +171,14 @@ class ExpenseService:
             "unique_categories": categories,
         }
 
-    def categories(self, user, *, year=None, month=None):
+    def categories(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
         qs = _apply_filters(
-            Expense.objects.filter(user=user), year=year, month=month,
+            Expense.objects.filter(user=user),
+            year=year,
+            month=month,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
         )
         totals = {}
         for e in qs:
@@ -130,16 +189,19 @@ class ExpenseService:
             entry["total"] += float(e.total)
         return sorted(totals.values(), key=lambda x: x["total"], reverse=True)
 
-    def analytics(self, user, *, year=None, month=None):
-        today = date.today()
-        try:
-            y = int(year) if year else today.year
-            m = int(month) + 1 if month is not None else today.month
-        except (TypeError, ValueError):
-            from ..exceptions import ValidationError
-            raise ValidationError("Invalid year or month")
+    def analytics(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
+        y, m = _normalize_period(year, month)
+        if m is None:
+            m = date.today().month
 
-        qs = Expense.objects.filter(user=user, date__year=y, date__month=m)
+        qs = _apply_filters(
+            Expense.objects.filter(user=user),
+            year=y,
+            month=m - 1,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
+        )
         daily_totals = {}
         category_totals = {}
         for e in qs:
@@ -170,10 +232,11 @@ class ExpenseService:
     def monthly_stats(self, user, *, year=None):
         today = date.today()
         try:
-            y = int(year) if year else today.year
+            y = int(year) if year is not None else today.year
         except (TypeError, ValueError):
-            from ..exceptions import ValidationError
             raise ValidationError("Invalid year")
+        if y < 1 or y > 9999:
+            raise ValidationError("Year must be between 1 and 9999")
 
         monthly_data = {}
         for month in range(1, 13):
@@ -194,13 +257,20 @@ class ExpenseService:
             "monthly_stats": monthly_list,
         }
 
-    def top_items(self, user, *, limit=10, year=None, month=None):
+    def top_items(self, user, *, limit=10, year=None, month=None, category=None, start_date=None, end_date=None):
         try:
             limit = int(limit)
         except (TypeError, ValueError):
             limit = 10
+        if limit < 0:
+            limit = 0
         qs = _apply_filters(
-            Expense.objects.filter(user=user), year=year, month=month,
+            Expense.objects.filter(user=user),
+            year=year,
+            month=month,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
         )
         items = [
             {

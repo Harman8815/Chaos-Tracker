@@ -2,6 +2,7 @@
 from rest_framework import status
 
 from ._base import TrackerAPIView
+from .serializers import GoalQuerySerializer
 from ...domain.services import goal_service
 from ...serializers import GoalSerializer
 
@@ -10,10 +11,11 @@ class GoalListCreateView(TrackerAPIView):
     serializer_class = GoalSerializer
 
     def list(self, request, *args, **kwargs):
+        query = self.validated_query(GoalQuerySerializer)
         items = goal_service.list(
             request.user,
-            category=request.query_params.get("category"),
-            status=request.query_params.get("status"),
+            category=query.get("category"),
+            status=query.get("status"),
         )
         serializer = self.serializer_class(items, many=True)
         return self.ok(data=serializer.data, count=len(items))

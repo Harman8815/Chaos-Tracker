@@ -1,9 +1,12 @@
 """Thin v1 controller for quotes (sources, quotes, tags, search)."""
-import uuid
-
 from rest_framework import status
 
 from ._base import TrackerAPIView
+from .serializers import (
+    QuoteListQuerySerializer,
+    QuoteSearchQuerySerializer,
+    QuoteSourceQuerySerializer,
+)
 from ...domain.services import (
     quote_source_service,
     quote_service,
@@ -23,7 +26,12 @@ class QuoteSourceListCreateView(TrackerAPIView):
     serializer_class = QuoteSourceListSerializer
 
     def list(self, request, *args, **kwargs):
-        sources = quote_source_service.list(request.user, include_quotes=False)
+        query = self.validated_query(QuoteSourceQuerySerializer)
+        sources = quote_source_service.list(
+            request.user,
+            source_type=query.get("source_type"),
+            include_quotes=query.get("include_quotes"),
+        )
         serializer = self.serializer_class(sources, many=True)
         return self.ok(data=serializer.data, count=len(sources))
 
@@ -59,7 +67,12 @@ class QuoteListCreateView(TrackerAPIView):
     serializer_class = QuoteCreateUpdateSerializer
 
     def list(self, request, *args, **kwargs):
-        quotes = quote_service.list(request.user, kwargs["source_id"], tag=request.query_params.get("tag"))
+        query = self.validated_query(QuoteListQuerySerializer)
+        quotes = quote_service.list(
+            request.user,
+            kwargs["source_id"],
+            tag=query.get("tag"),
+        )
         serializer = QuoteSerializer(quotes, many=True)
         return self.ok(data=serializer.data, count=len(quotes))
 
@@ -94,53 +107,22 @@ class QuoteDetailView(TrackerAPIView):
 class QuoteTagsView(TrackerAPIView):
     def get(self, request):
         tags = quote_tag_service.list(request.user)
-        return self.ok(data=tags, count=len(tags))
+        return self.ok(data={"tags": tags}, count=len(tags))
 
 
 class QuoteFuzzySearchView(TrackerAPIView):
     serializer_class = SearchResultSerializer
 
     def get(self, request):
-        from ...models import QuoteSource
-        from django.db.models import Q
-
-        query = request.query_params.get("q", "").strip()
-        if not query:
-            return self.ok(data=[], count=0)
-
-        results = []
-        sources = QuoteSource.objects.filter(user=request.user).prefetch_related(
-            "quotes", "quotes__tags"
+        query_data = self.validated_query(QuoteSearchQuerySerializer)
+        query = query_data.get("q", "").strip()
+        results = quote_service.fuzzy_search(
+            request.user,
+            query,
+            limit=query_data.get("limit", 20),
         )
-        seen_sources = set()
-        for source in sources:
-            matched_quotes = []
-            for quote in source.quotes.all():
-                matched = False
-                if query.lower() in (source.title or "").lower():
-                    matched = True
-                    match_type = "title"
-                elif query.lower() in (quote.author or "").lower():
-                    matched = True
-                    match_type = "author"
-                elif any(query.lower() in t.tag.lower() for t in quote.tags.all()):
-                    matched = True
-                    match_type = "tag"
-                elif query.lower() in (quote.text or "").lower():
-                    matched = True
-                    match_type = "text"
-                if matched:
-                    matched_quotes.append(quote)
-
-            if matched_quotes:
-                seen_sources.add(source.id)
-                results.append({
-                    "source": QuoteSourceListSerializer(source).data,
-                    "matched_quotes": QuoteSerializer(matched_quotes, many=True).data,
-                    "relevance_score": len(matched_quotes),
-                    "match_type": "title",
-                })
-
-        results.sort(key=lambda x: x["relevance_score"], reverse=True)
         serializer = self.serializer_class(results, many=True)
-        return self.ok(data=serializer.data, count=len(results))
+        return self.ok(
+            data={"results": serializer.data, "query": query},
+            count=len(results),
+        )

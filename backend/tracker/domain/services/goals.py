@@ -1,6 +1,6 @@
 """Goals domain service."""
-import uuid
-from datetime import datetime
+
+from django.utils import timezone
 
 from ...models import Goal
 from .. import validation
@@ -62,9 +62,8 @@ class GoalService:
             data.get("notes", ""), max_length=2000, field="notes", allow_blank=True,
         )
 
-        completed_at = datetime.now() if status_value == "completed" else None
+        completed_at = timezone.now() if status_value == "completed" else None
         goal = Goal.objects.create(
-            id=uuid.uuid4().hex,
             user=user,
             text=text,
             category=category,
@@ -98,8 +97,8 @@ class GoalService:
             "target": lambda v: validation.positive_int(v, field="target", minimum=1),
             "completed_tasks": lambda v: validation.non_negative_int(v, field="completed_tasks"),
             "description": lambda v: validation.bounded_text(v, max_length=2000, field="description", allow_blank=True),
-            "start_date": lambda v: validation.parse_date(v, field="start_date"),
-            "due_date": lambda v: validation.parse_date(v, field="due_date"),
+            "start_date": lambda v: None if v is None else validation.parse_date(v, field="start_date"),
+            "due_date": lambda v: None if v is None else validation.parse_date(v, field="due_date"),
             "priority": lambda v: validation.choice(v, Goal.PRIORITY_LEVELS_KEYS, field="priority"),
             "frequency": lambda v: validation.bounded_text(v, max_length=50, field="frequency", allow_blank=True),
             "reminders": lambda v: validation.bounded_list(v, max_length=50, field="reminders"),
@@ -112,7 +111,7 @@ class GoalService:
 
         if "status" in data:
             if data["status"] == "completed" and goal.completed_at is None:
-                goal.completed_at = datetime.now()
+                goal.completed_at = timezone.now()
             elif data["status"] != "completed":
                 goal.completed_at = None
         goal.save()

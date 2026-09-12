@@ -1,6 +1,4 @@
 """Achievements domain service."""
-import uuid
-from datetime import date
 
 from ...models import Achievement
 from .. import validation
@@ -31,7 +29,6 @@ class AchievementService:
         )
         achievement_date = validation.parse_date(data.get("date"), field="date")
         achievement = Achievement.objects.create(
-            id=uuid.uuid4().hex,
             user=user,
             title=title,
             description=description,

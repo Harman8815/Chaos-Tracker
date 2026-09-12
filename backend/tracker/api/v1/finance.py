@@ -2,6 +2,10 @@
 from rest_framework import status
 
 from ._base import TrackerAPIView
+from .serializers import (
+    ExpenseQuerySerializer,
+    ExpenseTopItemsQuerySerializer,
+)
 from ...domain.services import expense_service
 from ...serializers import ExpenseSerializer
 
@@ -10,25 +14,19 @@ class ExpenseListCreateView(TrackerAPIView):
     serializer_class = ExpenseSerializer
 
     def list(self, request, *args, **kwargs):
-        expenses = expense_service.list(
+        query = self.validated_query(ExpenseQuerySerializer)
+        result = expense_service.list_with_summary(
             request.user,
-            year=request.query_params.get("year"),
-            month=request.query_params.get("month"),
-            category=request.query_params.get("category"),
-            start_date=request.query_params.get("start_date"),
-            end_date=request.query_params.get("end_date"),
+            year=query.get("year"),
+            month=query.get("month"),
+            category=query.get("category"),
+            start_date=query.get("start_date"),
+            end_date=query.get("end_date"),
         )
+        expenses = result.pop("expenses")
         serializer = self.serializer_class(expenses, many=True)
-        total_amount = sum(float(e.total) for e in expenses)
-        categories = {}
-        for e in expenses:
-            categories[e.category] = categories.get(e.category, 0.0) + float(e.total)
-        return self.ok(data={
-            "count": len(expenses),
-            "total_amount": round(total_amount, 2),
-            "category_breakdown": categories,
-            "expenses": serializer.data,
-        })
+        result["expenses"] = serializer.data
+        return self.ok(data=result, count=result["count"])
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -42,11 +40,7 @@ class ExpenseDetailView(TrackerAPIView):
     serializer_class = ExpenseSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        from ...domain.exceptions import NotFoundError
-        instance = expense_service.list(request.user)
-        instance = next((e for e in instance if str(e.id) == str(kwargs["id"])), None)
-        if instance is None:
-            return self.fail(NotFoundError("Expense not found"))
+        instance = expense_service.get_by_id(request.user, kwargs["id"])
         serializer = self.serializer_class(instance)
         return self.ok(data={"expense": serializer.data})
 
@@ -64,51 +58,66 @@ class ExpenseDetailView(TrackerAPIView):
 
 class ExpenseSummaryView(TrackerAPIView):
     def get(self, request):
+        query = self.validated_query(ExpenseQuerySerializer)
         summary = expense_service.summary(
             request.user,
-            year=request.query_params.get("year"),
-            month=request.query_params.get("month"),
-            start_date=request.query_params.get("start_date"),
-            end_date=request.query_params.get("end_date"),
+            year=query.get("year"),
+            month=query.get("month"),
+            category=query.get("category"),
+            start_date=query.get("start_date"),
+            end_date=query.get("end_date"),
         )
         return self.ok(data={"summary": summary})
 
 
 class ExpenseCategoriesView(TrackerAPIView):
     def get(self, request):
+        query = self.validated_query(ExpenseQuerySerializer)
         categories = expense_service.categories(
             request.user,
-            year=request.query_params.get("year"),
-            month=request.query_params.get("month"),
+            year=query.get("year"),
+            month=query.get("month"),
+            category=query.get("category"),
+            start_date=query.get("start_date"),
+            end_date=query.get("end_date"),
         )
         return self.ok(data=categories, count=len(categories))
 
 
 class ExpenseAnalyticsView(TrackerAPIView):
     def get(self, request):
+        query = self.validated_query(ExpenseQuerySerializer)
         analytics = expense_service.analytics(
             request.user,
-            year=request.query_params.get("year"),
-            month=request.query_params.get("month"),
+            year=query.get("year"),
+            month=query.get("month"),
+            category=query.get("category"),
+            start_date=query.get("start_date"),
+            end_date=query.get("end_date"),
         )
         return self.ok(data={"analytics": analytics})
 
 
 class ExpenseMonthlyStatsView(TrackerAPIView):
     def get(self, request):
+        query = self.validated_query(ExpenseQuerySerializer)
         stats = expense_service.monthly_stats(
             request.user,
-            year=request.query_params.get("year"),
+            year=query.get("year"),
         )
         return self.ok(data=stats)
 
 
 class ExpenseTopItemsView(TrackerAPIView):
     def get(self, request):
+        query = self.validated_query(ExpenseTopItemsQuerySerializer)
         items = expense_service.top_items(
             request.user,
-            limit=request.query_params.get("limit", 10),
-            year=request.query_params.get("year"),
-            month=request.query_params.get("month"),
+            limit=query.get("limit", 10),
+            year=query.get("year"),
+            month=query.get("month"),
+            category=query.get("category"),
+            start_date=query.get("start_date"),
+            end_date=query.get("end_date"),
         )
-        return self.ok(data=items, count=len(items))
+        return self.ok(data={"top_expenses": items}, count=len(items))

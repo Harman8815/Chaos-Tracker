@@ -39,6 +39,8 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for creating/updating quotes with tags
     """
+    id = serializers.CharField(read_only=True)
+    image = serializers.CharField(required=False, allow_blank=True)
     tags = serializers.ListField(
         child=serializers.CharField(max_length=50),
         required=False,
@@ -108,6 +110,8 @@ class QuoteSourceCreateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for creating/updating quote sources
     """
+    id = serializers.CharField(read_only=True)
+    cover_image = serializers.CharField(required=False, allow_blank=True)
     quotes = QuoteCreateUpdateSerializer(many=True, required=False)
     
     class Meta:
@@ -174,7 +178,7 @@ class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
         fields = ['id', 'text', 'category', 'status', 'tags', 'created_at', 'updated_at', 'completed_at', 'target', 'completed_tasks', 'description', 'start_date', 'due_date', 'priority', 'frequency', 'reminders', 'completion_criteria', 'notes']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'completed_at']
 
 
 # ==================== PLANNER SERIALIZERS ====================

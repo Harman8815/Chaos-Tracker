@@ -2,6 +2,7 @@ from rest_framework import views, status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.db.models import Q, Count, Prefetch
 from django.db.models import Q, Count, Prefetch
 import logging
@@ -2045,7 +2046,7 @@ class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         # If status is changing to 'completed', set completed_at
         if 'status' in serializer.validated_data and serializer.validated_data['status'] == 'completed':
-            serializer.save(completed_at=datetime.datetime.now())
+            serializer.save(completed_at=timezone.now())
         # If status is changing from 'completed' to something else, clear completed_at
         elif 'status' in serializer.validated_data and serializer.validated_data['status'] != 'completed':
             serializer.save(completed_at=None)
