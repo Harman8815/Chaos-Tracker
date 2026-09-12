@@ -1139,11 +1139,11 @@ class PopulateDataView(views.APIView):
 
         # --- Populate Quotes ---
         quote_sources_data = [
-            {'title': 'The Matrix', 'type': 'Movie', 'cover_image': 'https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4XkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_.jpg'},
-            {'title': 'Inception', 'type': 'Movie', 'cover_image': 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg'},
-            {'title': 'Atomic Habits', 'type': 'Book', 'cover_image': 'https://m.media-amazon.com/images/I/91bYsX41DVL.jpg'},
-            {'title': 'Dune', 'type': 'Book', 'cover_image': 'https://m.media-amazon.com/images/I/81ym3QUd3KL.jpg'},
-            {'title': 'Silicon Valley', 'type': 'Web Series', 'cover_image': 'https://m.media-amazon.com/images/M/MV5BMTgwODYzNTM1Ml5BMl5BanBnXkFtZTgwMTcxNTYwMDI@._V1_.jpg'},
+            {'title': 'The Matrix', 'type': 'Movie', 'cover_image': 'https://placehold.co/400x600/0a0a0a/7c3aed/png?text=The+Matrix'},
+            {'title': 'Inception', 'type': 'Movie', 'cover_image': 'https://placehold.co/400x600/0a0a0a/7c3aed/png?text=Inception'},
+            {'title': 'Atomic Habits', 'type': 'Book', 'cover_image': 'https://placehold.co/400x600/10b981/ffffff/png?text=Atomic+Habits'},
+            {'title': 'Dune', 'type': 'Book', 'cover_image': 'https://placehold.co/400x600/f59e0b/ffffff/png?text=Dune'},
+            {'title': 'Silicon Valley', 'type': 'Web Series', 'cover_image': 'https://placehold.co/400x600/3b82f6/ffffff/png?text=Silicon+Valley'},
         ]
         
         quotes_data = [
@@ -1195,10 +1195,10 @@ class PopulateDataView(views.APIView):
 
         # --- Populate Achievements ---
         achievement_images = [
-            "https://m.media-amazon.com/images/I/71H3Wsh8rrL._AC_UF1000,1000_QL80_.jpg",
-            "https://cdn.wallpapersafari.com/81/82/hilSnu.jpg",
-            "https://plus.unsplash.com/premium_photo-1737182592549-0c83f93e2903?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bHV4dXJ5JTIwdmVoaWNsZXxlbnwwfHwwfHx8MA%3D%3D",
-            "https://images.unsplash.com/photo-1541348263662-e068662d82af?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c3BvcnRzJTIwY2FyfGVufDB8fDB8fHww"
+            "https://placehold.co/600x400/7c3aed/ffffff/png?text=Project+Launch",
+            "https://placehold.co/600x400/10b981/ffffff/png?text=Marathon+Finish",
+            "https://placehold.co/600x400/f59e0b/ffffff/png?text=Mountain+Summit",
+            "https://placehold.co/600x400/3b82f6/ffffff/png?text=3D+Donut",
         ]
         achievement_titles = [
             "First 10k Revenue", "Marathon Completed", "Read 50 Books", 
