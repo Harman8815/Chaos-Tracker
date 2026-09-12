@@ -8,13 +8,15 @@ Controllers here do exactly three things:
 All business rules live in :mod:`tracker.domain.services`.
 """
 from rest_framework import status
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ...domain.exceptions import DomainError
+from ...domain.exceptions import DomainError, ValidationError as DomainValidationError
 from ...domain.logging import set_request_context, new_request_id
 from ...utils import success_response
+from ..versions import API_VERSION_HEADER, SUPPORTED_API_VERSIONS
 
 
 class TrackerAPIView(APIView):
@@ -33,9 +35,27 @@ class TrackerAPIView(APIView):
         set_request_context(ctx)
         super().initial(request, *args, **kwargs)
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        version = getattr(request, "version", None)
+        if version in SUPPORTED_API_VERSIONS:
+            response[API_VERSION_HEADER] = version
+        return response
+
+    def validated_query(self, serializer_class):
+        serializer = serializer_class(data=self.request.query_params)
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
+
     def handle_exception(self, exc):
         if isinstance(exc, DomainError):
             return self.handle_domain_error(exc)
+        if isinstance(exc, DRFValidationError):
+            domain_error = DomainValidationError(
+                "Invalid request parameters",
+                details=exc.detail,
+            )
+            return self.handle_domain_error(domain_error)
         return super().handle_exception(exc)
 
     def get(self, request, *args, **kwargs):

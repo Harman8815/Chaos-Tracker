@@ -17,11 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from tracker.api.versions import CURRENT_API_VERSION, version_prefix
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('authentication.urls')),
-    # Versioned API: new clients should target /api/v1/...
-    path('api/v1/', include('tracker.api.v1.urls')),
-    # Legacy unversioned routes (kept for backward compatibility during migration)
+    path(
+        version_prefix(CURRENT_API_VERSION),
+        include(('tracker.api.v1.urls', 'v1'), namespace='v1'),
+    ),
     path('api/', include('tracker.urls')),
 ]

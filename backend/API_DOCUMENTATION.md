@@ -6,7 +6,17 @@ This Django REST Framework backend provides comprehensive APIs for managing pers
 
 ## Base URL
 
-All API endpoints are prefixed with: `http://localhost:8000/api/`
+Current stable API endpoints are prefixed with: `http://localhost:8000/api/v1/`.
+
+Legacy endpoints remain available under `http://localhost:8000/api/` for backward compatibility. New clients must use the versioned base URL.
+
+## API Versioning
+
+Chaos Tracker uses URL-path versioning. The current supported version is `v1`, and versioned responses include `API-Version: v1`.
+
+Breaking contract changes must be introduced in a new path such as `/api/v2/` while the previous version remains available through its deprecation window. Query parameters, headers, or client-side switches must not change the meaning of an existing v1 field.
+
+The legacy `/api/` routes are compatibility aliases and should not be extended with new behavior.
 
 ## Authentication
 
@@ -107,9 +117,9 @@ Get current authenticated user information.
 
 ## Expense Management API
 
-### Base URL: `/api/expenses/`
+### Base URL: `/api/v1/expenses/`
 
-#### GET /api/expenses/
+#### GET /api/v1/expenses/
 List all expenses with optional filtering.
 
 **Query Parameters:**
@@ -148,7 +158,7 @@ List all expenses with optional filtering.
 }
 ```
 
-#### POST /api/expenses/
+#### POST /api/v1/expenses/
 Create a new expense.
 
 **Request Body:**
@@ -162,39 +172,39 @@ Create a new expense.
 }
 ```
 
-#### GET /api/expenses/<id>/
+#### GET /api/v1/expenses/<id>/
 Retrieve a specific expense.
 
-#### PUT/PATCH /api/expenses/<id>/
+#### PUT/PATCH /api/v1/expenses/<id>/
 Update an expense.
 
-#### DELETE /api/expenses/<id>/
+#### DELETE /api/v1/expenses/<id>/
 Delete an expense.
 
 ### Analytics Endpoints
 
-#### GET /api/expenses/summary/
+#### GET /api/v1/expenses/summary/
 Get comprehensive summary statistics.
 
-#### GET /api/expenses/categories/
+#### GET /api/v1/expenses/categories/
 Get category breakdown with counts and totals.
 
-#### GET /api/expenses/analytics/
+#### GET /api/v1/expenses/analytics/
 Get detailed monthly analytics for charts.
 
-#### GET /api/expenses/monthly-stats/
+#### GET /api/v1/expenses/monthly-stats/
 Get yearly monthly statistics.
 
-#### GET /api/expenses/top-items/
+#### GET /api/v1/expenses/top-items/
 Get top expenses by amount.
 
 ---
 
 ## Goals Management API
 
-### Base URL: `/api/goals/`
+### Base URL: `/api/v1/goals/`
 
-#### GET /api/goals/
+#### GET /api/v1/goals/
 List all goals with optional filtering.
 
 **Query Parameters:**
@@ -223,7 +233,7 @@ List all goals with optional filtering.
 }
 ```
 
-#### POST /api/goals/
+#### POST /api/v1/goals/
 Create a new goal.
 
 **Request Body:**
@@ -235,22 +245,22 @@ Create a new goal.
 }
 ```
 
-#### GET /api/goals/<id>/
+#### GET /api/v1/goals/<id>/
 Retrieve a specific goal.
 
-#### PUT/PATCH /api/goals/<id>/
+#### PUT/PATCH /api/v1/goals/<id>/
 Update a goal.
 
-#### DELETE /api/goals/<id>/
+#### DELETE /api/v1/goals/<id>/
 Delete a goal.
 
 ---
 
 ## Planner API
 
-### Base URL: `/api/planner/`
+### Base URL: `/api/v1/planner/`
 
-#### GET /api/planner/
+#### GET /api/v1/planner/
 Get all planner data for the authenticated user.
 
 **Response:**
@@ -290,115 +300,115 @@ Get all planner data for the authenticated user.
 }
 ```
 
-#### PUT /api/planner/
+#### PUT /api/v1/planner/
 Replace all planner data.
 
-#### PATCH /api/planner/
+#### PATCH /api/v1/planner/
 Partially update planner data.
 
-#### GET /api/planner/blocks/<block_id>/
+#### GET /api/v1/planner/blocks/<block_id>/
 Get a specific block.
 
-#### PUT /api/planner/blocks/<block_id>/
+#### PUT /api/v1/planner/blocks/<block_id>/
 Update a specific block.
 
-#### DELETE /api/planner/blocks/<block_id>/
+#### DELETE /api/v1/planner/blocks/<block_id>/
 Delete a specific block.
 
 ---
 
 ## Quotes API
 
-### Base URL: `/api/quotes/`
+### Base URL: `/api/v1/quotes/`
 
-#### GET /api/quotes/
+#### GET /api/v1/quotes/
 List all quotes with optional filtering.
 
-#### POST /api/quotes/
+#### POST /api/v1/quotes/
 Create a new quote.
 
-#### GET /api/quotes/sources/
+#### GET /api/v1/quotes/sources/
 List all quote sources.
 
-#### POST /api/quotes/sources/
+#### POST /api/v1/quotes/sources/
 Create a new quote source.
 
-#### GET /api/quotes/sources/<source_id>/
+#### GET /api/v1/quotes/sources/<source_id>/
 Get a specific source with its quotes.
 
-#### PUT/PATCH /api/quotes/sources/<source_id>/
+#### PUT/PATCH /api/v1/quotes/sources/<source_id>/
 Update a quote source.
 
-#### DELETE /api/quotes/sources/<source_id>/
+#### DELETE /api/v1/quotes/sources/<source_id>/
 Delete a quote source.
 
 ---
 
 ## Achievements API
 
-### Base URL: `/api/achievements/`
+### Base URL: `/api/v1/achievements/`
 
-#### GET /api/achievements/
+#### GET /api/v1/achievements/
 List all achievements.
 
-#### POST /api/achievements/
+#### POST /api/v1/achievements/
 Create a new achievement.
 
-#### GET /api/achievements/<id>/
+#### GET /api/v1/achievements/<id>/
 Get a specific achievement.
 
-#### PUT/PATCH /api/achievements/<id>/
+#### PUT/PATCH /api/v1/achievements/<id>/
 Update an achievement.
 
-#### DELETE /api/achievements/<id>/
+#### DELETE /api/v1/achievements/<id>/
 Delete an achievement.
 
 ---
 
 ## Habits API
 
-### Base URL: `/api/habits/`
+### Base URL: `/api/v1/habits/`
 
-#### GET /api/habits/
+#### GET /api/v1/habits/
 List all habits.
 
-#### POST /api/habits/
+#### POST /api/v1/habits/
 Create a new habit.
 
-#### GET /api/habits/<id>/
+#### GET /api/v1/habits/<id>/
 Get a specific habit.
 
-#### PUT/PATCH /api/habits/<id>/
+#### PUT/PATCH /api/v1/habits/<id>/
 Update a habit.
 
-#### DELETE /api/habits/<id>/
+#### DELETE /api/v1/habits/<id>/
 Delete a habit.
 
-#### GET /api/habits/scores/
+#### GET /api/v1/habits/scores/
 Get habit scores for a date range.
 
-#### POST /api/habits/scores/
+#### POST /api/v1/habits/scores/
 Record habit scores.
 
 ---
 
 ## Journal API
 
-### Base URL: `/api/journal/`
+### Base URL: `/api/v1/journal/`
 
-#### GET /api/journal/
+#### GET /api/v1/journal/
 List all journal entries.
 
-#### POST /api/journal/
+#### POST /api/v1/journal/
 Create a new journal entry.
 
-#### GET /api/journal/<date>/
+#### GET /api/v1/journal/<date>/
 Get journal entry for a specific date.
 
-#### PUT/PATCH /api/journal/<date>/
+#### PUT/PATCH /api/v1/journal/<date>/
 Update journal entry for a specific date.
 
-#### DELETE /api/journal/<date>/
+#### DELETE /api/v1/journal/<date>/
 Delete journal entry for a specific date.
 
 ---
@@ -407,7 +417,7 @@ Delete journal entry for a specific date.
 
 ### Temporary Data API
 
-#### POST /api/temp-data/
+#### POST /api/v1/temp-data/
 Insert comprehensive historical data for the past 12 months.
 
 **Response:**
@@ -523,11 +533,11 @@ curl -X POST http://localhost:8000/api/auth/login/ \
   -d '{"username": "johndoe", "password": "password123"}'
 
 # Get expenses
-curl -X GET http://localhost:8000/api/expenses/ \
+curl -X GET http://localhost:8000/api/v1/expenses/ \
   -b cookies.txt
 
 # Create expense
-curl -X POST http://localhost:8000/api/expenses/ \
+curl -X POST http://localhost:8000/api/v1/expenses/ \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"date": "2025-12-21", "item": "Test", "category": "Food", "quantity": 1, "price": 10.00}'
@@ -536,7 +546,7 @@ curl -X POST http://localhost:8000/api/expenses/ \
 ### Using Postman
 
 1. Import the collection (if provided)
-2. Set base URL to `http://localhost:8000/api/`
+2. Set base URL to `http://localhost:8000/api/v1/`
 3. Use the authentication endpoints to get session cookies
 4. Include cookies in subsequent requests
 
