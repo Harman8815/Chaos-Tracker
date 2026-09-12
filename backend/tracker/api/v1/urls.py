@@ -20,6 +20,33 @@ from .finance import (
     ExpenseAnalyticsView,
     ExpenseMonthlyStatsView,
     ExpenseTopItemsView,
+    IncomeListCreateView,
+    IncomeDetailView,
+    IncomeSummaryView,
+    IncomeMonthlyStatsView,
+    AccountListCreateView,
+    AccountDetailView,
+    AccountSummaryView,
+    RecurringExpenseListCreateView,
+    RecurringExpenseDetailView,
+    RecurringExpenseProcessView,
+    TransferListCreateView,
+    TransferDetailView,
+    TransferSummaryView,
+    SubscriptionListCreateView,
+    SubscriptionDetailView,
+    SubscriptionSummaryView,
+    SubscriptionUpcomingView,
+    BudgetAlertListView,
+    BudgetAlertDetailView,
+    BudgetAlertMarkReadView,
+    BudgetAlertMarkDismissedView,
+    BudgetAlertMarkAllReadView,
+    BudgetAlertCheckView,
+    BudgetAlertUnreadCountView,
+    BudgetListCreateView,
+    BudgetDetailView,
+    BudgetActualVsBudgetView,
 )
 from .goals import GoalListCreateView, GoalDetailView
 from .planner import PlannerDataView, PlannerBlockDetailView
@@ -59,6 +86,47 @@ urlpatterns = [
     path('expenses/top-items/', ExpenseTopItemsView.as_view(), name='expense-top-items'),
     path('expenses/', ExpenseListCreateView.as_view(), name='expense-list-create'),
     path('expenses/<int:id>/', ExpenseDetailView.as_view(), name='expense-detail'),
+
+    # Income
+    path('income/summary/', IncomeSummaryView.as_view(), name='income-summary'),
+    path('income/monthly-stats/', IncomeMonthlyStatsView.as_view(), name='income-monthly-stats'),
+    path('income/', IncomeListCreateView.as_view(), name='income-list-create'),
+    path('income/<int:id>/', IncomeDetailView.as_view(), name='income-detail'),
+
+    # Accounts
+    path('accounts/summary/', AccountSummaryView.as_view(), name='account-summary'),
+    path('accounts/', AccountListCreateView.as_view(), name='account-list-create'),
+    path('accounts/<int:id>/', AccountDetailView.as_view(), name='account-detail'),
+
+    # Recurring Expenses
+    path('recurring-expenses/process/', RecurringExpenseProcessView.as_view(), name='recurring-expense-process'),
+    path('recurring-expenses/', RecurringExpenseListCreateView.as_view(), name='recurring-expense-list-create'),
+    path('recurring-expenses/<int:id>/', RecurringExpenseDetailView.as_view(), name='recurring-expense-detail'),
+
+    # Transfers
+    path('transfers/summary/', TransferSummaryView.as_view(), name='transfer-summary'),
+    path('transfers/', TransferListCreateView.as_view(), name='transfer-list-create'),
+    path('transfers/<int:id>/', TransferDetailView.as_view(), name='transfer-detail'),
+
+    # Subscriptions
+    path('subscriptions/summary/', SubscriptionSummaryView.as_view(), name='subscription-summary'),
+    path('subscriptions/upcoming/', SubscriptionUpcomingView.as_view(), name='subscription-upcoming'),
+    path('subscriptions/', SubscriptionListCreateView.as_view(), name='subscription-list-create'),
+    path('subscriptions/<int:id>/', SubscriptionDetailView.as_view(), name='subscription-detail'),
+
+    # Budget Alerts
+    path('budget-alerts/unread-count/', BudgetAlertUnreadCountView.as_view(), name='budget-alert-unread-count'),
+    path('budget-alerts/check/', BudgetAlertCheckView.as_view(), name='budget-alert-check'),
+    path('budget-alerts/mark-all-read/', BudgetAlertMarkAllReadView.as_view(), name='budget-alert-mark-all-read'),
+    path('budget-alerts/<int:id>/read/', BudgetAlertMarkReadView.as_view(), name='budget-alert-mark-read'),
+    path('budget-alerts/<int:id>/dismiss/', BudgetAlertMarkDismissedView.as_view(), name='budget-alert-mark-dismissed'),
+    path('budget-alerts/<int:id>/', BudgetAlertDetailView.as_view(), name='budget-alert-detail'),
+    path('budget-alerts/', BudgetAlertListView.as_view(), name='budget-alert-list'),
+
+    # Budgets
+    path('budgets/actual-vs-budget/', BudgetActualVsBudgetView.as_view(), name='budget-actual-vs-budget'),
+    path('budgets/', BudgetListCreateView.as_view(), name='budget-list-create'),
+    path('budgets/<int:id>/', BudgetDetailView.as_view(), name='budget-detail'),
 
     # Goals
     path('goals/', GoalListCreateView.as_view(), name='goal-list-create'),
