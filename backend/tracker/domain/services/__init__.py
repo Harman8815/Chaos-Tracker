@@ -38,6 +38,34 @@ from .recurring_expenses import RecurringExpenseService, recurring_expense_servi
 from .transfers import TransferService, transfer_service
 from .subscriptions import SubscriptionService, subscription_service
 from .budget_alerts import BudgetAlertService, budget_alert_service
+from .notifications import (
+    NotificationService,
+    notification_service,
+    ScheduledJobService,
+    scheduled_job_service,
+)
+from .alerts import (
+    GoalDeadlineAlertService,
+    goal_deadline_alert_service,
+    HabitReminderService,
+    habit_reminder_service,
+    BudgetAlertService as AlertBudgetAlertService,
+    budget_alert_service,
+    StreakAlertService,
+    streak_alert_service,
+    AchievementNotificationService,
+    achievement_notification_service,
+    SummaryNotificationService,
+    summary_notification_service,
+)
+from .recurring_jobs import (
+    RecurringExpenseJobService,
+    recurring_expense_job_service,
+    RecurringIncomeJobService,
+    recurring_income_job_service,
+    SubscriptionBillingJobService,
+    subscription_billing_job_service,
+)
 
 __all__ = [
     "AchievementEngine",
@@ -90,4 +118,26 @@ __all__ = [
     "subscription_service",
     "BudgetAlertService",
     "budget_alert_service",
+    "NotificationService",
+    "notification_service",
+    "ScheduledJobService",
+    "scheduled_job_service",
+    "GoalDeadlineAlertService",
+    "goal_deadline_alert_service",
+    "HabitReminderService",
+    "habit_reminder_service",
+    "BudgetAlertService",
+    "budget_alert_service",
+    "StreakAlertService",
+    "streak_alert_service",
+    "AchievementNotificationService",
+    "achievement_notification_service",
+    "SummaryNotificationService",
+    "summary_notification_service",
+    "RecurringExpenseJobService",
+    "recurring_expense_job_service",
+    "RecurringIncomeJobService",
+    "recurring_income_job_service",
+    "SubscriptionBillingJobService",
+    "subscription_billing_job_service",
 ]

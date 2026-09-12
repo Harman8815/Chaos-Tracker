@@ -4,7 +4,7 @@ Owns Income CRUD plus analytics. All queries are scoped to the requesting user.
 """
 from datetime import date
 
-from ...models import Income
+from ...models import Income, RecurringIncome
 from .. import validation
 from ..exceptions import NotFoundError, ValidationError
 from ..logging import get_logger
@@ -160,6 +160,87 @@ class IncomeService:
             "total_amount": round(year_total, 2),
             "monthly_stats": monthly_list,
         }
+
+    # --- Recurring Income ---
+
+    def list_recurring(self, user, *, is_active=None):
+        qs = RecurringIncome.objects.filter(user=user)
+        if is_active is not None:
+            qs = qs.filter(is_active=is_active)
+        return list(qs)
+
+    def get_recurring_by_id(self, user, recurring_id):
+        recurring = RecurringIncome.objects.filter(id=recurring_id, user=user).first()
+        if recurring is None:
+            raise NotFoundError("Recurring income not found")
+        return recurring
+
+    def create_recurring_income(self, user, data):
+        name = validation.bounded_text(data.get("name"), max_length=255, field="name")
+        source = validation.bounded_text(data.get("source"), max_length=20, field="source")
+        amount = validation.bounded_decimal(data.get("amount"), field="amount")
+        if amount < 0:
+            raise ValidationError("amount must be non-negative")
+        frequency = validation.choice(
+            data.get("frequency", "monthly"),
+            RecurringIncome.FREQUENCY_CHOICES if hasattr(RecurringIncome, 'FREQUENCY_CHOICES') else [('monthly', 'Monthly'), ('yearly', 'Yearly')],
+            field="frequency",
+        )
+        start_date = validation.parse_date(data.get("start_date"), field="start_date")
+        end_date = validation.parse_date(data["end_date"], field="end_date") if data.get("end_date") else None
+        day_of_month = data.get("day_of_month")
+        if day_of_month is not None:
+            day_of_month = validation.in_range(day_of_month, 1, 31, field="day_of_month")
+        next_occurrence = validation.parse_date(data.get("next_occurrence", start_date), field="next_occurrence")
+        is_active = bool(data.get("is_active", True))
+
+        recurring = RecurringIncome.objects.create(
+            user=user,
+            name=name,
+            source=source,
+            amount=amount,
+            frequency=frequency,
+            start_date=start_date,
+            end_date=end_date,
+            day_of_month=day_of_month,
+            next_occurrence=next_occurrence,
+            is_active=is_active,
+        )
+        logger.info("recurring_income.create user_id=%s id=%s", user.id, recurring.id)
+        return recurring
+
+    def update_recurring_income(self, user, recurring_id, data, *, partial=True):
+        recurring = RecurringIncome.objects.filter(id=recurring_id, user=user).first()
+        if recurring is None:
+            raise NotFoundError("Recurring income not found")
+        if "name" in data:
+            recurring.name = validation.bounded_text(data["name"], max_length=255, field="name")
+        if "source" in data:
+            recurring.source = validation.bounded_text(data["source"], max_length=20, field="source")
+        if "amount" in data:
+            amount = validation.bounded_decimal(data["amount"], field="amount")
+            if amount < 0:
+                raise ValidationError("amount must be non-negative")
+            recurring.amount = amount
+        if "frequency" in data:
+            recurring.frequency = validation.choice(
+                data["frequency"],
+                RecurringIncome.FREQUENCY_CHOICES if hasattr(RecurringIncome, 'FREQUENCY_CHOICES') else [('monthly', 'Monthly'), ('yearly', 'Yearly')],
+                field="frequency",
+            )
+        if "start_date" in data:
+            recurring.start_date = validation.parse_date(data["start_date"], field="start_date")
+        if "end_date" in data:
+            recurring.end_date = validation.parse_date(data["end_date"], field="end_date") if data["end_date"] else None
+        if "day_of_month" in data:
+            recurring.day_of_month = validation.in_range(data["day_of_month"], 1, 31, field="day_of_month") if data["day_of_month"] else None
+        if "next_occurrence" in data:
+            recurring.next_occurrence = validation.parse_date(data["next_occurrence"], field="next_occurrence")
+        if "is_active" in data:
+            recurring.is_active = bool(data["is_active"])
+        recurring.save()
+        logger.info("recurring_income.update user_id=%s id=%s", user.id, recurring.id)
+        return recurring
 
 
 income_service = IncomeService()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, BudgetAlert, Transfer, Subscription
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication
 
 import base64
 
@@ -361,4 +361,49 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         fields = ['id', 'name', 'category', 'amount', 'billing_cycle', 'next_billing_date', 'start_date', 'end_date', 'status', 'description', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'type', 'priority', 'title', 'message', 'data', 'is_read', 'read_at', 'created_at']
+        read_only_fields = ['id', 'created_at', 'read_at']
+
+
+class NotificationPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationPreference
+        fields = [
+            'goal_deadline_enabled', 'habit_reminder_enabled', 'budget_alert_enabled',
+            'streak_alert_enabled', 'achievement_enabled', 'weekly_summary_enabled',
+            'monthly_summary_enabled', 'recurring_transaction_enabled', 'system_enabled',
+            'in_app_enabled', 'email_enabled', 'push_enabled',
+            'quiet_hours_start', 'quiet_hours_end', 'timezone',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class ScheduledJobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScheduledJob
+        fields = ['id', 'user', 'job_type', 'status', 'scheduled_at', 'started_at', 'completed_at',
+                  'payload', 'result', 'error_message', 'retry_count', 'max_retries', 'next_retry_at',
+                  'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'started_at', 'completed_at', 'retry_count']
+
+
+class NotificationDeduplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationDeduplication
+        fields = ['id', 'user', 'notification_type', 'dedupe_key', 'sent_at']
+        read_only_fields = ['id', 'sent_at']
+
+
+class RecurringIncomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecurringIncome
+        fields = ['id', 'name', 'source', 'amount', 'frequency', 'start_date', 'end_date',
+                  'day_of_month', 'next_occurrence', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'next_occurrence']
 

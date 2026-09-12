@@ -70,6 +70,22 @@ from .analytics import (
     InsightsView,
     AnalyticsDashboardView,
 )
+from .notifications import (
+    NotificationListView,
+    NotificationUnreadCountView,
+    NotificationMarkReadView,
+    NotificationMarkAllReadView,
+    NotificationDeleteView,
+    NotificationDeleteAllReadView,
+    NotificationPreferenceView,
+    ScheduledJobListView,
+    ScheduledJobDetailView,
+    ScheduledJobRetryView,
+    ScheduledJobCancelView,
+    RunJobNowView,
+    RecurringIncomeListCreateView,
+    RecurringIncomeDetailView,
+)
 
 urlpatterns = [
     # Journal
@@ -163,4 +179,24 @@ urlpatterns = [
     path('analytics/correlations/', CorrelationsView.as_view(), name='analytics-correlations'),
     path('analytics/insights/', InsightsView.as_view(), name='analytics-insights'),
     path('analytics/dashboard/', AnalyticsDashboardView.as_view(), name='analytics-dashboard'),
+
+    # Notifications
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/unread-count/', NotificationUnreadCountView.as_view(), name='notification-unread-count'),
+    path('notifications/mark-all-read/', NotificationMarkAllReadView.as_view(), name='notification-mark-all-read'),
+    path('notifications/delete-read/', NotificationDeleteAllReadView.as_view(), name='notification-delete-read'),
+    path('notifications/<int:id>/read/', NotificationMarkReadView.as_view(), name='notification-mark-read'),
+    path('notifications/<int:id>/', NotificationDeleteView.as_view(), name='notification-delete'),
+    path('notifications/preferences/', NotificationPreferenceView.as_view(), name='notification-preferences'),
+
+    # Scheduled Jobs
+    path('jobs/', ScheduledJobListView.as_view(), name='job-list'),
+    path('jobs/run-now/', RunJobNowView.as_view(), name='job-run-now'),
+    path('jobs/<int:id>/', ScheduledJobDetailView.as_view(), name='job-detail'),
+    path('jobs/<int:id>/retry/', ScheduledJobRetryView.as_view(), name='job-retry'),
+    path('jobs/<int:id>/cancel/', ScheduledJobCancelView.as_view(), name='job-cancel'),
+
+    # Recurring Income
+    path('recurring-income/', RecurringIncomeListCreateView.as_view(), name='recurring-income-list-create'),
+    path('recurring-income/<int:id>/', RecurringIncomeDetailView.as_view(), name='recurring-income-detail'),
 ]
