@@ -9,7 +9,7 @@ import uuid
 from django.db import transaction
 from django.db.models import Q
 
-from ...models import PlannerBlock, PlannerLink, PlannerSettings, PlannerTask
+from ...models import Goal, PlannerBlock, PlannerLink, PlannerSettings, PlannerTask
 from .. import validation
 from ..exceptions import NotFoundError, ValidationError
 from ..logging import get_logger
@@ -197,13 +197,63 @@ class PlannerService:
         task_id = validation.bounded_text(raw.get("id"), max_length=100, field="id")
         if not task_id:
             raise ValidationError("id is required")
-        return PlannerTask.objects.create(
+        goal = self._resolve_goal(block.user, raw.get("goal"))
+        task = PlannerTask.objects.create(
             id=task_id,
             block=block,
             text=validation.bounded_text(raw.get("text"), max_length=500, field="text"),
             completed=bool(raw.get("completed", False)),
             order=validation.non_negative_int(raw.get("order", idx), field="order"),
+            goal=goal,
         )
+        if task.completed and goal is not None:
+            self._increment_goal_progress(block.user, goal)
+        return task
+
+    def _resolve_goal(self, user, goal_id):
+        if goal_id is None or goal_id == "":
+            return None
+        goal = Goal.objects.filter(id=goal_id, user=user).first()
+        if goal is None:
+            raise ValidationError("Task references a goal you do not own")
+        return goal
+
+    @staticmethod
+    def _increment_goal_progress(user, goal):
+        from django.db.models import F
+        Goal.objects.filter(id=goal.id, user=user).update(
+            completed_tasks=F("completed_tasks") + 1,
+        )
+
+    def set_task_goal(self, user, task_id, goal_id):
+        """Attach a planner task to a goal (P2-02)."""
+        task = PlannerTask.objects.filter(id=task_id, block__user=user).first()
+        if task is None:
+            raise NotFoundError("Planner task not found")
+        goal = self._resolve_goal(user, goal_id)
+        task.goal = goal
+        task.save()
+        logger.info("planner.set_task_goal user_id=%s task_id=%s goal_id=%s", user.id, task_id, goal.id if goal else None)
+        return task
+
+    def complete_task(self, user, task_id, *, completed=True):
+        """Mark a task complete/incomplete and update goal progress (P3-07)."""
+        task = PlannerTask.objects.filter(id=task_id, block__user=user).first()
+        if task is None:
+            raise NotFoundError("Planner task not found")
+        previous = task.completed
+        task.completed = completed
+        task.save()
+        if task.goal is not None and previous != completed:
+            if completed:
+                self._increment_goal_progress(user, task.goal)
+            else:
+                from django.db.models import F
+                Goal.objects.filter(id=task.goal.id, user=user).update(
+                    completed_tasks=F("completed_tasks") - 1,
+                )
+        logger.info("planner.complete_task user_id=%s task_id=%s completed=%s", user.id, task_id, completed)
+        return task
 
     def _create_link(self, user, raw):
         raw = _require_object(raw, "link")

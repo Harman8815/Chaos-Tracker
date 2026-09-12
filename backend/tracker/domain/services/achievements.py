@@ -28,12 +28,16 @@ class AchievementService:
             data.get("image", ""), max_length=500, field="image", allow_blank=True,
         )
         achievement_date = validation.parse_date(data.get("date"), field="date")
+        trigger_rule = validation.bounded_dict(
+            data.get("trigger_rule", {}) or {}, max_length=50, field="trigger_rule",
+        )
         achievement = Achievement.objects.create(
             user=user,
             title=title,
             description=description,
             date=achievement_date,
             image=image,
+            trigger_rule=trigger_rule,
         )
         logger.info("achievements.create user_id=%s id=%s", user.id, achievement.id)
         return achievement
@@ -54,8 +58,12 @@ class AchievementService:
             )
         if "date" in data:
             achievement.date = validation.parse_date(data["date"], field="date")
+        if "trigger_rule" in data:
+            achievement.trigger_rule = validation.bounded_dict(
+                data.get("trigger_rule") or {}, max_length=50, field="trigger_rule",
+            )
         achievement.save()
-        logger.info("achievements.update user_id=%s id=%s", user.id, achievement.id)
+        logger.info("achievements.update user_id=%s id=%s", user.id, achievement_id)
         return achievement
 
     def delete(self, user, achievement_id):
