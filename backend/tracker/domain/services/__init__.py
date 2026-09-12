@@ -32,6 +32,12 @@ from .quotes import (
     quote_tag_service,
 )
 from .recurring import RecurringService, recurring_service
+from .income import IncomeService, income_service
+from .accounts import AccountService, account_service
+from .recurring_expenses import RecurringExpenseService, recurring_expense_service
+from .transfers import TransferService, transfer_service
+from .subscriptions import SubscriptionService, subscription_service
+from .budget_alerts import BudgetAlertService, budget_alert_service
 
 __all__ = [
     "AchievementEngine",
@@ -72,4 +78,16 @@ __all__ = [
     "quote_tag_service",
     "RecurringService",
     "recurring_service",
+    "IncomeService",
+    "income_service",
+    "AccountService",
+    "account_service",
+    "RecurringExpenseService",
+    "recurring_expense_service",
+    "TransferService",
+    "transfer_service",
+    "SubscriptionService",
+    "subscription_service",
+    "BudgetAlertService",
+    "budget_alert_service",
 ]
