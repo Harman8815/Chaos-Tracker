@@ -656,3 +656,215 @@ class Budget(models.Model):
     def period(self):
         return f"{self.year}-{self.month:02d}"
 
+
+class Income(models.Model):
+    """Income record for tracking money sources (P4-05)."""
+
+    SOURCE_TYPES = [
+        ('salary', 'Salary'),
+        ('freelance', 'Freelance'),
+        ('investment', 'Investment'),
+        ('gift', 'Gift'),
+        ('refund', 'Refund'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='incomes')
+    date = models.DateField()
+    source = models.CharField(max_length=20, choices=SOURCE_TYPES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['user', 'source']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_source_display()} - ${self.amount} - {self.date}"
+
+
+class Account(models.Model):
+    """Account/Wallet model for tracking money sources (P4-06)."""
+
+    ACCOUNT_TYPES = [
+        ('checking', 'Checking'),
+        ('savings', 'Savings'),
+        ('credit', 'Credit Card'),
+        ('cash', 'Cash'),
+        ('investment', 'Investment'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
+    name = models.CharField(max_length=100)
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    currency = models.CharField(max_length=3, default='USD')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['user', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_account_type_display()}) - ${self.balance}"
+
+
+class RecurringExpense(models.Model):
+    """Recurring expense template for automatic creation (P4-04)."""
+
+    FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recurring_expenses')
+    item = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)
+    quantity = models.IntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    day_of_month = models.IntegerField(null=True, blank=True, help_text='Day of month for monthly frequency (1-31)')
+    day_of_week = models.IntegerField(null=True, blank=True, help_text='Day of week for weekly frequency (0=Mon..6=Sun)')
+    next_occurrence = models.DateField(help_text='Next date this recurring expense should be created')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['next_occurrence']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['next_occurrence']),
+        ]
+
+    def __str__(self):
+        return f"{self.item} - {self.get_frequency_display()} - ${self.price}"
+
+    @property
+    def total(self):
+        return self.quantity * self.price
+
+
+class BudgetAlert(models.Model):
+    """Budget threshold alerts (P4-03)."""
+
+    ALERT_TYPES = [
+        ('threshold', 'Threshold Reached'),
+        ('exceeded', 'Budget Exceeded'),
+        ('projected', 'Projected to Exceed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budget_alerts')
+    budget = models.ForeignKey('Budget', on_delete=models.CASCADE, related_name='alerts')
+    alert_type = models.CharField(max_length=20, choices=ALERT_TYPES)
+    threshold_percent = models.IntegerField(default=80, help_text='Alert when spending reaches this percentage of budget')
+    message = models.TextField(blank=True)
+    is_read = models.BooleanField(default=False)
+    is_dismissed = models.BooleanField(default=False)
+    triggered_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-triggered_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+            models.Index(fields=['budget', 'alert_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.budget.category} - {self.get_alert_type_display()} ({self.threshold_percent}%)"
+
+
+class Transfer(models.Model):
+    """Money transfer between accounts (P4-07)."""
+
+    TRANSFER_TYPES = [
+        ('internal', 'Internal Transfer'),
+        ('deposit', 'Deposit'),
+        ('withdrawal', 'Withdrawal'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transfers')
+    from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_from')
+    to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    transfer_type = models.CharField(max_length=20, choices=TRANSFER_TYPES, default='internal')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
+    date = models.DateField()
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['from_account']),
+            models.Index(fields=['to_account']),
+        ]
+
+    def __str__(self):
+        from_name = self.from_account.name if self.from_account else 'External'
+        to_name = self.to_account.name if self.to_account else 'External'
+        return f"{from_name} → {to_name} - ${self.amount}"
+
+
+class Subscription(models.Model):
+    """Subscription tracking for recurring services (P4-09)."""
+
+    BILLING_CYCLES = [
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('yearly', 'Yearly'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('cancelled', 'Cancelled'),
+        ('paused', 'Paused'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    billing_cycle = models.CharField(max_length=20, choices=BILLING_CYCLES)
+    next_billing_date = models.DateField()
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['next_billing_date']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['next_billing_date']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} - ${self.amount}/{self.get_billing_cycle_display()}"
+
