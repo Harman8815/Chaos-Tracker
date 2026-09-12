@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class JournalEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_entries')
@@ -92,6 +93,10 @@ class Achievement(models.Model):
     description = models.TextField(blank=True)
     date = models.DateField()
     image = models.URLField(max_length=500, blank=True, null=True)
+    trigger_rule = models.JSONField(
+        default=dict, blank=True,
+        help_text='Optional rule describing what measurable event triggers this achievement, e.g. {"event_type": "planner_task_completed", "count": 7}',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -213,6 +218,10 @@ class PlannerTask(models.Model):
     """
     id = models.CharField(max_length=100, primary_key=True)
     block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='tasks')
+    goal = models.ForeignKey(
+        Goal, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='planner_tasks', help_text='Goal this task contributes to',
+    )
     text = models.CharField(max_length=500)
     completed = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
@@ -223,6 +232,7 @@ class PlannerTask(models.Model):
         ordering = ['order', 'created_at']
         indexes = [
             models.Index(fields=['block', 'order']),
+            models.Index(fields=['goal']),
         ]
 
     def __str__(self):
@@ -271,6 +281,10 @@ class Habit(models.Model):
     """
     id = models.CharField(max_length=100, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
+    goal = models.ForeignKey(
+        Goal, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='habits', help_text='Goal this habit supports',
+    )
     name = models.CharField(max_length=255)
     target = models.IntegerField(default=1)
     range_max = models.IntegerField(default=10)
@@ -281,6 +295,7 @@ class Habit(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['user']),
+            models.Index(fields=['goal']),
         ]
 
     def __str__(self):
@@ -404,4 +419,147 @@ class Water(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.date} - {self.glasses}/{self.target} glasses"
+
+
+class UserEvent(models.Model):
+    """Universal audit trail for important application events.
+
+    Records measurable actions (goal created/completed, task completed,
+    habit logged, achievement earned, expense created, etc.) so that
+    achievements, daily aggregates and analytics can be derived from a
+    single chronological source of truth.
+    """
+
+    EVENT_TYPES = [
+        ('goal_created', 'Goal Created'),
+        ('goal_updated', 'Goal Updated'),
+        ('goal_completed', 'Goal Completed'),
+        ('goal_deleted', 'Goal Deleted'),
+        ('planner_task_created', 'Planner Task Created'),
+        ('planner_task_completed', 'Planner Task Completed'),
+        ('planner_task_deleted', 'Planner Task Deleted'),
+        ('habit_created', 'Habit Created'),
+        ('habit_log', 'Habit Log'),
+        ('achievement_earned', 'Achievement Earned'),
+        ('expense_created', 'Expense Created'),
+        ('expense_updated', 'Expense Updated'),
+        ('expense_deleted', 'Expense Deleted'),
+        ('journal_updated', 'Journal Updated'),
+        ('mood_logged', 'Mood Logged'),
+        ('water_logged', 'Water Logged'),
+        ('budget_created', 'Budget Created'),
+        ('budget_exceeded', 'Budget Exceeded'),
+    ]
+
+    EVENT_TYPE_KEYS = [k for k, _ in EVENT_TYPES]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
+    event_type = models.CharField(max_length=50, choices=EVENT_TYPES)
+    subject_type = models.CharField(max_length=100, blank=True, help_text='Model name of the related object, e.g. "Goal"')
+    subject_id = models.CharField(max_length=100, blank=True, help_text='String id of the related object')
+    occurred_at = models.DateTimeField(default=timezone.now, help_text='When the event actually happened')
+    payload = models.JSONField(default=dict, blank=True, help_text='Optional structured extra data')
+
+    class Meta:
+        ordering = ['-occurred_at']
+        indexes = [
+            models.Index(fields=['user', 'event_type']),
+            models.Index(fields=['user', 'occurred_at']),
+            models.Index(fields=['user', 'subject_type', 'subject_id']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event_type} - {self.occurred_at.isoformat()}"
+
+
+class DailyActivityAggregate(models.Model):
+    """Central representation of a user's day.
+
+    Aggregates presence/counts from every tracker domain for a single
+    ``(user, date)`` pair. Heavy per-domain detail is intentionally NOT
+    stored here; this model answers "what happened on this day?" while
+    the individual models remain the source of truth for detail.
+
+    The aggregate is recomputed by the analytics service when domains
+    change, so it is a derived cache rather than canonical data.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_activity')
+    date = models.DateField()
+
+    # Habits
+    habits_completed = models.IntegerField(default=0)
+    habits_total = models.IntegerField(default=0)
+
+    # Goals
+    goals_completed = models.IntegerField(default=0)
+    goals_created = models.IntegerField(default=0)
+
+    # Planner
+    planner_tasks_completed = models.IntegerField(default=0)
+    planner_tasks_created = models.IntegerField(default=0)
+
+    # Journal
+    has_journal = models.BooleanField(default=False)
+
+    # Mood
+    mood = models.CharField(max_length=20, blank=True, default='')
+
+    # Water
+    water_glasses = models.IntegerField(default=0)
+    water_target = models.IntegerField(default=0)
+
+    # Expenses
+    expense_count = models.IntegerField(default=0)
+    expense_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    # Points / score
+    points = models.IntegerField(default=0)
+
+    # Achievements
+    achievements_earned = models.IntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['user', 'date']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date}"
+
+
+class Budget(models.Model):
+    """Category/month budget for expense intelligence (P2-07).
+
+    A budget defines the planned spending cap for a single category
+    within a single calendar month. The finance service compares actual
+    expenses against this cap to surface alerts and analytics.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
+    category = models.CharField(max_length=100)
+    year = models.IntegerField()
+    month = models.IntegerField()  # 1-12
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-year', '-month', 'category']
+        unique_together = ['user', 'category', 'year', 'month']
+        indexes = [
+            models.Index(fields=['user', 'year', 'month']),
+        ]
+
+    def __str__(self):
+        return f"{self.category} - {self.year}/{self.month:02d} - ${self.amount}"
+
+    @property
+    def period(self):
+        return f"{self.year}-{self.month:02d}"
 

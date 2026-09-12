@@ -151,3 +151,14 @@ def unique_items(items, *, field="value"):
             raise ValidationError(f"{field} contains duplicate items")
         seen.add(key)
     return items
+
+
+def bounded_dict(value, *, max_length, field="value"):
+    """Ensure ``value`` is a dict with at most ``max_length`` keys."""
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValidationError(f"{field} must be an object")
+    if len(value) > max_length:
+        raise ValidationError(f"{field} must have at most {max_length} keys")
+    return value
