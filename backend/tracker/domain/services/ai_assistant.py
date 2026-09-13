@@ -14,6 +14,8 @@ from django.utils import timezone
 from ...models import AIConversation, AIMessage, AIToolCall, User
 from .ai_tools import tool_executor
 from .ai_context import ContextBuilder, IntentDetector, build_context, detect_intent
+from .llm import llm_service, LLMResponse
+from ..services.memory import memory_service
 from ..exceptions import ValidationError
 from ..logging import get_logger
 
@@ -124,7 +126,7 @@ class AIAssistantService:
         if not conv:
             raise ValidationError("Conversation not found")
 
-        # Build context
+        # Build context (includes memories)
         context = build_context(user, conv)
 
         # Detect intent
@@ -133,9 +135,24 @@ class AIAssistantService:
         # Add user message
         user_message = self.send_message(user, conversation_id, content, role='user')
 
-        # Generate AI response (this would call the actual LLM)
-        # For now, return structured response indicating what should happen
-        response = self._generate_response(conv, user_message, content, context, intent_result)
+        # Save user message as memory
+        memory_service.store_memory(
+            user=user,
+            content=f"User: {content}",
+            memory_type='conversation',
+            source='ai_conversation',
+            conversation_id=conv.id,
+            importance=3,
+            metadata={'message_id': user_message.id, 'role': 'user'},
+        )
+
+        # Generate AI response using LLM service with tool calling loop
+        available_tools = self.get_available_tools(user)
+        context['available_tools'] = available_tools
+
+        response = self._generate_response_with_tools(
+            conv, user, user_message, content, context, intent_result, available_tools
+        )
 
         return {
             'user_message': self._serialize_message(user_message),
@@ -145,67 +162,94 @@ class AIAssistantService:
             'entities': intent_result.entities,
         }
 
-    def _generate_response(
+    def _generate_response_with_tools(
         self,
         conv: AIConversation,
+        user: User,
         user_message: AIMessage,
         content: str,
         context: Dict,
         intent_result,
+        available_tools: List[Dict],
+        max_iterations: int = 5,
     ) -> Dict[str, Any]:
-        """Generate AI response. In production, this calls the LLM."""
-        # This is a placeholder - actual implementation would call Gemini API
-        # with context, tools, and streaming support
+        """Generate AI response with tool calling loop."""
+        all_tool_calls = []
+        final_content = ""
+        conversation_history = context.get('conversation_history', [])
 
-        return {
-            'content': self._get_fallback_response(content, intent_result, context),
-            'tool_calls': [],
-            'model': conv.model,
-        }
-
-    def _get_fallback_response(self, content: str, intent_result, context: Dict) -> str:
-        """Generate a fallback response when LLM is not available."""
-        intent = intent_result.intent
-
-        if intent == 'greeting':
-            return "Hello! I'm your Chaos Tracker assistant. I can help you with goals, habits, expenses, journaling, and more. What would you like to do today?"
-
-        if intent == 'get_help':
-            return (
-                "I can help you with:\n"
-                "• **Goals**: Create, update, complete goals\n"
-                "• **Habits**: Track habits, view streaks\n"
-                "• **Expenses**: Log spending, view summaries\n"
-                "• **Budget**: Set and check budgets\n"
-                "• **Journal**: Write entries, view history\n"
-                "• **Analytics**: Get insights and trends\n\n"
-                "Just tell me what you'd like to do!"
+        for iteration in range(max_iterations):
+            llm_response: LLMResponse = llm_service.generate_response(
+                context=context,
+                conversation_history=conversation_history,
+                user_message=content if iteration == 0 else "",
+                model=conv.model,
             )
 
-        if intent == 'create_goal':
-            return "I'd be happy to help you create a goal! What would you like to achieve? (e.g., 'Read 2 books this month', 'Exercise 3x per week')"
+            response_content = llm_response.content
+            tool_calls = llm_response.tool_calls or []
 
-        if intent == 'create_expense':
-            return "Sure! What did you spend money on? Tell me the item, category, and amount (e.g., 'Coffee, Food, $5.50')."
+            if not tool_calls:
+                # No tool calls, this is the final response
+                final_content = response_content
+                break
 
-        if intent == 'view_analytics':
-            return "Here are your current stats..." + self._format_context_summary(context)
+            # Execute tool calls
+            for tool_call in tool_calls:
+                tool_name = tool_call.get('name')
+                arguments = tool_call.get('arguments', {})
 
-        return f"I understand you want to {intent.replace('_', ' ')}. Let me help you with that! (Full AI integration coming soon)"
+                try:
+                    executed_call = self.execute_tool_call(
+                        user=user,
+                        conversation_id=conv.id,
+                        tool_name=tool_name,
+                        arguments=arguments,
+                        message_id=user_message.id,
+                    )
 
-    def _format_context_summary(self, context: Dict) -> str:
-        lines = []
-        today = context.get('today_summary', {})
-        if today.get('data_available') != False:
-            lines.append(f"\nToday: {today.get('habits_completed', 0)}/{today.get('habits_total', 0)} habits, "
-                         f"{today.get('tasks_completed', 0)} tasks, "
-                         f"${today.get('expense_total', 0):.2f} spent")
+                    all_tool_calls.append({
+                        'id': executed_call.id,
+                        'tool_name': tool_name,
+                        'arguments': arguments,
+                        'result': executed_call.result,
+                        'status': executed_call.status,
+                        'error': executed_call.error,
+                    })
 
-        goals = context.get('active_goals', [])
-        if goals:
-            lines.append(f"\nActive goals: {len(goals)}")
+                    # Add tool result to conversation history for next iteration
+                    tool_result_msg = {
+                        'role': 'tool',
+                        'content': f"Tool '{tool_name}' result: {executed_call.result}",
+                        'tool_call_id': executed_call.id,
+                    }
+                    conversation_history.append(tool_result_msg)
 
-        return ''.join(lines)
+                except Exception as e:
+                    all_tool_calls.append({
+                        'tool_name': tool_name,
+                        'arguments': arguments,
+                        'status': 'failed',
+                        'error': str(e),
+                    })
+
+        # Save assistant response as memory
+        if final_content:
+            memory_service.store_memory(
+                user=user,
+                content=f"Assistant: {final_content}",
+                memory_type='conversation',
+                source='ai_conversation',
+                conversation_id=conv.id,
+                importance=3,
+                metadata={'role': 'assistant', 'intent': intent_result.intent, 'tool_calls': len(all_tool_calls)},
+            )
+
+        return {
+            'content': final_content,
+            'tool_calls': all_tool_calls,
+            'model': conv.model,
+        }
 
     def execute_tool_call(
         self,

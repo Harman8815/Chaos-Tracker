@@ -99,6 +99,17 @@ from .ai import (
     AIToolCallRetryView,
     AIPendingConfirmationsView,
 )
+from .memory import (
+    MemoryListCreateView,
+    MemoryDetailView,
+    MemoryBulkDeleteView,
+    MemorySearchView,
+    MemoryStatsView,
+    UserPreferenceView,
+    SummarizationJobView,
+    SummarizationStatusView,
+    SummarizationProcessView,
+)
 
 urlpatterns = [
     # Journal
@@ -225,4 +236,15 @@ urlpatterns = [
     path('ai/tool-calls/<int:id>/confirm/', AIToolCallConfirmView.as_view(), name='ai-tool-call-confirm'),
     path('ai/tool-calls/<int:id>/retry/', AIToolCallRetryView.as_view(), name='ai-tool-call-retry'),
     path('ai/confirmations/', AIPendingConfirmationsView.as_view(), name='ai-pending-confirmations'),
+
+    # Memory
+    path('memory/', MemoryListCreateView.as_view(), name='memory-list-create'),
+    path('memory/bulk/', MemoryBulkDeleteView.as_view(), name='memory-bulk-delete'),
+    path('memory/search/', MemorySearchView.as_view(), name='memory-search'),
+    path('memory/stats/', MemoryStatsView.as_view(), name='memory-stats'),
+    path('memory/preferences/', UserPreferenceView.as_view(), name='memory-preferences'),
+    path('memory/<int:id>/', MemoryDetailView.as_view(), name='memory-detail'),
+    path('memory/conversations/<int:id>/summarize/', SummarizationJobView.as_view(), name='memory-summarize'),
+    path('memory/conversations/<int:id>/summarize/status/', SummarizationStatusView.as_view(), name='memory-summarize-status'),
+    path('memory/summarization/<int:id>/process/', SummarizationProcessView.as_view(), name='memory-summarize-process'),
 ]

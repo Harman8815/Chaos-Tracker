@@ -9,7 +9,9 @@ from ...models import (
     AIConversation, AIMessage, Goal, Habit, DailyHabitScore,
     Expense, JournalEntry, Mood, Water, Achievement,
     DailyActivityAggregate, Budget,
+    AIMemory,
 )
+from ..services.memory import memory_service
 from ..logging import get_logger
 
 logger = get_logger("tracker.domain.ai_context")
@@ -43,6 +45,7 @@ class ContextBuilder:
             'water_intake': self._get_water_intake(),
             'achievements': self._get_recent_achievements(),
             'budgets': self._get_budget_status(),
+            'memories': self._get_relevant_memories(),
         }
 
         if self.conversation:
@@ -148,6 +151,28 @@ class ContextBuilder:
             'title': a.title,
             'date': a.date.isoformat(),
         } for a in achievements]
+
+    def _get_relevant_memories(self) -> List[Dict]:
+        """Get relevant memories for the current context."""
+        try:
+            # Search for recent/important memories
+            memories = memory_service.search_memories(
+                user=self.user,
+                query="",
+                limit=10,
+                memory_types=['fact', 'preference', 'insight', 'summary'],
+                min_importance=3,
+            )
+            return [{
+                'id': m.id,
+                'content': m.content,
+                'memory_type': m.memory_type,
+                'importance': m.importance,
+                'tags': m.tags,
+                'source': m.source,
+            } for m in memories]
+        except Exception:
+            return []
 
     def _get_budget_status(self) -> List[Dict]:
         today = date.today()

@@ -69,6 +69,7 @@ from .recurring_jobs import (
 from .ai_tools import ToolExecutor, tool_executor
 from .ai_context import ContextBuilder, IntentDetector, build_context, detect_intent
 from .ai_assistant import AIAssistantService, ai_assistant_service, register_builtin_tools
+from .memory import MemoryService, memory_service, SummarizationService, summarization_service
 
 __all__ = [
     "AchievementEngine",
@@ -152,4 +153,8 @@ __all__ = [
     "AIAssistantService",
     "ai_assistant_service",
     "register_builtin_tools",
+    "MemoryService",
+    "memory_service",
+    "SummarizationService",
+    "summarization_service",
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization
 
 import base64
 
@@ -458,4 +458,46 @@ class AIActionConfirmationSerializer(serializers.ModelSerializer):
         model = AIActionConfirmation
         fields = ['id', 'tool_call', 'tool_name', 'tool_arguments', 'confirmed', 'confirmed_at', 'expires_at', 'created_at']
         read_only_fields = ['id', 'created_at', 'confirmed_at']
+
+
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreference
+        fields = [
+            'response_length', 'auto_execute_tools', 'include_context_summary',
+            'memory_enabled', 'memory_retention_days', 'max_memory_entries',
+            'notify_on_tool_execution', 'notify_on_memory_created',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class AIMemorySerializer(serializers.ModelSerializer):
+    conversation_title = serializers.CharField(source='conversation.title', read_only=True, allow_null=True)
+
+    class Meta:
+        model = AIMemory
+        fields = [
+            'id', 'conversation', 'conversation_title', 'memory_type', 'priority',
+            'title', 'content', 'entities', 'source_message', 'confidence',
+            'embedding', 'embedding_model', 'is_active', 'expires_at',
+            'created_at', 'updated_at', 'last_accessed_at', 'access_count'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'last_accessed_at', 'access_count']
+
+
+class AIMemorySearchResultSerializer(serializers.Serializer):
+    memory = AIMemorySerializer()
+    score = serializers.FloatField()
+
+
+class AIMemorySummarizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIMemorySummarization
+        fields = [
+            'id', 'conversation', 'status', 'source_message_count',
+            'summary_text', 'summary_memory', 'error',
+            'created_at', 'completed_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'completed_at']
 
