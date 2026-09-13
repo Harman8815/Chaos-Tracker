@@ -86,6 +86,18 @@ from .notifications import (
     RecurringIncomeListCreateView,
     RecurringIncomeDetailView,
 )
+from .ai import (
+    AIConversationListCreateView,
+    AIConversationDetailView,
+    AIConversationArchiveView,
+    AIChatView,
+    AIMessageListView,
+    AIToolListView,
+    AIToolCallExecuteView,
+    AIToolCallConfirmView,
+    AIToolCallRetryView,
+    AIPendingConfirmationsView,
+)
 
 urlpatterns = [
     # Journal
@@ -199,4 +211,16 @@ urlpatterns = [
     # Recurring Income
     path('recurring-income/', RecurringIncomeListCreateView.as_view(), name='recurring-income-list-create'),
     path('recurring-income/<int:id>/', RecurringIncomeDetailView.as_view(), name='recurring-income-detail'),
+
+    # AI Assistant
+    path('ai/conversations/', AIConversationListCreateView.as_view(), name='ai-conversation-list-create'),
+    path('ai/conversations/<int:id>/', AIConversationDetailView.as_view(), name='ai-conversation-detail'),
+    path('ai/conversations/<int:id>/archive/', AIConversationArchiveView.as_view(), name='ai-conversation-archive'),
+    path('ai/conversations/<int:id>/chat/', AIChatView.as_view(), name='ai-chat'),
+    path('ai/conversations/<int:id>/messages/', AIMessageListView.as_view(), name='ai-message-list'),
+    path('ai/tools/', AIToolListView.as_view(), name='ai-tool-list'),
+    path('ai/conversations/<int:id>/tool-calls/', AIToolCallExecuteView.as_view(), name='ai-tool-call-execute'),
+    path('ai/tool-calls/<int:id>/confirm/', AIToolCallConfirmView.as_view(), name='ai-tool-call-confirm'),
+    path('ai/tool-calls/<int:id>/retry/', AIToolCallRetryView.as_view(), name='ai-tool-call-retry'),
+    path('ai/confirmations/', AIPendingConfirmationsView.as_view(), name='ai-pending-confirmations'),
 ]

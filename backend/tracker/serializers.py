@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation
 
 import base64
 
@@ -406,4 +406,56 @@ class RecurringIncomeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'source', 'amount', 'frequency', 'start_date', 'end_date',
                   'day_of_month', 'next_occurrence', 'is_active', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at', 'next_occurrence']
+
+
+class AIToolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AITool
+        fields = ['id', 'name', 'description', 'parameters_schema', 'required_permissions', 'is_destructive', 'is_enabled', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class AIMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIMessage
+        fields = ['id', 'conversation', 'role', 'content', 'tool_calls', 'tool_call_id', 'metadata', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class AIConversationSerializer(serializers.ModelSerializer):
+    message_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AIConversation
+        fields = ['id', 'title', 'status', 'model', 'system_prompt', 'metadata', 'created_at', 'updated_at', 'last_message_at', 'message_count']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'last_message_at', 'message_count']
+
+    def get_message_count(self, obj):
+        return obj.messages.count()
+
+
+class AIConversationDetailSerializer(AIConversationSerializer):
+    messages = AIMessageSerializer(many=True, read_only=True)
+
+    class Meta(AIConversationSerializer.Meta):
+        fields = AIConversationSerializer.Meta.fields + ['messages']
+
+
+class AIToolCallSerializer(serializers.ModelSerializer):
+    tool_name = serializers.CharField(source='tool.name', read_only=True)
+
+    class Meta:
+        model = AIToolCall
+        fields = ['id', 'conversation', 'message', 'tool', 'tool_name', 'arguments', 'result', 'error', 'status', 'requires_confirmation', 'confirmed_by_user', 'executed_at', 'created_at']
+        read_only_fields = ['id', 'created_at', 'executed_at']
+
+
+class AIActionConfirmationSerializer(serializers.ModelSerializer):
+    tool_name = serializers.CharField(source='tool_call.tool.name', read_only=True)
+    tool_arguments = serializers.JSONField(source='tool_call.arguments', read_only=True)
+
+    class Meta:
+        model = AIActionConfirmation
+        fields = ['id', 'tool_call', 'tool_name', 'tool_arguments', 'confirmed', 'confirmed_at', 'expires_at', 'created_at']
+        read_only_fields = ['id', 'created_at', 'confirmed_at']
 
