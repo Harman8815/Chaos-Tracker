@@ -576,3 +576,10 @@ def _get_analytics(user: User, period: str = 'week') -> Dict:
 
 # Import at end to avoid circular
 from datetime import date, timedelta  # noqa: E402
+
+
+# Singleton instance
+ai_assistant_service = AIAssistantService()
+
+# Register built-in tools on module load
+register_builtin_tools()
