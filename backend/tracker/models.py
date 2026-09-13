@@ -1226,3 +1226,129 @@ class AIActionConfirmation(models.Model):
     def __str__(self):
         return f"Confirmation for {self.tool_call_id} - {'Confirmed' if self.confirmed else 'Pending'}"
 
+
+class UserPreference(models.Model):
+    """User preferences for AI behavior (P8-01)."""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ai_preferences')
+
+    # AI behavior settings
+    response_length = models.CharField(max_length=20, choices=[
+        ('brief', 'Brief'),
+        ('normal', 'Normal'),
+        ('detailed', 'Detailed'),
+    ], default='normal')
+    auto_execute_tools = models.BooleanField(default=False, help_text='Auto-execute non-destructive tools')
+    include_context_summary = models.BooleanField(default=True, help_text='Include conversation summary in context')
+
+    # Memory settings
+    memory_enabled = models.BooleanField(default=True, help_text='Enable memory system')
+    memory_retention_days = models.IntegerField(default=90, help_text='Days to retain memory entries')
+    max_memory_entries = models.IntegerField(default=1000, help_text='Maximum memory entries per user')
+
+    # Notification settings for AI
+    notify_on_tool_execution = models.BooleanField(default=False)
+    notify_on_memory_created = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'User preferences'
+
+    def __str__(self):
+        return f"{self.user.username}'s AI preferences"
+
+
+class AIMemory(models.Model):
+    """Structured memory entries for conversation context (P8-02, P8-03)."""
+
+    MEMORY_TYPES = [
+        ('fact', 'Fact'),
+        ('preference', 'Preference'),
+        ('goal', 'Goal'),
+        ('habit', 'Habit'),
+        ('person', 'Person'),
+        ('event', 'Event'),
+        ('note', 'Note'),
+        ('summary', 'Conversation Summary'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('normal', 'Normal'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_memories')
+    conversation = models.ForeignKey(AIConversation, on_delete=models.SET_NULL, null=True, blank=True, related_name='memories')
+    memory_type = models.CharField(max_length=20, choices=MEMORY_TYPES)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal')
+
+    # Content
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    entities = models.JSONField(default=dict, blank=True, help_text='Extracted entities (people, dates, amounts, etc.)')
+
+    # Source
+    source_message = models.ForeignKey(AIMessage, on_delete=models.SET_NULL, null=True, blank=True, related_name='memories_created')
+    confidence = models.FloatField(default=1.0, help_text='Confidence score 0-1')
+
+    # Vector embedding for retrieval (P8-06)
+    embedding = models.JSONField(null=True, blank=True, help_text='Vector embedding for semantic search')
+    embedding_model = models.CharField(max_length=100, blank=True, default='')
+
+    # Lifecycle
+    is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(null=True, blank=True, help_text='Auto-expiry (P8-10)')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_accessed_at = models.DateTimeField(null=True, blank=True)
+    access_count = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-priority', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_active', 'memory_type']),
+            models.Index(fields=['user', 'is_active', 'priority']),
+            models.Index(fields=['user', 'expires_at']),
+            models.Index(fields=['conversation']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.memory_type}: {self.title[:50]}"
+
+    def increment_access(self):
+        """Track memory access for relevance scoring."""
+        from django.utils import timezone
+        self.access_count += 1
+        self.last_accessed_at = timezone.now()
+        self.save(update_fields=['access_count', 'last_accessed_at', 'updated_at'])
+
+
+class AIMemorySummarization(models.Model):
+    """Track conversation summarization jobs (P8-04)."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='summarizations')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    source_message_count = models.IntegerField(default=0)
+    summary_text = models.TextField(blank=True, default='')
+    summary_memory = models.ForeignKey(AIMemory, on_delete=models.SET_NULL, null=True, blank=True, related_name='summarizations')
+    error = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Summarization for {self.conversation_id} - {self.status}"
+
