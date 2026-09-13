@@ -1098,3 +1098,131 @@ class NotificationDeduplication(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.notification_type} - {self.dedupe_key}"
 
+
+class AIConversation(models.Model):
+    """AI conversation/chat session (P7-03)."""
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+        ('deleted', 'Deleted'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_conversations')
+    title = models.CharField(max_length=255, blank=True, default='')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    model = models.CharField(max_length=100, default='gemini-2.5-flash')
+    system_prompt = models.TextField(blank=True, default='')
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_message_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-last_message_at', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['user', 'last_message_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title or 'Untitled'} ({self.status})"
+
+
+class AIMessage(models.Model):
+    """Individual message in an AI conversation (P7-04)."""
+
+    ROLE_CHOICES = [
+        ('user', 'User'),
+        ('assistant', 'Assistant'),
+        ('system', 'System'),
+        ('tool', 'Tool'),
+    ]
+
+    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='messages')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    content = models.TextField()
+    tool_calls = models.JSONField(default=list, blank=True, help_text='Structured tool calls made by assistant')
+    tool_call_id = models.CharField(max_length=100, blank=True, default='', help_text='ID of tool call this message responds to')
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.conversation_id} - {self.role} - {self.content[:50]}"
+
+
+class AITool(models.Model):
+    """Registered AI tool/function (P7-05)."""
+
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+    parameters_schema = models.JSONField(help_text='JSON Schema for tool parameters')
+    required_permissions = models.JSONField(default=list, blank=True, help_text='List of required permissions')
+    is_destructive = models.BooleanField(default=False, help_text='Whether tool modifies data')
+    is_enabled = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class AIToolCall(models.Model):
+    """Record of an AI tool invocation (P7-09, P7-14)."""
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('executing', 'Executing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='tool_calls')
+    message = models.ForeignKey(AIMessage, on_delete=models.CASCADE, related_name='tool_call_records', null=True, blank=True)
+    tool = models.ForeignKey(AITool, on_delete=models.PROTECT, related_name='calls')
+    arguments = models.JSONField()
+    result = models.JSONField(null=True, blank=True)
+    error = models.TextField(blank=True, default='')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    requires_confirmation = models.BooleanField(default=False)
+    confirmed_by_user = models.BooleanField(default=False)
+    executed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['conversation', 'status']),
+            models.Index(fields=['tool', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.tool.name} - {self.status}"
+
+
+class AIActionConfirmation(models.Model):
+    """User confirmation for destructive AI actions (P7-13)."""
+
+    tool_call = models.OneToOneField(AIToolCall, on_delete=models.CASCADE, related_name='confirmation')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    confirmed = models.BooleanField(default=False)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Confirmation for {self.tool_call_id} - {'Confirmed' if self.confirmed else 'Pending'}"
+
