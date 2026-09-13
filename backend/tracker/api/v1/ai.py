@@ -2,6 +2,8 @@
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.response import Response
+from django.http import StreamingHttpResponse
+import json
 
 from ._base import TrackerAPIView
 from ...domain.services import (
@@ -102,6 +104,53 @@ class AIChatView(TrackerAPIView):
         
         result = ai_assistant_service.process_user_message(request.user, int(id), content)
         return self.ok(data=result)
+
+
+class AIChatStreamView(TrackerAPIView):
+    """POST /api/v1/ai/conversations/<id>/chat/stream/ - Send message and get streaming AI response"""
+    
+    def post(self, request, id):
+        serializer = AIMessageSerializer_view(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        content = serializer.validated_data["content"]
+        
+        # Add user message
+        user_message = ai_assistant_service.send_message(request.user, int(id), content, role='user')
+        
+        def generate():
+            # Send user message confirmation
+            yield f"data: {json.dumps({'type': 'user_message', 'message': {'id': user_message.id, 'role': 'user', 'content': content}})}\n\n"
+            
+            # Get context and detect intent
+            conv = ai_assistant_service.get_conversation(request.user, int(id))
+            if not conv:
+                yield f"data: {json.dumps({'type': 'error', 'error': 'Conversation not found'})}\n\n"
+                return
+            
+            from ...domain.services import build_context, detect_intent
+            context = build_context(request.user, conv)
+            intent_result = detect_intent(content, context)
+            
+            # Yield intent
+            yield f"data: {json.dumps({'type': 'intent', 'intent': intent_result.intent, 'confidence': intent_result.confidence, 'entities': intent_result.entities})}\n\n"
+            
+            # For now, yield a simulated streaming response
+            # In production, this would call the LLM with streaming
+            response_text = ai_assistant_service._generate_response(conv, user_message, content, context, intent_result)['content']
+            
+            # Simulate streaming by chunking the response
+            words = response_text.split()
+            for i, word in enumerate(words):
+                chunk = word + (" " if i < len(words) - 1 else "")
+                yield f"data: {json.dumps({'type': 'content', 'delta': chunk, 'index': i})}\n\n"
+            
+            # Yield completion
+            yield f"data: {json.dumps({'type': 'done', 'message': {'role': 'assistant', 'content': response_text}})}\n\n"
+        
+        response = StreamingHttpResponse(generate(), content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
 
 
 class AIMessageListView(TrackerAPIView):
