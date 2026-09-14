@@ -1953,3 +1953,56 @@ class Intervention(models.Model):
     def __str__(self):
         return f"{self.get_intervention_type_display()}: {self.title[:50]}"
 
+
+class DailyPlan(models.Model):
+    """Personalized adaptive daily plan (P10-09)."""
+
+    PRIORITY = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_plans')
+    date = models.DateField()
+    plan_data = models.JSONField(default=dict, blank=True, help_text='Plan items with tasks, habits, goals')
+    overall_priority = models.CharField(max_length=10, choices=PRIORITY, default='medium')
+    confidence = models.FloatField(default=0.0)
+    generated_by_model = models.CharField(max_length=50, blank=True, default='')
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['user', 'date']),
+        ]
+
+    def __str__(self):
+        return f"Plan for {self.date} — {self.user.username}"
+
+
+class WeeklyStrategy(models.Model):
+    """Weekly strategy generation (P10-10)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='weekly_strategies')
+    week_start_date = models.DateField()
+    priorities = models.JSONField(default=list, blank=True, help_text='List of priority items for the week')
+    focus_areas = models.JSONField(default=list, blank=True)
+    key_goals = models.JSONField(default=list, blank=True)
+    risk_mitigations = models.JSONField(default=list, blank=True)
+    confidence = models.FloatField(default=0.0)
+    generated_by_model = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-week_start_date']
+        indexes = [
+            models.Index(fields=['user', 'week_start_date']),
+        ]
+
+    def __str__(self):
+        return f"Strategy week of {self.week_start_date}"
+

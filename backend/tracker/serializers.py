@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy
 
 import base64
 
@@ -640,4 +640,20 @@ class InterventionSerializer(serializers.ModelSerializer):
         model = Intervention
         fields = ['id', 'intervention_type', 'title', 'description', 'status', 'priority', 'expected_outcome', 'steps', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+# Phase 10 — Planning & Strategy (P10-09 to P10-10)
+
+class DailyPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyPlan
+        fields = ['id', 'date', 'plan_data', 'overall_priority', 'confidence', 'generated_by_model', 'is_completed', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class WeeklyStrategySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeeklyStrategy
+        fields = ['id', 'week_start_date', 'priorities', 'focus_areas', 'key_goals', 'risk_mitigations', 'confidence', 'generated_by_model', 'created_at']
+        read_only_fields = ['id', 'created_at']
 

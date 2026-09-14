@@ -154,6 +154,8 @@ from .intelligence_views import (
     OpportunityListCreateView, OpportunityDetailView,
     RiskListCreateView, RiskDetailView,
     InterventionListCreateView, InterventionDetailView,
+    DailyPlanListCreateView, DailyPlanDetailView,
+    WeeklyStrategyListCreateView, WeeklyStrategyDetailView,
 )
 
 urlpatterns += [
@@ -229,4 +231,12 @@ urlpatterns += [
     # Interventions (P10-06/07/08)
     path('intelligence/intervention/', InterventionListCreateView.as_view(), name='intervention-list-create'),
     path('intelligence/intervention/<int:id>/', InterventionDetailView.as_view(), name='intervention-detail'),
+
+    # Personalized Daily Plan (P10-09)
+    path('intelligence/daily-plan/', DailyPlanListCreateView.as_view(), name='daily-plan-list-create'),
+    path('intelligence/daily-plan/<int:id>/', DailyPlanDetailView.as_view(), name='daily-plan-detail'),
+
+    # Weekly Strategy Generation (P10-10)
+    path('intelligence/weekly-strategy/', WeeklyStrategyListCreateView.as_view(), name='weekly-strategy-list-create'),
+    path('intelligence/weekly-strategy/<int:id>/', WeeklyStrategyDetailView.as_view(), name='weekly-strategy-detail'),
 ]

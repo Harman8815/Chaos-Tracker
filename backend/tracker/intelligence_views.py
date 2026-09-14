@@ -2,8 +2,8 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer, OpportunitySerializer, RiskSerializer, InterventionSerializer
+from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy
+from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer, OpportunitySerializer, RiskSerializer, InterventionSerializer, DailyPlanSerializer, WeeklyStrategySerializer
 from .utils import success_response, error_response
 
 logger = None
@@ -351,3 +351,43 @@ class InterventionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Intervention.objects.filter(user=self.request.user)
+
+
+# Phase 10 — Planning & Strategy (P10-09 to P10-10)
+
+class DailyPlanListCreateView(generics.ListCreateAPIView):
+    serializer_class = DailyPlanSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return DailyPlan.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DailyPlanDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = DailyPlanSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return DailyPlan.objects.filter(user=self.request.user)
+
+
+class WeeklyStrategyListCreateView(generics.ListCreateAPIView):
+    serializer_class = WeeklyStrategySerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return WeeklyStrategy.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class WeeklyStrategyDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = WeeklyStrategySerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return WeeklyStrategy.objects.filter(user=self.request.user)
