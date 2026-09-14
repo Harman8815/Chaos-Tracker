@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation
 
 import base64
 
@@ -593,5 +593,28 @@ class MLModelMonitoringSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLModelMonitoring
         fields = ['id', 'model_name', 'model_version', 'monitor_type', 'alert_level', 'current_value', 'baseline_value', 'threshold', 'message', 'is_acknowledged', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+# Phase 10 — Personal Intelligence Engine (P10-01 to P10-03)
+
+class UnifiedPersonalStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnifiedPersonalState
+        fields = ['id', 'state_data', 'last_updated', 'productivity_score', 'financial_health', 'goal_progress', 'habit_consistency', 'mood_trend']
+        read_only_fields = ['id', 'last_updated']
+
+
+class CrossDomainReasoningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CrossDomainReasoning
+        fields = ['id', 'reasoning_type', 'domains_involved', 'insight', 'confidence', 'supporting_evidence', 'is_validated', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class RankedRecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RankedRecommendation
+        fields = ['id', 'rec_type', 'target_id', 'target_title', 'rank', 'score', 'explanation', 'action_suggested', 'is_accepted', 'is_dismissed', 'model_version', 'created_at']
         read_only_fields = ['id', 'created_at']
 

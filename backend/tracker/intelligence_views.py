@@ -2,8 +2,8 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer
+from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation
+from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer
 from .utils import success_response, error_response
 
 logger = None
@@ -243,3 +243,52 @@ class MLModelMonitoringDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return MLModelMonitoring.objects.filter(user=self.request.user)
+
+
+# Phase 10 — Personal Intelligence Engine (P10-01 to P10-03)
+
+class UnifiedPersonalStateView(generics.RetrieveUpdateAPIView):
+    serializer_class = UnifiedPersonalStateSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_object(self):
+        obj, _ = UnifiedPersonalState.objects.get_or_create(user=self.request.user)
+        return obj
+
+
+class CrossDomainReasoningListCreateView(generics.ListCreateAPIView):
+    serializer_class = CrossDomainReasoningSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return CrossDomainReasoning.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CrossDomainReasoningDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CrossDomainReasoningSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return CrossDomainReasoning.objects.filter(user=self.request.user)
+
+
+class RankedRecommendationListCreateView(generics.ListCreateAPIView):
+    serializer_class = RankedRecommendationSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return RankedRecommendation.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class RankedRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = RankedRecommendationSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return RankedRecommendation.objects.filter(user=self.request.user)

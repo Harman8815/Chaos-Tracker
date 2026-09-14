@@ -1743,3 +1743,89 @@ class MLModelMonitoring(models.Model):
     def __str__(self):
         return f"{self.model_name} — {self.get_monitor_type_display()}: {self.get_alert_level_display()}"
 
+
+# =============================================================================
+# Phase 10 — Personal Intelligence Engine Models
+# =============================================================================
+
+class UnifiedPersonalState(models.Model):
+    """Current user state snapshot (P10-01)."""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='personal_state')
+    state_data = models.JSONField(default=dict, blank=True, help_text='Comprehensive user state including all domains')
+    last_updated = models.DateTimeField(auto_now=True)
+    productivity_score = models.FloatField(default=0.0)
+    financial_health = models.FloatField(default=0.0)
+    goal_progress = models.FloatField(default=0.0)
+    habit_consistency = models.FloatField(default=0.0)
+    mood_trend = models.CharField(max_length=20, blank=True, default='')
+
+    def __str__(self):
+        return f"State: {self.user.username}"
+
+
+class CrossDomainReasoning(models.Model):
+    """Cross-domain reasoning results (P10-02)."""
+
+    REASONING_TYPES = [
+        ('correlation', 'Correlation'),
+        ('causal', 'Causal'),
+        ('pattern', 'Pattern'),
+        ('trend', 'Trend'),
+        ('comparison', 'Comparison'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cross_domain_reasoning')
+    reasoning_type = models.CharField(max_length=20, choices=REASONING_TYPES)
+    domains_involved = models.JSONField(default=list, blank=True, help_text='List of domains analyzed')
+    insight = models.TextField()
+    confidence = models.FloatField(default=0.0)
+    supporting_evidence = models.JSONField(default=dict, blank=True)
+    is_validated = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'reasoning_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_reasoning_type_display()} — {self.domains_involved}"
+
+
+class RankedRecommendation(models.Model):
+    """Ranked recommendations from engine (P10-03)."""
+
+    RECOMMENDATION_TYPES = [
+        ('habit', 'Habit'),
+        ('goal', 'Goal'),
+        ('expense', 'Expense'),
+        ('productivity', 'Productivity'),
+        ('finance', 'Finance'),
+        ('wellness', 'Wellness'),
+        ('general', 'General'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ranked_recommendations')
+    rec_type = models.CharField(max_length=20, choices=RECOMMENDATION_TYPES)
+    target_id = models.CharField(max_length=100, blank=True, default='')
+    target_title = models.CharField(max_length=255, blank=True, default='')
+    rank = models.IntegerField(default=0)
+    score = models.FloatField(default=0.0)
+    explanation = models.TextField(blank=True, help_text='Why this recommendation exists')
+    action_suggested = models.TextField(blank=True)
+    is_accepted = models.BooleanField(default=False)
+    is_dismissed = models.BooleanField(default=False)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['rank']
+        indexes = [
+            models.Index(fields=['user', 'rec_type', 'rank']),
+        ]
+
+    def __str__(self):
+        return f"#{self.rank} {self.target_title[:50]}"
+

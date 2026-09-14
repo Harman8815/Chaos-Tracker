@@ -148,6 +148,9 @@ from .intelligence_views import (
     MLEvaluationListCreateView, MLEvaluationDetailView,
     MLModelVersionListCreateView, MLModelVersionDetailView,
     MLModelMonitoringListCreateView, MLModelMonitoringDetailView,
+    UnifiedPersonalStateView,
+    CrossDomainReasoningListCreateView, CrossDomainReasoningDetailView,
+    RankedRecommendationListCreateView, RankedRecommendationDetailView,
 )
 
 urlpatterns += [
@@ -198,4 +201,17 @@ urlpatterns += [
     # Model Monitoring (P9-12)
     path('ml/monitoring/', MLModelMonitoringListCreateView.as_view(), name='ml-monitoring-list-create'),
     path('ml/monitoring/<int:id>/', MLModelMonitoringDetailView.as_view(), name='ml-monitoring-detail'),
+
+    # Phase 10 — Personal Intelligence Engine (P10-01 to P10-03)
+
+    # Unified Personal State (P10-01)
+    path('intelligence/state/', UnifiedPersonalStateView.as_view(), name='unified-state'),
+
+    # Cross-domain Reasoning (P10-02)
+    path('intelligence/reasoning/', CrossDomainReasoningListCreateView.as_view(), name='cross-domain-reasoning-list-create'),
+    path('intelligence/reasoning/<int:id>/', CrossDomainReasoningDetailView.as_view(), name='cross-domain-reasoning-detail'),
+
+    # Recommendation Engine (P10-03)
+    path('intelligence/recommendation/', RankedRecommendationListCreateView.as_view(), name='ranked-recommendation-list-create'),
+    path('intelligence/recommendation/<int:id>/', RankedRecommendationDetailView.as_view(), name='ranked-recommendation-detail'),
 ]
