@@ -1829,3 +1829,127 @@ class RankedRecommendation(models.Model):
     def __str__(self):
         return f"#{self.rank} {self.target_title[:50]}"
 
+
+class Opportunity(models.Model):
+    """Improvement opportunities (P10-04)."""
+
+    OPPORTUNITY_TYPES = [
+        ('habit', 'Habit'),
+        ('goal', 'Goal'),
+        ('finance', 'Finance'),
+        ('productivity', 'Productivity'),
+        ('wellness', 'Wellness'),
+        ('learning', 'Learning'),
+    ]
+
+    SEVERITY = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opportunities')
+    opportunity_type = models.CharField(max_length=20, choices=OPPORTUNITY_TYPES)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    severity = models.CharField(max_length=10, choices=SEVERITY, default='medium')
+    potential_impact = models.TextField(blank=True)
+    suggested_action = models.TextField(blank=True)
+    is_actioned = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'opportunity_type', 'is_actioned']),
+        ]
+
+    def __str__(self):
+        return f"{self.title[:50]}"
+
+
+class Risk(models.Model):
+    """Detected potential negative trends (P10-05)."""
+
+    RISK_TYPES = [
+        ('habit_decline', 'Habit Decline'),
+        ('goal_stall', 'Goal Stall'),
+        ('overspending', 'Overspending'),
+        ('productivity_drop', 'Productivity Drop'),
+        ('health', 'Health Risk'),
+        ('financial', 'Financial Risk'),
+    ]
+
+    SEVERITY = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='risks')
+    risk_type = models.CharField(max_length=20, choices=RISK_TYPES)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    severity = models.CharField(max_length=10, choices=SEVERITY, default='medium')
+    trend_direction = models.CharField(max_length=20, choices=[
+        ('increasing', 'Increasing'),
+        ('decreasing', 'Decreasing'),
+        ('stable', 'Stable'),
+    ], default='increasing')
+    estimated_timeframe = models.CharField(max_length=100, blank=True, help_text='e.g. "2 weeks", "1 month"')
+    is_mitigated = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'risk_type', 'severity']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_risk_type_display()} — {self.title[:50]}"
+
+
+class Intervention(models.Model):
+    """Generic intervention for corrective actions (P10-06/07/08)."""
+
+    INTERVENTION_TYPES = [
+        ('goal', 'Goal'),
+        ('financial', 'Financial'),
+        ('productivity', 'Productivity'),
+    ]
+
+    STATUS = [
+        ('suggested', 'Suggested'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='interventions')
+    intervention_type = models.CharField(max_length=20, choices=INTERVENTION_TYPES)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS, default='suggested')
+    priority = models.CharField(max_length=10, choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ], default='medium')
+    expected_outcome = models.TextField(blank=True)
+    steps = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'intervention_type', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_intervention_type_display()}: {self.title[:50]}"
+

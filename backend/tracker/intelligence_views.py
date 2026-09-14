@@ -2,8 +2,8 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer
+from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention
+from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer, OpportunitySerializer, RiskSerializer, InterventionSerializer
 from .utils import success_response, error_response
 
 logger = None
@@ -292,3 +292,62 @@ class RankedRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return RankedRecommendation.objects.filter(user=self.request.user)
+
+
+# Phase 10 — Opportunities, Risks, Interventions (P10-04 to P10-06)
+
+class OpportunityListCreateView(generics.ListCreateAPIView):
+    serializer_class = OpportunitySerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Opportunity.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class OpportunityDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = OpportunitySerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Opportunity.objects.filter(user=self.request.user)
+
+
+class RiskListCreateView(generics.ListCreateAPIView):
+    serializer_class = RiskSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Risk.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class RiskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = RiskSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Risk.objects.filter(user=self.request.user)
+
+
+class InterventionListCreateView(generics.ListCreateAPIView):
+    serializer_class = InterventionSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Intervention.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class InterventionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = InterventionSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Intervention.objects.filter(user=self.request.user)

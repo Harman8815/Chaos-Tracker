@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention
 
 import base64
 
@@ -617,4 +617,27 @@ class RankedRecommendationSerializer(serializers.ModelSerializer):
         model = RankedRecommendation
         fields = ['id', 'rec_type', 'target_id', 'target_title', 'rank', 'score', 'explanation', 'action_suggested', 'is_accepted', 'is_dismissed', 'model_version', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+
+# Phase 10 — Opportunities, Risks, Interventions (P10-04 to P10-06)
+
+class OpportunitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity
+        fields = ['id', 'opportunity_type', 'title', 'description', 'severity', 'potential_impact', 'suggested_action', 'is_actioned', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class RiskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Risk
+        fields = ['id', 'risk_type', 'title', 'description', 'severity', 'trend_direction', 'estimated_timeframe', 'is_mitigated', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class InterventionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Intervention
+        fields = ['id', 'intervention_type', 'title', 'description', 'status', 'priority', 'expected_outcome', 'steps', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 

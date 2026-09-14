@@ -151,6 +151,9 @@ from .intelligence_views import (
     UnifiedPersonalStateView,
     CrossDomainReasoningListCreateView, CrossDomainReasoningDetailView,
     RankedRecommendationListCreateView, RankedRecommendationDetailView,
+    OpportunityListCreateView, OpportunityDetailView,
+    RiskListCreateView, RiskDetailView,
+    InterventionListCreateView, InterventionDetailView,
 )
 
 urlpatterns += [
@@ -214,4 +217,16 @@ urlpatterns += [
     # Recommendation Engine (P10-03)
     path('intelligence/recommendation/', RankedRecommendationListCreateView.as_view(), name='ranked-recommendation-list-create'),
     path('intelligence/recommendation/<int:id>/', RankedRecommendationDetailView.as_view(), name='ranked-recommendation-detail'),
+
+    # Opportunity Detection (P10-04)
+    path('intelligence/opportunity/', OpportunityListCreateView.as_view(), name='opportunity-list-create'),
+    path('intelligence/opportunity/<int:id>/', OpportunityDetailView.as_view(), name='opportunity-detail'),
+
+    # Risk Detection (P10-05)
+    path('intelligence/risk/', RiskListCreateView.as_view(), name='risk-list-create'),
+    path('intelligence/risk/<int:id>/', RiskDetailView.as_view(), name='risk-detail'),
+
+    # Interventions (P10-06/07/08)
+    path('intelligence/intervention/', InterventionListCreateView.as_view(), name='intervention-list-create'),
+    path('intelligence/intervention/<int:id>/', InterventionDetailView.as_view(), name='intervention-detail'),
 ]
