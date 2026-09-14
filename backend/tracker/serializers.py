@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy, Explanation, UserFeedback
 
 import base64
 
@@ -655,5 +655,21 @@ class WeeklyStrategySerializer(serializers.ModelSerializer):
     class Meta:
         model = WeeklyStrategy
         fields = ['id', 'week_start_date', 'priorities', 'focus_areas', 'key_goals', 'risk_mitigations', 'confidence', 'generated_by_model', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+# Phase 10 — Explanation & Feedback (P10-11 to P10-12)
+
+class ExplanationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Explanation
+        fields = ['id', 'explanation_type', 'target_id', 'title', 'explanation_text', 'reasoning_steps', 'supporting_data', 'confidence', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class UserFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFeedback
+        fields = ['id', 'feedback_type', 'target_id', 'action', 'feedback_text', 'relevance_score', 'model_version', 'created_at']
         read_only_fields = ['id', 'created_at']
 

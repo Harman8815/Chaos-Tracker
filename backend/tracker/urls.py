@@ -156,6 +156,8 @@ from .intelligence_views import (
     InterventionListCreateView, InterventionDetailView,
     DailyPlanListCreateView, DailyPlanDetailView,
     WeeklyStrategyListCreateView, WeeklyStrategyDetailView,
+    ExplanationListCreateView, ExplanationDetailView,
+    UserFeedbackListCreateView, UserFeedbackDetailView,
 )
 
 urlpatterns += [
@@ -239,4 +241,12 @@ urlpatterns += [
     # Weekly Strategy Generation (P10-10)
     path('intelligence/weekly-strategy/', WeeklyStrategyListCreateView.as_view(), name='weekly-strategy-list-create'),
     path('intelligence/weekly-strategy/<int:id>/', WeeklyStrategyDetailView.as_view(), name='weekly-strategy-detail'),
+
+    # Explainable Recommendations (P10-11)
+    path('intelligence/explanation/', ExplanationListCreateView.as_view(), name='explanation-list-create'),
+    path('intelligence/explanation/<int:id>/', ExplanationDetailView.as_view(), name='explanation-detail'),
+
+    # Feedback Loop (P10-12)
+    path('intelligence/feedback/', UserFeedbackListCreateView.as_view(), name='user-feedback-list-create'),
+    path('intelligence/feedback/<int:id>/', UserFeedbackDetailView.as_view(), name='user-feedback-detail'),
 ]

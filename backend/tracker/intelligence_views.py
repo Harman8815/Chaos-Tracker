@@ -2,8 +2,8 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer, OpportunitySerializer, RiskSerializer, InterventionSerializer, DailyPlanSerializer, WeeklyStrategySerializer
+from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy, Explanation, UserFeedback
+from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer, OpportunitySerializer, RiskSerializer, InterventionSerializer, DailyPlanSerializer, WeeklyStrategySerializer, ExplanationSerializer, UserFeedbackSerializer
 from .utils import success_response, error_response
 
 logger = None
@@ -391,3 +391,43 @@ class WeeklyStrategyDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return WeeklyStrategy.objects.filter(user=self.request.user)
+
+
+# Phase 10 — Explanation & Feedback (P10-11 to P10-12)
+
+class ExplanationListCreateView(generics.ListCreateAPIView):
+    serializer_class = ExplanationSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Explanation.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ExplanationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ExplanationSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return Explanation.objects.filter(user=self.request.user)
+
+
+class UserFeedbackListCreateView(generics.ListCreateAPIView):
+    serializer_class = UserFeedbackSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return UserFeedback.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class UserFeedbackDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserFeedbackSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return UserFeedback.objects.filter(user=self.request.user)

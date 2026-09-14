@@ -2006,3 +2006,69 @@ class WeeklyStrategy(models.Model):
     def __str__(self):
         return f"Strategy week of {self.week_start_date}"
 
+
+class Explanation(models.Model):
+    """Explainable recommendations (P10-11)."""
+
+    EXPLANATION_TYPES = [
+        ('recommendation', 'Recommendation'),
+        ('prediction', 'Prediction'),
+        ('insight', 'Insight'),
+        ('intervention', 'Intervention'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='explanations')
+    explanation_type = models.CharField(max_length=20, choices=EXPLANATION_TYPES)
+    target_id = models.CharField(max_length=100, blank=True, default='')
+    title = models.CharField(max_length=255, blank=True, default='')
+    explanation_text = models.TextField()
+    reasoning_steps = models.JSONField(default=list, blank=True, help_text='Step-by-step reasoning')
+    supporting_data = models.JSONField(default=dict, blank=True)
+    confidence = models.FloatField(default=0.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'explanation_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_explanation_type_display()}: {self.title[:50]}"
+
+
+class UserFeedback(models.Model):
+    """Feedback loop from user acceptance/rejection (P10-12)."""
+
+    FEEDBACK_TYPES = [
+        ('recommendation', 'Recommendation'),
+        ('intervention', 'Intervention'),
+        ('prediction', 'Prediction'),
+        ('insight', 'Insight'),
+    ]
+
+    ACTION_CHOICES = [
+        ('accepted', 'Accepted'),
+        ('dismissed', 'Dismissed'),
+        ('partially_accepted', 'Partially Accepted'),
+        ('skipped', 'Skipped'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback')
+    feedback_type = models.CharField(max_length=20, choices=FEEDBACK_TYPES)
+    target_id = models.CharField(max_length=100, blank=True, default='')
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    feedback_text = models.TextField(blank=True)
+    relevance_score = models.FloatField(default=0.0, help_text='User-rated relevance 0-1')
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'feedback_type', 'action']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()}: {self.target_id[:50]}"
+
