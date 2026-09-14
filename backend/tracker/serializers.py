@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring
 
 import base64
 
@@ -570,5 +570,28 @@ class MLRecommendationScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLRecommendationScore
         fields = ['id', 'rank_type', 'target_id', 'target_type', 'score', 'rank', 'reason', 'model_version', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+# Phase 9 — Model Management (P9-10 to P9-12)
+
+class MLEvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLEvaluation
+        fields = ['id', 'model_name', 'model_version', 'metric_type', 'value', 'dataset_name', 'evaluation_date', 'details']
+        read_only_fields = ['id', 'evaluation_date']
+
+
+class MLModelVersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLModelVersion
+        fields = ['id', 'model_name', 'version', 'status', 'training_data_set', 'features_used', 'hyperparameters', 'performance_metrics', 'file_path', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class MLModelMonitoringSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLModelMonitoring
+        fields = ['id', 'model_name', 'model_version', 'monitor_type', 'alert_level', 'current_value', 'baseline_value', 'threshold', 'message', 'is_acknowledged', 'created_at']
         read_only_fields = ['id', 'created_at']
 

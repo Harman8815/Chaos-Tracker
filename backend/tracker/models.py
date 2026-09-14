@@ -1639,3 +1639,107 @@ class MLRecommendationScore(models.Model):
     def __str__(self):
         return f"Rank #{self.rank} — {self.target_type}/{self.target_id} ({self.score:.2f})"
 
+
+class MLEvaluation(models.Model):
+    """Model evaluation metrics (P9-10)."""
+
+    METRIC_TYPES = [
+        ('accuracy', 'Accuracy'),
+        ('precision', 'Precision'),
+        ('recall', 'Recall'),
+        ('f1', 'F1 Score'),
+        ('auc_roc', 'AUC-ROC'),
+        ('rmse', 'RMSE'),
+        ('mae', 'MAE'),
+        ('r2', 'R²'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_evaluations')
+    model_name = models.CharField(max_length=100)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    metric_type = models.CharField(max_length=20, choices=METRIC_TYPES)
+    value = models.FloatField(default=0.0)
+    dataset_name = models.CharField(max_length=255, blank=True, default='')
+    evaluation_date = models.DateTimeField(auto_now_add=True)
+    details = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-evaluation_date']
+        indexes = [
+            models.Index(fields=['user', 'model_name', 'model_version']),
+        ]
+
+    def __str__(self):
+        return f"{self.model_name} v{self.model_version} — {self.get_metric_type_display()}: {self.value:.4f}"
+
+
+class MLModelVersion(models.Model):
+    """Model version tracking (P9-11)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_model_versions')
+    model_name = models.CharField(max_length=100)
+    version = models.CharField(max_length=50)
+    status = models.CharField(max_length=20, default='active', choices=[
+        ('draft', 'Draft'),
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+        ('deprecated', 'Deprecated'),
+    ])
+    training_data_set = models.CharField(max_length=255, blank=True, default='')
+    features_used = models.JSONField(default=list, blank=True)
+    hyperparameters = models.JSONField(default=dict, blank=True)
+    performance_metrics = models.JSONField(default=dict, blank=True)
+    file_path = models.CharField(max_length=500, blank=True, default='')
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'model_name']),
+            models.Index(fields=['user', 'model_name', 'version']),
+        ]
+
+    def __str__(self):
+        return f"{self.model_name} v{self.version} ({self.status})"
+
+
+class MLModelMonitoring(models.Model):
+    """Model drift and degradation monitoring (P9-12)."""
+
+    MONITOR_TYPES = [
+        ('data_drift', 'Data Drift'),
+        ('concept_drift', 'Concept Drift'),
+        ('performance_degradation', 'Performance Degradation'),
+        ('feature_importance_shift', 'Feature Importance Shift'),
+    ]
+
+    ALERT_LEVELS = [
+        ('info', 'Info'),
+        ('warning', 'Warning'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_monitoring')
+    model_name = models.CharField(max_length=100)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    monitor_type = models.CharField(max_length=30, choices=MONITOR_TYPES)
+    alert_level = models.CharField(max_length=10, choices=ALERT_LEVELS, default='info')
+    current_value = models.FloatField(default=0.0)
+    baseline_value = models.FloatField(default=0.0)
+    threshold = models.FloatField(default=0.1)
+    message = models.TextField(blank=True)
+    is_acknowledged = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'model_name', 'monitor_type']),
+            models.Index(fields=['user', 'alert_level']),
+        ]
+
+    def __str__(self):
+        return f"{self.model_name} — {self.get_monitor_type_display()}: {self.get_alert_level_display()}"
+

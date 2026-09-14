@@ -145,6 +145,9 @@ from .intelligence_views import (
     MLGoalCompletionListCreateView, MLGoalCompletionDetailView,
     MLAnomalyListCreateView, MLAnomalyDetailView,
     MLRecommendationScoreListCreateView, MLRecommendationScoreDetailView,
+    MLEvaluationListCreateView, MLEvaluationDetailView,
+    MLModelVersionListCreateView, MLModelVersionDetailView,
+    MLModelMonitoringListCreateView, MLModelMonitoringDetailView,
 )
 
 urlpatterns += [
@@ -183,4 +186,16 @@ urlpatterns += [
     # Recommendation Model (P9-09)
     path('ml/recommendation-score/', MLRecommendationScoreListCreateView.as_view(), name='ml-recommendation-score-list-create'),
     path('ml/recommendation-score/<int:id>/', MLRecommendationScoreDetailView.as_view(), name='ml-recommendation-score-detail'),
+
+    # Model Evaluation (P9-10)
+    path('ml/evaluation/', MLEvaluationListCreateView.as_view(), name='ml-evaluation-list-create'),
+    path('ml/evaluation/<int:id>/', MLEvaluationDetailView.as_view(), name='ml-evaluation-detail'),
+
+    # Model Versioning (P9-11)
+    path('ml/model-version/', MLModelVersionListCreateView.as_view(), name='ml-model-version-list-create'),
+    path('ml/model-version/<int:id>/', MLModelVersionDetailView.as_view(), name='ml-model-version-detail'),
+
+    # Model Monitoring (P9-12)
+    path('ml/monitoring/', MLModelMonitoringListCreateView.as_view(), name='ml-monitoring-list-create'),
+    path('ml/monitoring/<int:id>/', MLModelMonitoringDetailView.as_view(), name='ml-monitoring-detail'),
 ]

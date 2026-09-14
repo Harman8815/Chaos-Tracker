@@ -2,8 +2,8 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer
+from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring
+from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer
 from .utils import success_response, error_response
 
 logger = None
@@ -184,3 +184,62 @@ class MLRecommendationScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return MLRecommendationScore.objects.filter(user=self.request.user)
+
+
+# Phase 9 — Model Management (P9-10 to P9-12)
+
+class MLEvaluationListCreateView(generics.ListCreateAPIView):
+    serializer_class = MLEvaluationSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLEvaluation.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MLEvaluationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MLEvaluationSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLEvaluation.objects.filter(user=self.request.user)
+
+
+class MLModelVersionListCreateView(generics.ListCreateAPIView):
+    serializer_class = MLModelVersionSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLModelVersion.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MLModelVersionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MLModelVersionSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLModelVersion.objects.filter(user=self.request.user)
+
+
+class MLModelMonitoringListCreateView(generics.ListCreateAPIView):
+    serializer_class = MLModelMonitoringSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLModelMonitoring.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MLModelMonitoringDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MLModelMonitoringSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLModelMonitoring.objects.filter(user=self.request.user)
