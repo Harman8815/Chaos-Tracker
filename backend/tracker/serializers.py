@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore
 
 import base64
 
@@ -547,5 +547,28 @@ class MLHabitConsistencySerializer(serializers.ModelSerializer):
     class Meta:
         model = MLHabitConsistency
         fields = ['id', 'habit_id', 'habit_name', 'prediction_date', 'likelihood_of_miss', 'contributing_factors', 'model_version', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+# Phase 9 — Predictions & Detection (P9-07 to P9-09)
+
+class MLGoalCompletionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLGoalCompletion
+        fields = ['id', 'goal_id', 'goal_text', 'predicted_probability', 'estimated_completion_date', 'remaining_days', 'contributing_factors', 'model_version', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class MLAnomalySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLAnomaly
+        fields = ['id', 'anomaly_type', 'severity', 'domain', 'description', 'detected_value', 'expected_range_low', 'expected_range_high', 'is_resolved', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class MLRecommendationScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLRecommendationScore
+        fields = ['id', 'rank_type', 'target_id', 'target_type', 'score', 'rank', 'reason', 'model_version', 'created_at']
         read_only_fields = ['id', 'created_at']
 

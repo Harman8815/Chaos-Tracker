@@ -2,8 +2,8 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer
+from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore
+from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer
 from .utils import success_response, error_response
 
 logger = None
@@ -125,3 +125,62 @@ class MLHabitConsistencyDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return MLHabitConsistency.objects.filter(user=self.request.user)
+
+
+# Phase 9 — Predictions & Detection (P9-07 to P9-09)
+
+class MLGoalCompletionListCreateView(generics.ListCreateAPIView):
+    serializer_class = MLGoalCompletionSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLGoalCompletion.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MLGoalCompletionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MLGoalCompletionSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLGoalCompletion.objects.filter(user=self.request.user)
+
+
+class MLAnomalyListCreateView(generics.ListCreateAPIView):
+    serializer_class = MLAnomalySerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLAnomaly.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MLAnomalyDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MLAnomalySerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLAnomaly.objects.filter(user=self.request.user)
+
+
+class MLRecommendationScoreListCreateView(generics.ListCreateAPIView):
+    serializer_class = MLRecommendationScoreSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLRecommendationScore.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MLRecommendationScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MLRecommendationScoreSerializer
+    permission_classes = PERMISSION_CLASSES
+
+    def get_queryset(self):
+        return MLRecommendationScore.objects.filter(user=self.request.user)

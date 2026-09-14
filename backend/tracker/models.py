@@ -1545,3 +1545,97 @@ class MLHabitConsistency(models.Model):
     def __str__(self):
         return f"{self.habit_name} — miss probability: {self.likelihood_of_miss:.2f}"
 
+
+class MLGoalCompletion(models.Model):
+    """Goal completion probability prediction (P9-07)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_goal_completion')
+    goal_id = models.CharField(max_length=100, blank=True, default='')
+    goal_text = models.CharField(max_length=500, blank=True, default='')
+    predicted_probability = models.FloatField(default=0.0, help_text='Probability 0-1 of completion')
+    estimated_completion_date = models.DateField(null=True, blank=True)
+    remaining_days = models.IntegerField(default=0)
+    contributing_factors = models.JSONField(default=dict, blank=True)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-predicted_probability']
+        indexes = [
+            models.Index(fields=['user', 'goal_id']),
+        ]
+
+    def __str__(self):
+        return f"{self.goal_text[:50]} — {self.predicted_probability:.2f}"
+
+
+class MLAnomaly(models.Model):
+    """Anomaly detection results (P9-08)."""
+
+    ANOMALY_TYPES = [
+        ('spending', 'Spending'),
+        ('habit', 'Habit'),
+        ('goal', 'Goal'),
+        ('activity', 'Activity'),
+        ('financial', 'Financial'),
+    ]
+
+    SEVERITY = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_anomalies')
+    anomaly_type = models.CharField(max_length=20, choices=ANOMALY_TYPES)
+    severity = models.CharField(max_length=10, choices=SEVERITY, default='medium')
+    domain = models.CharField(max_length=50, blank=True)
+    description = models.TextField()
+    detected_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=None)
+    expected_range_low = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=None)
+    expected_range_high = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=None)
+    is_resolved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'anomaly_type', 'is_resolved']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_anomaly_type_display()} anomaly — {self.description[:50]}"
+
+
+class MLRecommendationScore(models.Model):
+    """Recommendation ranking scores (P9-09)."""
+
+    RANK_TYPES = [
+        ('expense', 'Expense'),
+        ('habit', 'Habit'),
+        ('goal', 'Goal'),
+        ('productivity', 'Productivity'),
+        ('finance', 'Finance'),
+        ('general', 'General'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_recommendation_scores')
+    rank_type = models.CharField(max_length=20, choices=RANK_TYPES)
+    target_id = models.CharField(max_length=100, blank=True, default='')
+    target_type = models.CharField(max_length=50, blank=True, default='')
+    score = models.FloatField(default=0.0)
+    rank = models.IntegerField(default=0)
+    reason = models.TextField(blank=True)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['rank']
+        indexes = [
+            models.Index(fields=['user', 'rank_type', 'rank']),
+        ]
+
+    def __str__(self):
+        return f"Rank #{self.rank} — {self.target_type}/{self.target_id} ({self.score:.2f})"
+

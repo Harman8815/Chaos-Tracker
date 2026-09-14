@@ -142,6 +142,9 @@ from .intelligence_views import (
     MLTransactionCategoryListCreateView, MLTransactionCategoryDetailView,
     MLSpendingPredictionListCreateView, MLSpendingPredictionDetailView,
     MLHabitConsistencyListCreateView, MLHabitConsistencyDetailView,
+    MLGoalCompletionListCreateView, MLGoalCompletionDetailView,
+    MLAnomalyListCreateView, MLAnomalyDetailView,
+    MLRecommendationScoreListCreateView, MLRecommendationScoreDetailView,
 )
 
 urlpatterns += [
@@ -168,4 +171,16 @@ urlpatterns += [
     # Habit Consistency Prediction (P9-06)
     path('ml/habit-consistency/', MLHabitConsistencyListCreateView.as_view(), name='ml-habit-consistency-list-create'),
     path('ml/habit-consistency/<int:id>/', MLHabitConsistencyDetailView.as_view(), name='ml-habit-consistency-detail'),
+
+    # Goal Completion Prediction (P9-07)
+    path('ml/goal-completion/', MLGoalCompletionListCreateView.as_view(), name='ml-goal-completion-list-create'),
+    path('ml/goal-completion/<int:id>/', MLGoalCompletionDetailView.as_view(), name='ml-goal-completion-detail'),
+
+    # Anomaly Detection (P9-08)
+    path('ml/anomaly/', MLAnomalyListCreateView.as_view(), name='ml-anomaly-list-create'),
+    path('ml/anomaly/<int:id>/', MLAnomalyDetailView.as_view(), name='ml-anomaly-detail'),
+
+    # Recommendation Model (P9-09)
+    path('ml/recommendation-score/', MLRecommendationScoreListCreateView.as_view(), name='ml-recommendation-score-list-create'),
+    path('ml/recommendation-score/<int:id>/', MLRecommendationScoreDetailView.as_view(), name='ml-recommendation-score-detail'),
 ]
