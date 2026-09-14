@@ -1352,3 +1352,121 @@ class AIMemorySummarization(models.Model):
     def __str__(self):
         return f"Summarization for {self.conversation_id} - {self.status}"
 
+
+# =============================================================================
+# Phase 9 — ML & Prediction Models
+# =============================================================================
+
+class MLDataSet(models.Model):
+    """Prepared training datasets (P9-01)."""
+
+    DATA_TYPES = [
+        ('expenses', 'Expenses'),
+        ('habits', 'Habits'),
+        ('goals', 'Goals'),
+        ('mood', 'Mood'),
+        ('journal', 'Journal'),
+        ('water', 'Water'),
+        ('combined', 'Combined'),
+    ]
+
+    SPLIT_TYPES = [
+        ('train', 'Train'),
+        ('validation', 'Validation'),
+        ('test', 'Test'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_datasets')
+    name = models.CharField(max_length=255)
+    data_type = models.CharField(max_length=20, choices=DATA_TYPES)
+    split = models.CharField(max_length=20, choices=SPLIT_TYPES, default='train')
+    records_count = models.IntegerField(default=0)
+    features = models.JSONField(default=list, blank=True, help_text='List of feature names included')
+    file_path = models.CharField(max_length=500, blank=True, default='')
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'data_type']),
+            models.Index(fields=['user', 'split']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_data_type_display()} / {self.get_split_display()})"
+
+
+class MLFeature(models.Model):
+    """Behavioral features for ML models (P9-02)."""
+
+    FEATURE_TYPES = [
+        ('numerical', 'Numerical'),
+        ('categorical', 'Categorical'),
+        ('boolean', 'Boolean'),
+        ('temporal', 'Temporal'),
+        ('aggregate', 'Aggregate'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_features')
+    name = models.CharField(max_length=255)
+    feature_type = models.CharField(max_length=20, choices=FEATURE_TYPES)
+    description = models.TextField(blank=True)
+    source_domains = models.JSONField(default=list, blank=True, help_text='Which tracker domains this feature derives from')
+    computation_logic = models.TextField(blank=True, help_text='Description or code snippet of how feature is computed')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_feature_type_display()})"
+
+
+class MLDataQualityCheck(models.Model):
+    """Data quality check results (P9-03)."""
+
+    CHECK_TYPES = [
+        ('completeness', 'Completeness'),
+        ('uniqueness', 'Uniqueness'),
+        ('validity', 'Validity'),
+        ('consistency', 'Consistency'),
+        ('freshness', 'Freshness'),
+        ('outliers', 'Outliers'),
+    ]
+
+    SEVERITY = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_quality_checks')
+    check_type = models.CharField(max_length=20, choices=CHECK_TYPES)
+    domain = models.CharField(max_length=50, blank=True, help_text='Which domain was checked (expenses, habits, etc.)')
+    severity = models.CharField(max_length=10, choices=SEVERITY, default='medium')
+    total_records = models.IntegerField(default=0)
+    valid_records = models.IntegerField(default=0)
+    invalid_records = models.IntegerField(default=0)
+    details = models.JSONField(default=dict, blank=True, help_text='Detailed findings')
+    message = models.TextField(blank=True)
+    passed = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'check_type']),
+            models.Index(fields=['user', 'domain']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_check_type_display()} — {self.domain or 'general'}"
+

@@ -130,3 +130,27 @@ urlpatterns = [
     # Analytics endpoints
     path('analytics/<str:period>/', AnalyticsView.as_view(), name='analytics'),
 ]
+
+# =============================================================================
+# Phase 9 — ML & Prediction endpoints (P9-01 to P9-03)
+# =============================================================================
+
+from .intelligence_views import (
+    MLDataSetListCreateView, MLDataSetDetailView,
+    MLFeatureListCreateView, MLFeatureDetailView,
+    MLDataQualityCheckListCreateView, MLDataQualityCheckDetailView,
+)
+
+urlpatterns += [
+    # ML Data Pipeline (P9-01)
+    path('ml/datasets/', MLDataSetListCreateView.as_view(), name='ml-dataset-list-create'),
+    path('ml/datasets/<int:id>/', MLDataSetDetailView.as_view(), name='ml-dataset-detail'),
+
+    # Feature Engineering (P9-02)
+    path('ml/features/', MLFeatureListCreateView.as_view(), name='ml-feature-list-create'),
+    path('ml/features/<int:id>/', MLFeatureDetailView.as_view(), name='ml-feature-detail'),
+
+    # Data Quality Checks (P9-03)
+    path('ml/quality/', MLDataQualityCheckListCreateView.as_view(), name='ml-quality-list-create'),
+    path('ml/quality/<int:id>/', MLDataQualityCheckDetailView.as_view(), name='ml-quality-detail'),
+]

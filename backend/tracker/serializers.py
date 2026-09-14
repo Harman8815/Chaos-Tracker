@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck
 
 import base64
 
@@ -500,4 +500,29 @@ class AIMemorySummarizationSerializer(serializers.ModelSerializer):
             'created_at', 'completed_at'
         ]
         read_only_fields = ['id', 'created_at', 'completed_at']
+
+
+# =============================================================================
+# Phase 9 — ML & Prediction Serializers (P9-01 to P9-03)
+# =============================================================================
+
+class MLDataSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLDataSet
+        fields = ['id', 'name', 'data_type', 'split', 'records_count', 'features', 'file_path', 'description', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'records_count', 'created_at', 'updated_at']
+
+
+class MLFeatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLFeature
+        fields = ['id', 'name', 'feature_type', 'description', 'source_domains', 'computation_logic', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class MLDataQualityCheckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLDataQualityCheck
+        fields = ['id', 'check_type', 'domain', 'severity', 'total_records', 'valid_records', 'invalid_records', 'details', 'message', 'passed', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
