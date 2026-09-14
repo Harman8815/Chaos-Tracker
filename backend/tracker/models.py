@@ -1470,3 +1470,78 @@ class MLDataQualityCheck(models.Model):
     def __str__(self):
         return f"{self.get_check_type_display()} — {self.domain or 'general'}"
 
+
+class MLTransactionCategory(models.Model):
+    """Transaction categorization prediction (P9-04)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_transaction_categories')
+    transaction_id = models.CharField(max_length=100, blank=True, default='')
+    item_name = models.CharField(max_length=255, blank=True, default='')
+    predicted_category = models.CharField(max_length=100, blank=True, default='')
+    confidence = models.FloatField(default=0.0)
+    alternative_categories = models.JSONField(default=list, blank=True)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'predicted_category']),
+        ]
+
+    def __str__(self):
+        return f"{self.item_name} → {self.predicted_category} ({self.confidence:.2f})"
+
+
+class MLSpendingPrediction(models.Model):
+    """Spending prediction for future periods (P9-05)."""
+
+    PERIOD_TYPES = [
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_spending_predictions')
+    category = models.CharField(max_length=100, blank=True, default='')
+    period_type = models.CharField(max_length=20, choices=PERIOD_TYPES, default='monthly')
+    period_start = models.DateField()
+    period_end = models.DateField()
+    predicted_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    lower_bound = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    upper_bound = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    confidence = models.FloatField(default=0.0)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-period_start']
+        indexes = [
+            models.Index(fields=['user', 'category', 'period_start']),
+        ]
+
+    def __str__(self):
+        return f"Spending {self.category} — {self.period_start} to {self.period_end}"
+
+
+class MLHabitConsistency(models.Model):
+    """Habit consistency prediction (P9-06)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_habit_consistency')
+    habit_id = models.CharField(max_length=100, blank=True, default='')
+    habit_name = models.CharField(max_length=255, blank=True, default='')
+    prediction_date = models.DateField()
+    likelihood_of_miss = models.FloatField(default=0.0, help_text='Probability 0-1 that habit will be missed')
+    contributing_factors = models.JSONField(default=dict, blank=True)
+    model_version = models.CharField(max_length=50, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-prediction_date']
+        indexes = [
+            models.Index(fields=['user', 'habit_id', 'prediction_date']),
+        ]
+
+    def __str__(self):
+        return f"{self.habit_name} — miss probability: {self.likelihood_of_miss:.2f}"
+

@@ -139,6 +139,9 @@ from .intelligence_views import (
     MLDataSetListCreateView, MLDataSetDetailView,
     MLFeatureListCreateView, MLFeatureDetailView,
     MLDataQualityCheckListCreateView, MLDataQualityCheckDetailView,
+    MLTransactionCategoryListCreateView, MLTransactionCategoryDetailView,
+    MLSpendingPredictionListCreateView, MLSpendingPredictionDetailView,
+    MLHabitConsistencyListCreateView, MLHabitConsistencyDetailView,
 )
 
 urlpatterns += [
@@ -153,4 +156,16 @@ urlpatterns += [
     # Data Quality Checks (P9-03)
     path('ml/quality/', MLDataQualityCheckListCreateView.as_view(), name='ml-quality-list-create'),
     path('ml/quality/<int:id>/', MLDataQualityCheckDetailView.as_view(), name='ml-quality-detail'),
+
+    # Transaction Categorization (P9-04)
+    path('ml/transaction-category/', MLTransactionCategoryListCreateView.as_view(), name='ml-transaction-category-list-create'),
+    path('ml/transaction-category/<int:id>/', MLTransactionCategoryDetailView.as_view(), name='ml-transaction-category-detail'),
+
+    # Spending Prediction (P9-05)
+    path('ml/spending-prediction/', MLSpendingPredictionListCreateView.as_view(), name='ml-spending-prediction-list-create'),
+    path('ml/spending-prediction/<int:id>/', MLSpendingPredictionDetailView.as_view(), name='ml-spending-prediction-detail'),
+
+    # Habit Consistency Prediction (P9-06)
+    path('ml/habit-consistency/', MLHabitConsistencyListCreateView.as_view(), name='ml-habit-consistency-list-create'),
+    path('ml/habit-consistency/<int:id>/', MLHabitConsistencyDetailView.as_view(), name='ml-habit-consistency-detail'),
 ]

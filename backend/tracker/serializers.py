@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency
 
 import base64
 
@@ -524,5 +524,28 @@ class MLDataQualityCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLDataQualityCheck
         fields = ['id', 'check_type', 'domain', 'severity', 'total_records', 'valid_records', 'invalid_records', 'details', 'message', 'passed', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+# Phase 9 — Predictions (P9-04 to P9-06)
+
+class MLTransactionCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLTransactionCategory
+        fields = ['id', 'transaction_id', 'item_name', 'predicted_category', 'confidence', 'alternative_categories', 'model_version', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class MLSpendingPredictionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLSpendingPrediction
+        fields = ['id', 'category', 'period_type', 'period_start', 'period_end', 'predicted_amount', 'lower_bound', 'upper_bound', 'confidence', 'model_version', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class MLHabitConsistencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MLHabitConsistency
+        fields = ['id', 'habit_id', 'habit_name', 'prediction_date', 'likelihood_of_miss', 'contributing_factors', 'model_version', 'created_at']
         read_only_fields = ['id', 'created_at']
 
