@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, GoalData, Expense, QuoteSource, Achievement, UserProfile, Language, PointsData } from '../types';
 import { DUMMY_DATA } from '../data/dummy_data';
@@ -167,7 +167,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
     const settingsContext = React.useContext(SettingsContext) as SettingsContextType;
     const { data, setData, habits, setHabits, plannerData, setPlannerData } = dataContext;
     const { navigate, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules } = settingsContext;
-    const realtime = useRealtime();
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
     const mergeRemote = useCallback((remotePoints: any) => {
@@ -191,19 +190,55 @@ function AppContent({ children }: { children: React.ReactNode }) {
         openSettings: () => setIsSettingsModalOpen(true),
     };
 
+    return (
+        <>
+            <RealtimeProvider mergeRemote={mergeRemote}>
+                <AppInner 
+                    shortcutContext={shortcutContext}
+                    isCommandPaletteOpen={isCommandPaletteOpen}
+                    setIsCommandPaletteOpen={setIsCommandPaletteOpen}
+                    isSettingsModalOpen={isSettingsModalOpen}
+                    isEditHabitsModalOpen={isEditHabitsModalOpen}
+                    isEditRulesModalOpen={isEditRulesModalOpen}
+                    habits={habits}
+                    setHabits={setHabits}
+                    scoringRules={scoringRules}
+                    setScoringRules={setScoringRules}
+                >
+                    {children}
+                </AppInner>
+            </RealtimeProvider>
+        </>
+    );
+}
+
+interface AppInnerProps {
+    shortcutContext: any;
+    isCommandPaletteOpen: boolean;
+    setIsCommandPaletteOpen: (open: boolean) => void;
+    isSettingsModalOpen: boolean;
+    isEditHabitsModalOpen: boolean;
+    isEditRulesModalOpen: boolean;
+    habits: any[];
+    setHabits: (habits: any[]) => void;
+    scoringRules: any[];
+    setScoringRules: (rules: any[]) => void;
+    children: React.ReactNode;
+}
+
+function AppInner({ shortcutContext, isCommandPaletteOpen, setIsCommandPaletteOpen, isSettingsModalOpen, isEditHabitsModalOpen, isEditRulesModalOpen, habits, setHabits, scoringRules, setScoringRules, children }: AppInnerProps) {
+    const realtime = useRealtime();
     useKeyboardShortcuts(shortcutContext, [], { enabled: true });
 
     return (
         <>
-            <RealtimeProvider mergeRemote={mergeRemote}>
-                {children}
-                <ToolManager />
-                <CommandPalette />
-                <OnlineStatusIndicator />
-                {isSettingsModalOpen && <SettingsModal />}
-                {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
-                {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
-            </RealtimeProvider>
+            {children}
+            <ToolManager />
+            <CommandPalette />
+            <OnlineStatusIndicator />
+            {isSettingsModalOpen && <SettingsModal />}
+            {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+            {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
         </>
     );
 }
