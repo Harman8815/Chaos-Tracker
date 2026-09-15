@@ -3,12 +3,18 @@ import React, { Dispatch, SetStateAction } from 'react';
 export type Theme = 'light' | 'dark';
 export type TimeFormat = '12h' | '24h';
 export type Language = 'en' | 'es' | 'fr';
+export type ThemeDensity = 'compact' | 'comfortable' | 'spacious';
+export type FontFamily = 'sans' | 'serif' | 'mono';
 
 export interface Settings {
     theme: Theme;
     timeFormat: TimeFormat;
     language: Language;
     notifications: boolean;
+    accentColor?: string;
+    fontFamily?: FontFamily;
+    density?: ThemeDensity;
+    reducedMotion?: boolean;
 }
 
 export interface UserProfile {
@@ -316,4 +322,56 @@ export interface DataContextType {
     dataLoading: boolean;
     setDataLoading: Dispatch<SetStateAction<boolean>>;
     logout: () => void;
+}
+
+// ==================== PHASE 11 — Advanced Experience TYPES ====================
+
+export type DashboardWidgetId =
+  | 'rank'
+  | 'time'
+  | 'streaks'
+  | 'trend'
+  | 'radar'
+  | 'today-pie'
+  | 'habit-streaks-bar'
+  | 'monthly-avg'
+  | 'weekly-perf'
+  | 'target'
+  | 'ai-reflection';
+
+export interface DashboardWidgetConfig {
+  id: DashboardWidgetId;
+  enabled: boolean;
+  x: number;
+  y: number;
+  w: number;
+}
+
+export interface DashboardLayout {
+  widgets: DashboardWidgetConfig[];
+  columns: number;
+}
+
+export interface RealtimeConfig {
+  pollIntervalMs?: number;
+  websocketUrl?: string;
+}
+
+export interface OfflineSyncStatus {
+  online: boolean;
+  pending: number;
+  syncing: boolean;
+  lastSyncedAt: string | null;
+  error: string | null;
+}
+
+export interface PointsData {
+    habits: Habit[];
+    rules: ScoringRule[];
+    dailyData: {
+        [date: string]: {
+            habitScores: { [habitId: string]: number };
+            journal: string;
+        }
+    };
 }
