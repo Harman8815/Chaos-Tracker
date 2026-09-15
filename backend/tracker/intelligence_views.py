@@ -1,8 +1,54 @@
 from rest_framework import generics, views
 from rest_framework.permissions import IsAuthenticated
 
-from .models import MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy, Explanation, UserFeedback
-from .serializers import MLDataSetSerializer, MLFeatureSerializer, MLDataQualityCheckSerializer, MLTransactionCategorySerializer, MLSpendingPredictionSerializer, MLHabitConsistencySerializer, MLGoalCompletionSerializer, MLAnomalySerializer, MLRecommendationScoreSerializer, MLEvaluationSerializer, MLModelVersionSerializer, MLModelMonitoringSerializer, UnifiedPersonalStateSerializer, CrossDomainReasoningSerializer, RankedRecommendationSerializer, OpportunitySerializer, RiskSerializer, InterventionSerializer, DailyPlanSerializer, WeeklyStrategySerializer, ExplanationSerializer, UserFeedbackSerializer
+from .models import (
+    MLDataSet,
+    MLFeature,
+    MLDataQualityCheck,
+    MLTransactionCategory,
+    MLSpendingPrediction,
+    MLHabitConsistency,
+    MLGoalCompletion,
+    MLAnomaly,
+    MLRecommendationScore,
+    MLEvaluation,
+    MLModelVersion,
+    MLModelMonitoring,
+    UnifiedPersonalState,
+    CrossDomainReasoning,
+    RankedRecommendation,
+    Opportunity,
+    Risk,
+    Intervention,
+    DailyPlan,
+    WeeklyStrategy,
+    Explanation,
+    UserFeedback,
+)
+from .serializers import (
+    MLDataSetSerializer,
+    MLFeatureSerializer,
+    MLDataQualityCheckSerializer,
+    MLTransactionCategorySerializer,
+    MLSpendingPredictionSerializer,
+    MLHabitConsistencySerializer,
+    MLGoalCompletionSerializer,
+    MLAnomalySerializer,
+    MLRecommendationScoreSerializer,
+    MLEvaluationSerializer,
+    MLModelVersionSerializer,
+    MLModelMonitoringSerializer,
+    UnifiedPersonalStateSerializer,
+    CrossDomainReasoningSerializer,
+    RankedRecommendationSerializer,
+    OpportunitySerializer,
+    RiskSerializer,
+    InterventionSerializer,
+    DailyPlanSerializer,
+    WeeklyStrategySerializer,
+    ExplanationSerializer,
+    UserFeedbackSerializer,
+)
 from .utils import success_response
 
 logger = None
@@ -69,6 +115,7 @@ class MLDataQualityCheckDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Phase 9 — Predictions (P9-04 to P9-06)
 
+
 class MLTransactionCategoryListCreateView(generics.ListCreateAPIView):
     serializer_class = MLTransactionCategorySerializer
     permission_classes = PERMISSION_CLASSES
@@ -127,6 +174,7 @@ class MLHabitConsistencyDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # Phase 9 — Predictions & Detection (P9-07 to P9-09)
+
 
 class MLGoalCompletionListCreateView(generics.ListCreateAPIView):
     serializer_class = MLGoalCompletionSerializer
@@ -187,6 +235,7 @@ class MLRecommendationScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Phase 9 — Model Management (P9-10 to P9-12)
 
+
 class MLEvaluationListCreateView(generics.ListCreateAPIView):
     serializer_class = MLEvaluationSerializer
     permission_classes = PERMISSION_CLASSES
@@ -246,6 +295,7 @@ class MLModelMonitoringDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Phase 10 — Personal Intelligence Engine (P10-01 to P10-03)
 
+
 class UnifiedPersonalStateView(generics.RetrieveUpdateAPIView):
     serializer_class = UnifiedPersonalStateSerializer
     permission_classes = PERMISSION_CLASSES
@@ -294,6 +344,7 @@ class RankedRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # Phase 10 — Opportunities, Risks, Interventions (P10-04 to P10-06)
+
 
 class OpportunityListCreateView(generics.ListCreateAPIView):
     serializer_class = OpportunitySerializer
@@ -354,6 +405,7 @@ class InterventionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Phase 10 — Planning & Strategy (P10-09 to P10-10)
 
+
 class DailyPlanListCreateView(generics.ListCreateAPIView):
     serializer_class = DailyPlanSerializer
     permission_classes = PERMISSION_CLASSES
@@ -393,6 +445,7 @@ class WeeklyStrategyDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # Phase 10 — Explanation & Feedback (P10-11 to P10-12)
+
 
 class ExplanationListCreateView(generics.ListCreateAPIView):
     serializer_class = ExplanationSerializer
@@ -437,8 +490,9 @@ class MLPipelineRunView(views.APIView):
 
     def post(self, request):
         from .services import run_ml_pipeline
+
         result = run_ml_pipeline(request.user)
-        return success_response(data=result, message='ML pipeline run completed')
+        return success_response(data=result, message="ML pipeline run completed")
 
 
 class IntelligenceRunView(views.APIView):
@@ -446,5 +500,6 @@ class IntelligenceRunView(views.APIView):
 
     def post(self, request):
         from .services import run_intelligence_engine
+
         result = run_intelligence_engine(request.user)
-        return success_response(data=result, message='Intelligence engine run completed')
+        return success_response(data=result, message="Intelligence engine run completed")

@@ -8,6 +8,7 @@ by recent :class:`UserEvent` activity. Rules are declarative:
 The engine is stateless and only creates Achievement rows; it does
 not mutate other domains.
 """
+
 from datetime import timedelta
 
 from django.utils import timezone
@@ -29,7 +30,8 @@ class AchievementEngine:
                 continue
             title, description, event_type, count, window_days = result
             already = Achievement.objects.filter(
-                user=user, trigger_rule=event_type,
+                user=user,
+                trigger_rule=event_type,
             ).exists()
             if already:
                 continue
@@ -55,7 +57,8 @@ class AchievementEngine:
                 continue
             title, description, et, count, window_days = result
             already = Achievement.objects.filter(
-                user=user, trigger_rule=event_type,
+                user=user,
+                trigger_rule=event_type,
             ).exists()
             if already:
                 continue
@@ -71,22 +74,29 @@ class AchievementEngine:
 
     @staticmethod
     def _default_rules():
-        return [{"event_type": "planner_task_completed",
-                 "count": 7,
-                 "window_days": 30,
-                 "title": "Week Warrior",
-                 "description": "Completed 7 planner tasks in 30 days."},
-                {"event_type": "goal_completed",
-                 "count": 3,
-                 "window_days": 90,
-                 "title": "Goal Crusher",
-                 "description": "Completed 3 goals in 90 days."},
-                {"event_type": "habit_log",
-                 "count": 10,
-                 "window_days": 30,
-                 "title": "Habit Hero",
-                 "description": "Logged a habit 10 times in 30 days."},
-                ]
+        return [
+            {
+                "event_type": "planner_task_completed",
+                "count": 7,
+                "window_days": 30,
+                "title": "Week Warrior",
+                "description": "Completed 7 planner tasks in 30 days.",
+            },
+            {
+                "event_type": "goal_completed",
+                "count": 3,
+                "window_days": 90,
+                "title": "Goal Crusher",
+                "description": "Completed 3 goals in 90 days.",
+            },
+            {
+                "event_type": "habit_log",
+                "count": 10,
+                "window_days": 30,
+                "title": "Habit Hero",
+                "description": "Logged a habit 10 times in 30 days.",
+            },
+        ]
 
     def _evaluate_rule(self, user, rule):
         event_type = rule["event_type"]
@@ -96,7 +106,9 @@ class AchievementEngine:
             raise ValidationError("Achievement rule count and window_days must be positive")
         cutoff = timezone.now() - timedelta(days=window_days)
         actual = UserEvent.objects.filter(
-            user=user, event_type=event_type, occurred_at__gte=cutoff,
+            user=user,
+            event_type=event_type,
+            occurred_at__gte=cutoff,
         ).count()
         if actual >= count:
             return rule["title"], rule["description"], event_type, count, window_days

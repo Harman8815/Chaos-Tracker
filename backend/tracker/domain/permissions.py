@@ -6,6 +6,7 @@ requesting user owns the object. Ownership is checked through the
 
 Use :func:`require_owner` (or :class:`OwnerRequired`) inside services.
 """
+
 from .exceptions import PermissionError, NotFoundError
 
 

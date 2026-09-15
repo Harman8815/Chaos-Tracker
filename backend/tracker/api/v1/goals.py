@@ -1,4 +1,5 @@
 """Thin v1 controller for goals."""
+
 from rest_framework import status
 
 from ._base import TrackerAPIView
@@ -40,10 +41,8 @@ class GoalDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = goal_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, message="Goal updated")
 

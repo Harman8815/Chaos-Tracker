@@ -4,6 +4,7 @@ Every log record carries a consistent context so operators can filter
 by request id, user, and operation. The API middleware injects the
 ``request`` context; services receive an explicit ``context`` dict.
 """
+
 import logging
 import uuid
 from contextvars import ContextVar

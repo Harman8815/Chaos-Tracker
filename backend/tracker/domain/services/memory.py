@@ -1,4 +1,5 @@
 """Memory storage and retrieval service (P8-02, P8-03, P8-05, P8-07, P8-08, P8-09, P8-10)."""
+
 import hashlib
 from datetime import datetime
 from typing import List, Dict, Optional
@@ -6,7 +7,14 @@ from typing import List, Dict, Optional
 from django.db.models import Q
 from django.utils import timezone
 
-from ...models import AIMemory, AIMemorySummarization, UserPreference, AIConversation, AIMessage, User
+from ...models import (
+    AIMemory,
+    AIMemorySummarization,
+    UserPreference,
+    AIConversation,
+    AIMessage,
+    User,
+)
 from ..exceptions import ValidationError, NotFoundError
 from ..logging import get_logger
 
@@ -26,9 +34,14 @@ class MemoryService:
         prefs = self.get_preferences(user)
 
         allowed_fields = [
-            'response_length', 'auto_execute_tools', 'include_context_summary',
-            'memory_enabled', 'memory_retention_days', 'max_memory_entries',
-            'notify_on_tool_execution', 'notify_on_memory_created',
+            "response_length",
+            "auto_execute_tools",
+            "include_context_summary",
+            "memory_enabled",
+            "memory_retention_days",
+            "max_memory_entries",
+            "notify_on_tool_execution",
+            "notify_on_memory_created",
         ]
         for field in allowed_fields:
             if field in data:
@@ -47,7 +60,7 @@ class MemoryService:
         conversation: AIConversation = None,
         entities: Dict = None,
         source_message: AIMessage = None,
-        priority: str = 'normal',
+        priority: str = "normal",
         confidence: float = 1.0,
         expires_at: datetime = None,
     ) -> AIMemory:
@@ -78,7 +91,7 @@ class MemoryService:
 
         # Generate embedding hash for deduplication
         memory.embedding = self._generate_embedding_hash(content)
-        memory.save(update_fields=['embedding'])
+        memory.save(update_fields=["embedding"])
 
         logger.info("memory.created user_id=%s type=%s title=%s", user.id, memory_type, title)
         return memory
@@ -89,9 +102,9 @@ class MemoryService:
         words = set(content.lower().split())
         hash_val = hashlib.md5(content.encode()).hexdigest()[:16]
         return {
-            'hash': hash_val,
-            'word_count': len(words),
-            'top_words': list(words)[:50],
+            "hash": hash_val,
+            "word_count": len(words),
+            "top_words": list(words)[:50],
         }
 
     def get_memories(
@@ -111,7 +124,7 @@ class MemoryService:
         # Exclude expired
         qs = qs.filter(Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now()))
 
-        return list(qs.order_by('-priority', '-created_at')[offset:offset + limit])
+        return list(qs.order_by("-priority", "-created_at")[offset : offset + limit])
 
     def get_memory(self, user: User, memory_id: int) -> AIMemory:
         """Get a specific memory."""
@@ -131,19 +144,20 @@ class MemoryService:
         memory = self.get_memory(user, memory_id)
 
         allowed_fields = [
-            'title',
-            'content',
-            'memory_type',
-            'priority',
-            'confidence',
-            'entities',
-            'is_active']
+            "title",
+            "content",
+            "memory_type",
+            "priority",
+            "confidence",
+            "entities",
+            "is_active",
+        ]
         for field in allowed_fields:
             if field in data:
-                if field == 'content':
+                if field == "content":
                     memory.content = data[field]
                     memory.embedding = self._generate_embedding_hash(data[field])
-                elif field == 'entities':
+                elif field == "entities":
                     memory.entities = data[field] or {}
                 else:
                     setattr(memory, field, data[field])
@@ -162,7 +176,7 @@ class MemoryService:
             memory.delete()
         else:
             memory.is_active = False
-            memory.save(update_fields=['is_active', 'updated_at'])
+            memory.save(update_fields=["is_active", "updated_at"])
 
         logger.info("memory.deleted user_id=%s memory_id=%s hard=%s", user.id, memory_id, hard)
         return True
@@ -198,13 +212,15 @@ class MemoryService:
         for memory in memories:
             score = self._calculate_relevance(memory, query_lower, query_words)
             if score > 0:
-                results.append({
-                    'memory': memory,
-                    'score': score,
-                })
+                results.append(
+                    {
+                        "memory": memory,
+                        "score": score,
+                    }
+                )
 
         # Sort by relevance score
-        results.sort(key=lambda x: x['score'], reverse=True)
+        results.sort(key=lambda x: x["score"], reverse=True)
         return results[:limit]
 
     def _calculate_relevance(self, memory: AIMemory, query: str, query_words: set) -> float:
@@ -234,7 +250,7 @@ class MemoryService:
                             score += 1.5
 
         # Priority boost
-        priority_boost = {'critical': 2.0, 'high': 1.5, 'normal': 1.0, 'low': 0.5}
+        priority_boost = {"critical": 2.0, "high": 1.5, "normal": 1.0, "low": 0.5}
         score *= priority_boost.get(memory.priority, 1.0)
 
         # Recency boost (recent memories are more relevant)
@@ -252,13 +268,15 @@ class MemoryService:
 
     def _evict_oldest(self, user: User) -> None:
         """Evict oldest low-priority memory when at capacity."""
-        oldest = AIMemory.objects.filter(
-            user=user, is_active=True, priority__in=['low', 'normal']
-        ).order_by('created_at').first()
+        oldest = (
+            AIMemory.objects.filter(user=user, is_active=True, priority__in=["low", "normal"])
+            .order_by("created_at")
+            .first()
+        )
 
         if oldest:
             oldest.is_active = False
-            oldest.save(update_fields=['is_active', 'updated_at'])
+            oldest.save(update_fields=["is_active", "updated_at"])
             logger.info("memory.evicted user_id=%s memory_id=%s", user.id, oldest.id)
 
     def cleanup_expired(self) -> int:
@@ -282,13 +300,13 @@ class MemoryService:
 
         prefs = self.get_preferences(user)
         return {
-            'total_memories': total,
-            'by_type': by_type,
-            'max_entries': prefs.max_memory_entries,
-            'usage_percent': round(
-                (total / prefs.max_memory_entries * 100) if prefs.max_memory_entries > 0 else 0,
-                1),
-            'memory_enabled': prefs.memory_enabled,
+            "total_memories": total,
+            "by_type": by_type,
+            "max_entries": prefs.max_memory_entries,
+            "usage_percent": round(
+                (total / prefs.max_memory_entries * 100) if prefs.max_memory_entries > 0 else 0, 1
+            ),
+            "memory_enabled": prefs.memory_enabled,
         }
 
 
@@ -304,19 +322,19 @@ class SummarizationService:
         job = AIMemorySummarization.objects.create(
             conversation=conversation,
             source_message_count=message_count,
-            status='pending',
+            status="pending",
         )
         logger.info("summarization.job_created conversation_id=%s", conversation.id)
         return job
 
     def process_summarization(self, job: AIMemorySummarization) -> AIMemorySummarization:
         """Process a summarization job."""
-        job.status = 'processing'
-        job.save(update_fields=['status'])
+        job.status = "processing"
+        job.save(update_fields=["status"])
 
         try:
             # Get all messages
-            messages = job.conversation.messages.order_by('created_at')
+            messages = job.conversation.messages.order_by("created_at")
             message_texts = [f"{m.role}: {m.content}" for m in messages]
             full_text = "\n".join(message_texts)
 
@@ -327,29 +345,28 @@ class SummarizationService:
             summary_memory = AIMemory.objects.create(
                 user=job.conversation.user,
                 conversation=job.conversation,
-                memory_type='summary',
+                memory_type="summary",
                 title=f"Summary: {job.conversation.title or 'Conversation'}",
                 content=summary,
-                priority='normal',
+                priority="normal",
                 confidence=0.9,
-                entities={'message_count': job.source_message_count},
+                entities={"message_count": job.source_message_count},
             )
 
             job.summary_text = summary
             job.summary_memory = summary_memory
-            job.status = 'completed'
+            job.status = "completed"
             job.completed_at = timezone.now()
-            job.save(update_fields=['summary_text', 'summary_memory', 'status', 'completed_at'])
+            job.save(update_fields=["summary_text", "summary_memory", "status", "completed_at"])
 
             logger.info(
-                "summarization.completed conversation_id=%s job_id=%s",
-                job.conversation.id,
-                job.id)
+                "summarization.completed conversation_id=%s job_id=%s", job.conversation.id, job.id
+            )
 
         except Exception as e:
-            job.status = 'failed'
+            job.status = "failed"
             job.error = str(e)
-            job.save(update_fields=['status', 'error'])
+            job.save(update_fields=["status", "error"])
             logger.error("summarization.failed job_id=%s error=%s", job.id, e)
 
         return job
@@ -357,14 +374,15 @@ class SummarizationService:
     def _generate_summary(self, text: str, messages) -> str:
         """Generate a summary of the conversation."""
         # Placeholder - in production would call LLM
-        user_msgs = [m for m in messages if m.role == 'user']
-        assistant_msgs = [m for m in messages if m.role == 'assistant']
+        user_msgs = [m for m in messages if m.role == "user"]
+        assistant_msgs = [m for m in messages if m.role == "assistant"]
 
         summary_parts = [
             f"Conversation with {
                 len(messages)} messages ({
                 len(user_msgs)} user, {
-                len(assistant_msgs)} assistant).", ]
+                len(assistant_msgs)} assistant).",
+        ]
 
         # Extract key topics from user messages
         topics = set()
@@ -380,17 +398,20 @@ class SummarizationService:
 
     def get_summarization_status(self, conversation: AIConversation) -> Optional[Dict]:
         """Get latest summarization status for conversation."""
-        job = AIMemorySummarization.objects.filter(
-            conversation=conversation).order_by('-created_at').first()
+        job = (
+            AIMemorySummarization.objects.filter(conversation=conversation)
+            .order_by("-created_at")
+            .first()
+        )
         if not job:
             return None
         return {
-            'id': job.id,
-            'status': job.status,
-            'source_message_count': job.source_message_count,
-            'created_at': job.created_at.isoformat(),
-            'completed_at': job.completed_at.isoformat() if job.completed_at else None,
-            'error': job.error,
+            "id": job.id,
+            "status": job.status,
+            "source_message_count": job.source_message_count,
+            "created_at": job.created_at.isoformat(),
+            "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+            "error": job.error,
         }
 
 

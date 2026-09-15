@@ -25,13 +25,19 @@ class PlannerTemplateService:
     def create(self, user, data):
         name = validation.bounded_text(data.get("name"), max_length=255, field="name")
         description = validation.bounded_text(
-            data.get("description", ""), max_length=2000, field="description", allow_blank=True,
+            data.get("description", ""),
+            max_length=2000,
+            field="description",
+            allow_blank=True,
         )
         template_data = data.get("data") or {}
         if not isinstance(template_data, dict):
             raise ValidationError("data must be an object")
         template = PlannerTemplate.objects.create(
-            user=user, name=name, description=description, data=template_data,
+            user=user,
+            name=name,
+            description=description,
+            data=template_data,
         )
         logger.info("templates.create user_id=%s id=%s", user.id, template.id)
         return template
@@ -42,7 +48,10 @@ class PlannerTemplateService:
         created_blocks, created_links = planner_service.replace_all(user, template.data)
         logger.info(
             "templates.apply user_id=%s template_id=%s blocks=%s links=%s",
-            user.id, template.id, created_blocks, created_links,
+            user.id,
+            template.id,
+            created_blocks,
+            created_links,
         )
         return created_blocks, created_links
 
@@ -76,9 +85,7 @@ class PlannerSearchService:
         tasks = _search_tasks(user, q)[:limit]
         return {
             "query": q,
-            "blocks": [
-                {"id": b.id, "title": b.title, "x": b.x, "y": b.y} for b in blocks
-            ],
+            "blocks": [{"id": b.id, "title": b.title, "x": b.x, "y": b.y} for b in blocks],
             "tasks": [
                 {"id": t.id, "block": t.block_id, "text": t.text, "completed": t.completed}
                 for t in tasks

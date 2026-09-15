@@ -2,6 +2,7 @@
 
 Each alert type has its own checker that creates notifications when conditions are met.
 """
+
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -9,8 +10,14 @@ from django.db.models import Sum, F
 from django.utils import timezone
 
 from ...models import (
-    Goal, Habit, DailyHabitScore, Budget, Expense, Achievement,
-    DailyActivityAggregate, NotificationDeduplication,
+    Goal,
+    Habit,
+    DailyHabitScore,
+    Budget,
+    Expense,
+    Achievement,
+    DailyActivityAggregate,
+    NotificationDeduplication,
 )
 from .notifications import notification_service
 from ..logging import get_logger
@@ -28,7 +35,7 @@ class GoalDeadlineAlertService:
 
         goals = Goal.objects.filter(
             user=user,
-            status='active',
+            status="active",
             due_date__gte=today,
             due_date__lte=target_date,
         )
@@ -45,26 +52,26 @@ class GoalDeadlineAlertService:
         if days_left == 0:
             title = f"Goal due today: {goal.text[:50]}"
             message = f"Your goal '{goal.text}' is due today!"
-            priority = 'high'
+            priority = "high"
         elif days_left == 1:
             title = f"Goal due tomorrow: {goal.text[:50]}"
             message = f"Your goal '{
                 goal.text}' is due tomorrow. {
                 goal.completed_tasks}/{
                 goal.target} completed."
-            priority = 'normal'
+            priority = "normal"
         else:
             title = f"Goal due in {days_left} days: {goal.text[:50]}"
             message = f"Your goal '{goal.text}' is due in {days_left} days."
-            priority = 'low'
+            priority = "low"
 
         notification_service.create_notification(
             user=user,
-            notification_type='goal_deadline',
+            notification_type="goal_deadline",
             title=title,
             message=message,
             priority=priority,
-            data={'goal_id': goal.id, 'days_left': days_left},
+            data={"goal_id": goal.id, "days_left": days_left},
             dedupe_key=f"goal_{goal.id}_{days_left}",
             dedupe_window_hours=12,
         )
@@ -109,11 +116,11 @@ class HabitReminderService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='habit_reminder',
+            notification_type="habit_reminder",
             title=title,
             message=message,
-            priority='normal',
-            data={'habit_id': habit.id},
+            priority="normal",
+            data={"habit_id": habit.id},
             dedupe_key=f"habit_{habit.id}_{date.today()}",
             dedupe_window_hours=24,
         )
@@ -150,12 +157,12 @@ class BudgetAlertService:
             category=category,
             date__year=year,
             date__month=month,
-        ).aggregate(total=Sum(F('quantity') * F('price')))
-        return result['total'] or Decimal('0')
+        ).aggregate(total=Sum(F("quantity") * F("price")))
+        return result["total"] or Decimal("0")
 
     def _notify_budget_warning(self, user, budget: Budget, spent: Decimal, percent: float) -> None:
         dedupe_key = f"budget_{budget.id}_warning_{int(percent)}"
-        if self._already_notified(user, 'budget_alert', dedupe_key, hours=24):
+        if self._already_notified(user, "budget_alert", dedupe_key, hours=24):
             return
 
         title = f"Budget warning: {budget.category}"
@@ -167,22 +174,23 @@ class BudgetAlertService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='budget_alert',
+            notification_type="budget_alert",
             title=title,
             message=message,
-            priority='normal',
+            priority="normal",
             data={
-                'budget_id': budget.id,
-                'category': budget.category,
-                'percent': percent,
-                'spent': float(spent)},
+                "budget_id": budget.id,
+                "category": budget.category,
+                "percent": percent,
+                "spent": float(spent),
+            },
             dedupe_key=dedupe_key,
             dedupe_window_hours=24,
         )
 
     def _notify_budget_exceeded(self, user, budget: Budget, spent: Decimal, percent: float) -> None:
         dedupe_key = f"budget_{budget.id}_exceeded"
-        if self._already_notified(user, 'budget_alert', dedupe_key, hours=12):
+        if self._already_notified(user, "budget_alert", dedupe_key, hours=12):
             return
 
         title = f"Budget exceeded: {budget.category}"
@@ -195,15 +203,16 @@ class BudgetAlertService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='budget_alert',
+            notification_type="budget_alert",
             title=title,
             message=message,
-            priority='high',
+            priority="high",
             data={
-                'budget_id': budget.id,
-                'category': budget.category,
-                'percent': percent,
-                'spent': float(spent)},
+                "budget_id": budget.id,
+                "category": budget.category,
+                "percent": percent,
+                "spent": float(spent),
+            },
             dedupe_key=dedupe_key,
             dedupe_window_hours=12,
         )
@@ -263,11 +272,11 @@ class StreakAlertService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='streak_alert',
+            notification_type="streak_alert",
             title=title,
             message=message,
-            priority='normal',
-            data={'habit_id': habit.id, 'streak': habit.streak, 'type': 'milestone'},
+            priority="normal",
+            data={"habit_id": habit.id, "streak": habit.streak, "type": "milestone"},
             dedupe_key=f"streak_milestone_{habit.id}_{habit.streak}",
             dedupe_window_hours=24,
         )
@@ -280,11 +289,11 @@ class StreakAlertService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='streak_alert',
+            notification_type="streak_alert",
             title=title,
             message=message,
-            priority='high',
-            data={'habit_id': habit.id, 'streak': habit.streak, 'type': 'at_risk'},
+            priority="high",
+            data={"habit_id": habit.id, "streak": habit.streak, "type": "at_risk"},
             dedupe_key=f"streak_risk_{habit.id}_{date.today()}",
             dedupe_window_hours=12,
         )
@@ -303,11 +312,11 @@ class AchievementNotificationService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='achievement_earned',
+            notification_type="achievement_earned",
             title=title,
             message=message,
-            priority='normal',
-            data={'achievement_id': achievement.id, 'image': achievement.image},
+            priority="normal",
+            data={"achievement_id": achievement.id, "image": achievement.image},
             dedupe_key=f"achievement_{achievement.id}",
             dedupe_window_hours=24 * 365,  # Essentially permanent dedupe
         )
@@ -346,19 +355,19 @@ class SummaryNotificationService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='weekly_summary',
+            notification_type="weekly_summary",
             title=title,
             message=message,
-            priority='low',
+            priority="low",
             data={
-                'week_start': week_start.isoformat(),
-                'week_end': week_end.isoformat(),
-                'habits_completed': habits_completed,
-                'habits_total': habits_total,
-                'tasks_completed': tasks_completed,
-                'goals_completed': goals_completed,
-                'journal_days': journal_days,
-                'total_points': total_points,
+                "week_start": week_start.isoformat(),
+                "week_end": week_end.isoformat(),
+                "habits_completed": habits_completed,
+                "habits_total": habits_total,
+                "tasks_completed": tasks_completed,
+                "goals_completed": goals_completed,
+                "journal_days": journal_days,
+                "total_points": total_points,
             },
             dedupe_key=f"weekly_summary_{week_start.isoformat()}",
             dedupe_window_hours=24 * 8,  # Once per week
@@ -388,9 +397,7 @@ class SummaryNotificationService:
         total_points = sum(a.points for a in aggregates)
 
         # Top categories for expenses
-        expenses = Expense.objects.filter(
-            user=user, date__range=[month_start, month_end]
-        )
+        expenses = Expense.objects.filter(user=user, date__range=[month_start, month_end])
         expense_total = sum(float(e.total) for e in expenses)
 
         title = f"📈 Monthly Summary ({month_start.strftime('%B %Y')})"
@@ -403,19 +410,19 @@ class SummaryNotificationService:
 
         notification_service.create_notification(
             user=user,
-            notification_type='monthly_summary',
+            notification_type="monthly_summary",
             title=title,
             message=message,
-            priority='low',
+            priority="low",
             data={
-                'month': month_start.strftime('%Y-%m'),
-                'habits_completed': habits_completed,
-                'habits_total': habits_total,
-                'tasks_completed': tasks_completed,
-                'goals_completed': goals_completed,
-                'journal_days': journal_days,
-                'total_points': total_points,
-                'expense_total': expense_total,
+                "month": month_start.strftime("%Y-%m"),
+                "habits_completed": habits_completed,
+                "habits_total": habits_total,
+                "tasks_completed": tasks_completed,
+                "goals_completed": goals_completed,
+                "journal_days": journal_days,
+                "total_points": total_points,
+                "expense_total": expense_total,
             },
             dedupe_key=f"monthly_summary_{month_start.strftime('%Y-%m')}",
             dedupe_window_hours=24 * 32,  # Once per month

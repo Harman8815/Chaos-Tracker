@@ -17,11 +17,7 @@ logger = get_logger("tracker.domain.planner")
 
 
 def _get_block(user, block_id):
-    block = (
-        PlannerBlock.objects.prefetch_related("tasks")
-        .filter(id=block_id, user=user)
-        .first()
-    )
+    block = PlannerBlock.objects.prefetch_related("tasks").filter(id=block_id, user=user).first()
     if block is None:
         raise NotFoundError("Planner block not found")
     return block
@@ -48,7 +44,8 @@ class PlannerService:
         blocks = list(PlannerBlock.objects.filter(user=user).prefetch_related("tasks"))
         links = list(PlannerLink.objects.filter(user=user))
         settings, _ = PlannerSettings.objects.get_or_create(
-            user=user, defaults={"transform": {"scale": 1, "panX": 0, "panY": 0}},
+            user=user,
+            defaults={"transform": {"scale": 1, "panX": 0, "panY": 0}},
         )
         return {
             "blocks": blocks,
@@ -79,11 +76,14 @@ class PlannerService:
             created_links += 1
         transform = data.get("transform") or {"scale": 1, "panX": 0, "panY": 0}
         PlannerSettings.objects.update_or_create(
-            user=user, defaults={"transform": transform},
+            user=user,
+            defaults={"transform": transform},
         )
         logger.info(
             "planner.replace_all user_id=%s blocks=%s links=%s",
-            user.id, created_blocks, created_links,
+            user.id,
+            created_blocks,
+            created_links,
         )
         return created_blocks, created_links
 
@@ -108,11 +108,14 @@ class PlannerService:
                 updated_links += 1
         if "transform" in data:
             PlannerSettings.objects.update_or_create(
-                user=user, defaults={"transform": data["transform"]},
+                user=user,
+                defaults={"transform": data["transform"]},
             )
         logger.info(
             "planner.patch user_id=%s blocks=%s links=%s",
-            user.id, updated_blocks, updated_links,
+            user.id,
+            updated_blocks,
+            updated_links,
         )
         return updated_blocks, updated_links
 
@@ -145,7 +148,8 @@ class PlannerService:
     def delete_block(self, user, block_id):
         block = _get_block(user, block_id)
         PlannerLink.objects.filter(
-            Q(from_block=block) | Q(to_block=block), user=user,
+            Q(from_block=block) | Q(to_block=block),
+            user=user,
         ).delete()
         block.delete()
         logger.info("planner.delete_block user_id=%s block_id=%s", user.id, block_id)
@@ -159,13 +163,14 @@ class PlannerService:
         if not block_id:
             raise ValidationError("id is required")
         block = PlannerBlock.objects.create(
-            id=block_id, user=user, title=validation.bounded_text(
-                raw.get(
-                    "title", "New Block"), max_length=255, field="title"), x=float(
-                raw.get(
-                    "x", 0)), y=float(
-                        raw.get(
-                            "y", 0)), )
+            id=block_id,
+            user=user,
+            title=validation.bounded_text(
+                raw.get("title", "New Block"), max_length=255, field="title"
+            ),
+            x=float(raw.get("x", 0)),
+            y=float(raw.get("y", 0)),
+        )
         tasks = _require_list(raw.get("tasks", []), "tasks")
         for idx, task_raw in enumerate(tasks):
             self._create_task(block, task_raw, idx)
@@ -177,14 +182,16 @@ class PlannerService:
         if not block_id:
             raise ValidationError("id is required")
         block, created = PlannerBlock.objects.update_or_create(
-            id=block_id, user=user, defaults={
+            id=block_id,
+            user=user,
+            defaults={
                 "title": validation.bounded_text(
-                    raw.get(
-                        "title", "New Block"), max_length=255, field="title"), "x": float(
-                    raw.get(
-                        "x", 0)), "y": float(
-                            raw.get(
-                                "y", 0)), }, )
+                    raw.get("title", "New Block"), max_length=255, field="title"
+                ),
+                "x": float(raw.get("x", 0)),
+                "y": float(raw.get("y", 0)),
+            },
+        )
         if "tasks" in raw:
             tasks = _require_list(raw["tasks"], "tasks")
             PlannerTask.objects.filter(block=block).delete()
@@ -205,12 +212,20 @@ class PlannerService:
             completed=bool(raw.get("completed", False)),
             order=validation.non_negative_int(raw.get("order", idx), field="order"),
             goal=goal,
-            due_date=validation.parse_date(raw["due_date"], field="due_date") if raw.get("due_date") else None,
+            due_date=(
+                validation.parse_date(raw["due_date"], field="due_date")
+                if raw.get("due_date")
+                else None
+            ),
             priority=validation.choice(
-                raw.get("priority", "medium"), Goal.PRIORITY_LEVELS_KEYS, field="priority",
+                raw.get("priority", "medium"),
+                Goal.PRIORITY_LEVELS_KEYS,
+                field="priority",
             ),
             recurrence=validation.choice(
-                raw.get("recurrence", "none"), PlannerTask.RECURRENCE_KEYS, field="recurrence",
+                raw.get("recurrence", "none"),
+                PlannerTask.RECURRENCE_KEYS,
+                field="recurrence",
             ),
         )
         if task.completed and goal is not None:
@@ -228,6 +243,7 @@ class PlannerService:
     @staticmethod
     def _increment_goal_progress(user, goal):
         from django.db.models import F
+
         Goal.objects.filter(id=goal.id, user=user).update(
             completed_tasks=F("completed_tasks") + 1,
         )
@@ -240,8 +256,12 @@ class PlannerService:
         goal = self._resolve_goal(user, goal_id)
         task.goal = goal
         task.save()
-        logger.info("planner.set_task_goal user_id=%s task_id=%s goal_id=%s",
-                    user.id, task_id, goal.id if goal else None)
+        logger.info(
+            "planner.set_task_goal user_id=%s task_id=%s goal_id=%s",
+            user.id,
+            task_id,
+            goal.id if goal else None,
+        )
         return task
 
     def complete_task(self, user, task_id, *, completed=True):
@@ -257,14 +277,13 @@ class PlannerService:
                 self._increment_goal_progress(user, task.goal)
             else:
                 from django.db.models import F
+
                 Goal.objects.filter(id=task.goal.id, user=user).update(
                     completed_tasks=F("completed_tasks") - 1,
                 )
         logger.info(
-            "planner.complete_task user_id=%s task_id=%s completed=%s",
-            user.id,
-            task_id,
-            completed)
+            "planner.complete_task user_id=%s task_id=%s completed=%s", user.id, task_id, completed
+        )
         return task
 
     def _create_link(self, user, raw):
@@ -281,7 +300,8 @@ class PlannerService:
         # Verify both blocks belong to the user
         owned = set(
             PlannerBlock.objects.filter(
-                user=user, id__in=[from_block_id, to_block_id],
+                user=user,
+                id__in=[from_block_id, to_block_id],
             ).values_list("id", flat=True)
         )
         if from_block_id not in owned or to_block_id not in owned:

@@ -4,6 +4,7 @@ Covers: validation, ownership, idempotency, analytics, transactions,
 and domain errors. These tests exercise the domain layer directly
 (without HTTP) to isolate business logic.
 """
+
 import decimal
 import datetime
 from datetime import date
@@ -14,20 +15,37 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from tracker.models import (
-    Expense, Goal, Achievement, JournalEntry, Mood, Water,
-    PlannerBlock, PlannerTask, PlannerLink, QuoteSource,
-    DailyActivityAggregate, Habit,
+    Expense,
+    Goal,
+    Achievement,
+    JournalEntry,
+    Mood,
+    Water,
+    PlannerBlock,
+    PlannerTask,
+    PlannerLink,
+    QuoteSource,
+    DailyActivityAggregate,
+    Habit,
 )
 from tracker.domain import validation
 from tracker.domain.permissions import owner_of, require_owner, require_owns
 from tracker.domain.transactions import atomic
 from tracker.domain.exceptions import (
-    DomainError, NotFoundError, PermissionError, ValidationError,
-    ConflictError, RateLimitError, to_http_response,
+    DomainError,
+    NotFoundError,
+    PermissionError,
+    ValidationError,
+    ConflictError,
+    RateLimitError,
+    to_http_response,
 )
 from tracker.domain.services.journal import journal_service
 from tracker.domain.services.finance import expense_service
-from tracker.domain.services.health import _mood_service as mood_service, _water_service as water_service
+from tracker.domain.services.health import (
+    _mood_service as mood_service,
+    _water_service as water_service,
+)
 from tracker.domain.services.goals import goal_service
 from tracker.domain.services.planner import planner_service
 from tracker.domain.services.achievements import achievement_service
@@ -40,7 +58,8 @@ from tracker.domain.services.points import points_engine
 from tracker.domain.services.productivity import productivity_service
 from tracker.domain.services.recurring import recurring_service
 from tracker.domain.services.planner_templates import (
-    planner_template_service, planner_search_service,
+    planner_template_service,
+    planner_search_service,
 )
 from tracker.domain.services.achievement_engine import achievement_engine
 from tracker.domain.services.quotes import (
@@ -54,6 +73,7 @@ User = get_user_model()
 # Helpers
 # ============================================================================
 
+
 def _make_user(username="testuser", email="test@example.com"):
     return User.objects.create_user(username, email, "pass123")
 
@@ -66,6 +86,7 @@ FUTURE = TODAY + datetime.timedelta(days=10)
 # ============================================================================
 # VALIDATION TESTS
 # ============================================================================
+
 
 class ValidationTests(TestCase):
     """Tests for :mod:`tracker.domain.validation` rules."""
@@ -220,11 +241,8 @@ class ValidationTests(TestCase):
 
     def test_bounded_text_blank_allow_blank(self):
         self.assertEqual(
-            validation.bounded_text(
-                "  ",
-                max_length=100,
-                allow_blank=True),
-            "  ".strip())
+            validation.bounded_text("  ", max_length=100, allow_blank=True), "  ".strip()
+        )
 
     def test_bounded_text_too_long_raises(self):
         with self.assertRaises(ValidationError) as ctx:
@@ -237,11 +255,8 @@ class ValidationTests(TestCase):
 
     def test_bounded_text_strips_whitespace(self):
         self.assertEqual(
-            validation.bounded_text(
-                "  hello  ",
-                max_length=100,
-                allow_blank=True),
-            "hello")
+            validation.bounded_text("  hello  ", max_length=100, allow_blank=True), "hello"
+        )
 
     # --- choice ---
 
@@ -299,6 +314,7 @@ class ValidationTests(TestCase):
 # ============================================================================
 # OWNERSHIP TESTS
 # ============================================================================
+
 
 class OwnershipTests(TestCase):
     """Tests for :mod:`tracker.domain.permissions`."""
@@ -381,6 +397,7 @@ class OwnershipTests(TestCase):
 # IDEMPOTENCY TESTS
 # ============================================================================
 
+
 class IdempotencyTests(TestCase):
     """Tests that upsert/replace operations are idempotent."""
 
@@ -398,7 +415,8 @@ class IdempotencyTests(TestCase):
     def test_journal_upsert_same_date_is_idempotent(self):
         journal_service.upsert(self.user, date_value="2025-06-01", content="Hello")
         created, entry = journal_service.upsert(
-            self.user, date_value="2025-06-01", content="Updated")
+            self.user, date_value="2025-06-01", content="Updated"
+        )
         self.assertFalse(created)
         self.assertEqual(entry.content, "Updated")
         self.assertEqual(JournalEntry.objects.filter(user=self.user).count(), 1)
@@ -406,7 +424,8 @@ class IdempotencyTests(TestCase):
     def test_journal_upsert_updates_existing(self):
         journal_service.upsert(self.user, date_value="2025-06-01", content="First")
         created, entry = journal_service.upsert(
-            self.user, date_value="2025-06-01", content="Second")
+            self.user, date_value="2025-06-01", content="Second"
+        )
         self.assertFalse(created)
         self.assertEqual(entry.content, "Second")
 
@@ -421,13 +440,8 @@ class IdempotencyTests(TestCase):
         mood1.refresh_from_db()
         self.assertEqual(mood1.mood, "sad")
         self.assertEqual(
-            Mood.objects.filter(
-                user=self.user,
-                date=datetime.date(
-                    2025,
-                    6,
-                    1)).count(),
-            1)
+            Mood.objects.filter(user=self.user, date=datetime.date(2025, 6, 1)).count(), 1
+        )
 
     def test_mood_upsert_creates_different_dates(self):
         mood_service.upsert(self.user, {"mood": "happy", "date": "2025-06-01"})
@@ -443,13 +457,8 @@ class IdempotencyTests(TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry.glasses, 10)
         self.assertEqual(
-            Water.objects.filter(
-                user=self.user,
-                date=datetime.date(
-                    2025,
-                    6,
-                    1)).count(),
-            1)
+            Water.objects.filter(user=self.user, date=datetime.date(2025, 6, 1)).count(), 1
+        )
 
     # --- Journal delete no-op ---
 
@@ -463,26 +472,43 @@ class IdempotencyTests(TestCase):
 # ANALYTICS TESTS
 # ============================================================================
 
+
 class AnalyticsTests(TestCase):
     """Tests for analytics/summary methods in :mod:`tracker.domain.services.finance`."""
 
     def setUp(self):
         self.user = _make_user("analyst", "analyst@test.com")
         Expense.objects.create(
-            user=self.user, date=datetime.date(2025, 1, 5),
-            item="Coffee", category="Food", quantity=2, price="3.50",
+            user=self.user,
+            date=datetime.date(2025, 1, 5),
+            item="Coffee",
+            category="Food",
+            quantity=2,
+            price="3.50",
         )
         Expense.objects.create(
-            user=self.user, date=datetime.date(2025, 1, 5),
-            item="Book", category="Education", quantity=1, price="15.00",
+            user=self.user,
+            date=datetime.date(2025, 1, 5),
+            item="Book",
+            category="Education",
+            quantity=1,
+            price="15.00",
         )
         Expense.objects.create(
-            user=self.user, date=datetime.date(2025, 1, 15),
-            item="Lunch", category="Food", quantity=1, price="10.00",
+            user=self.user,
+            date=datetime.date(2025, 1, 15),
+            item="Lunch",
+            category="Food",
+            quantity=1,
+            price="10.00",
         )
         Expense.objects.create(
-            user=self.user, date=datetime.date(2025, 2, 10),
-            item="Transport", category="Travel", quantity=1, price="5.00",
+            user=self.user,
+            date=datetime.date(2025, 2, 10),
+            item="Transport",
+            category="Travel",
+            quantity=1,
+            price="5.00",
         )
 
     # --- summary ---
@@ -640,9 +666,7 @@ class AnalyticsTests(TestCase):
             self.assertEqual(e.category.lower(), "food")
 
     def test_list_filters_by_date_range(self):
-        expenses = expense_service.list(
-            self.user, start_date="2025-01-10", end_date="2025-01-20"
-        )
+        expenses = expense_service.list(self.user, start_date="2025-01-10", end_date="2025-01-20")
         self.assertEqual(len(expenses), 1)
         self.assertEqual(expenses[0].item, "Lunch")
 
@@ -655,6 +679,7 @@ class AnalyticsTests(TestCase):
 # ============================================================================
 # TRANSACTIONS TESTS
 # ============================================================================
+
 
 class TransactionTests(TestCase):
     """Tests for transaction behavior in domain services."""
@@ -681,9 +706,7 @@ class TransactionTests(TestCase):
             with atomic():
                 Goal.objects.create(user=self.user, text="outer")
                 with atomic():
-                    Achievement.objects.create(
-                        user=self.user, title="inner", date="2025-01-01"
-                    )
+                    Achievement.objects.create(user=self.user, title="inner", date="2025-01-01")
                     raise RuntimeError("nested failure")
         self.assertEqual(Goal.objects.filter(user=self.user).count(), 0)
         self.assertEqual(Achievement.objects.filter(user=self.user).count(), 0)
@@ -711,23 +734,31 @@ class TransactionTests(TestCase):
     def test_planner_update_block_rolls_back_on_task_error(self):
         block = PlannerBlock.objects.create(id="blk1", user=self.user, title="B")
         with self.assertRaises(ValidationError):
-            planner_service.update_block(self.user, block.id, {
-                "tasks": [
-                    {"id": "t1", "text": "first", "order": 0},
-                    {"id": "t1", "text": "duplicate", "order": 1},
-                ],
-            })
+            planner_service.update_block(
+                self.user,
+                block.id,
+                {
+                    "tasks": [
+                        {"id": "t1", "text": "first", "order": 0},
+                        {"id": "t1", "text": "duplicate", "order": 1},
+                    ],
+                },
+            )
         self.assertEqual(block.tasks.count(), 0)
 
     def test_planner_update_block_succeeds(self):
         block = PlannerBlock.objects.create(id="blk1", user=self.user, title="B")
-        planner_service.update_block(self.user, block.id, {
-            "title": "Updated",
-            "tasks": [
-                {"id": "t1", "text": "Task 1", "completed": False, "order": 0},
-                {"id": "t2", "text": "Task 2", "completed": True, "order": 1},
-            ],
-        })
+        planner_service.update_block(
+            self.user,
+            block.id,
+            {
+                "title": "Updated",
+                "tasks": [
+                    {"id": "t1", "text": "Task 1", "completed": False, "order": 0},
+                    {"id": "t2", "text": "Task 2", "completed": True, "order": 1},
+                ],
+            },
+        )
         block.refresh_from_db()
         self.assertEqual(block.title, "Updated")
         self.assertEqual(block.tasks.count(), 2)
@@ -736,18 +767,24 @@ class TransactionTests(TestCase):
 
     def test_journal_replace_all_rolls_back_on_error(self):
         with self.assertRaises(ValidationError):
-            journal_service.replace_all(self.user, [
-                {"date": "2025-01-01", "content": "First"},
-                {"date": "invalid", "content": "Bad"},
-            ])
+            journal_service.replace_all(
+                self.user,
+                [
+                    {"date": "2025-01-01", "content": "First"},
+                    {"date": "invalid", "content": "Bad"},
+                ],
+            )
         self.assertEqual(JournalEntry.objects.filter(user=self.user).count(), 0)
 
     def test_journal_replace_all_replaces_existing(self):
         JournalEntry.objects.create(user=self.user, date=datetime.date(2025, 1, 1), content="Old")
-        count = journal_service.replace_all(self.user, [
-            {"date": "2025-01-01", "content": "New"},
-            {"date": "2025-01-02", "content": "Second"},
-        ])
+        count = journal_service.replace_all(
+            self.user,
+            [
+                {"date": "2025-01-01", "content": "New"},
+                {"date": "2025-01-02", "content": "Second"},
+            ],
+        )
         self.assertEqual(count, 2)
         self.assertEqual(JournalEntry.objects.filter(user=self.user).count(), 2)
         entry = JournalEntry.objects.get(user=self.user, date=datetime.date(2025, 1, 1))
@@ -757,6 +794,7 @@ class TransactionTests(TestCase):
 # ============================================================================
 # DOMAIN ERROR TESTS
 # ============================================================================
+
 
 class DomainErrorTests(TestCase):
     """Tests for :mod:`tracker.domain.exceptions`."""
@@ -844,6 +882,7 @@ class DomainErrorTests(TestCase):
 
     def test_to_http_response_basic(self):
         from rest_framework.response import Response
+
         err = ValidationError("Invalid data")
         response = to_http_response(err)
         self.assertIsInstance(response, Response)
@@ -909,6 +948,7 @@ class DomainErrorTests(TestCase):
 # INTEGRATION: DOMAIN SERVICE OWNERSHIP TESTS
 # ============================================================================
 
+
 class ServiceOwnershipTests(TestCase):
     """Integration tests verifying domain services enforce ownership."""
 
@@ -945,17 +985,27 @@ class ServiceOwnershipTests(TestCase):
 
     def test_expense_service_get_by_id_other_user_raises(self):
         expense = Expense.objects.create(
-            user=self.other, date="2025-01-01",
-            item="secret", category="Food", quantity=1, price="1.00",
+            user=self.other,
+            date="2025-01-01",
+            item="secret",
+            category="Food",
+            quantity=1,
+            price="1.00",
         )
         with self.assertRaises(NotFoundError):
             expense_service.get_by_id(self.user, expense.id)
 
     def test_expense_service_create(self):
-        expense = expense_service.create(self.user, {
-            "item": "Coffee", "category": "Food",
-            "quantity": 2, "price": "3.50", "date": "2025-01-15",
-        })
+        expense = expense_service.create(
+            self.user,
+            {
+                "item": "Coffee",
+                "category": "Food",
+                "quantity": 2,
+                "price": "3.50",
+                "date": "2025-01-15",
+            },
+        )
         self.assertEqual(expense.user, self.user)
 
     def test_journal_service_get_by_date(self):
@@ -974,20 +1024,32 @@ class ServiceOwnershipTests(TestCase):
             water_service.get_by_id(self.user, 1)
 
     def test_achievement_service_create(self):
-        achievement = achievement_service.create(self.user, {
-            "title": "Test Ach", "description": "Desc", "date": "2025-01-01",
-        })
+        achievement = achievement_service.create(
+            self.user,
+            {
+                "title": "Test Ach",
+                "description": "Desc",
+                "date": "2025-01-01",
+            },
+        )
         self.assertEqual(achievement.user, self.user)
 
     def test_quote_source_service_create(self):
-        source = quote_source_service.create(self.user, {
-            "title": "My Source", "type": "Movie",
-        })
+        source = quote_source_service.create(
+            self.user,
+            {
+                "title": "My Source",
+                "type": "Movie",
+            },
+        )
         self.assertEqual(source.user, self.user)
 
     def test_quote_source_service_get_by_id_other_user_raises(self):
         source = QuoteSource.objects.create(
-            id="src1", user=self.other, title="Secret", type="Movie",
+            id="src1",
+            user=self.other,
+            title="Secret",
+            type="Movie",
         )
         with self.assertRaises(NotFoundError):
             quote_source_service.get_by_id(self.user, source.id)
@@ -1009,8 +1071,10 @@ class CrossDomainTests(TestCase):
 
     def test_event_record_creates_event(self):
         event = event_service.record(
-            self.user, "goal_created",
-            subject_type="Goal", subject_id="1",
+            self.user,
+            "goal_created",
+            subject_type="Goal",
+            subject_id="1",
             payload={"text": "Run"},
         )
         self.assertEqual(event.user, self.user)
@@ -1064,11 +1128,8 @@ class CrossDomainTests(TestCase):
         goal = Goal.objects.create(user=self.user, text="Health", category="daily", target=5)
         block = PlannerBlock.objects.create(id="b-cross4", user=self.user, title="B")
         task = PlannerTask.objects.create(
-            id="t-cross4",
-            block=block,
-            text="Run",
-            goal=goal,
-            completed=False)
+            id="t-cross4", block=block, text="Run", goal=goal, completed=False
+        )
         planner_service.complete_task(self.user, task.id, completed=True)
         goal.refresh_from_db()
         self.assertEqual(goal.completed_tasks, 1)
@@ -1084,11 +1145,8 @@ class CrossDomainTests(TestCase):
     def test_habit_log_increments_goal_progress(self):
         goal = Goal.objects.create(user=self.user, text="Health", category="daily", target=10)
         habit = Habit.objects.create(
-            id="h-cross2",
-            user=self.user,
-            name="Pushups",
-            target=5,
-            goal=goal)
+            id="h-cross2", user=self.user, name="Pushups", target=5, goal=goal
+        )
         habit_service.log_score(self.user, habit.id, date="2025-06-01", score=5, target=5)
         goal.refresh_from_db()
         self.assertEqual(goal.completed_tasks, 1)
@@ -1101,34 +1159,41 @@ class CrossDomainTests(TestCase):
     # --- P2-04: Achievement trigger_rule ---
 
     def test_achievement_trigger_rule_stored(self):
-        achievement = achievement_service.create(self.user, {
-            "title": "Streak", "description": "7 days", "date": "2025-01-01",
-            "trigger_rule": {"event_type": "planner_task_completed", "count": 7},
-        })
+        achievement = achievement_service.create(
+            self.user,
+            {
+                "title": "Streak",
+                "description": "7 days",
+                "date": "2025-01-01",
+                "trigger_rule": {"event_type": "planner_task_completed", "count": 7},
+            },
+        )
         self.assertEqual(
-            achievement.trigger_rule, {
-                "event_type": "planner_task_completed", "count": 7})
+            achievement.trigger_rule, {"event_type": "planner_task_completed", "count": 7}
+        )
 
     # --- P2-07: Expense -> Budget ---
 
     def test_budget_create_and_actual_vs_budget(self):
         budget = budget_service.create(
-            self.user, {
-                "category": "Food", "year": 2025, "month": 1, "amount": "100.00"})
+            self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "100.00"}
+        )
         Expense.objects.create(
             user=self.user,
             date="2025-01-05",
             item="Coffee",
             category="Food",
             quantity=1,
-            price="30.00")
+            price="30.00",
+        )
         Expense.objects.create(
             user=self.user,
             date="2025-01-06",
             item="Lunch",
             category="Food",
             quantity=1,
-            price="90.00")
+            price="90.00",
+        )
         result = budget_service.actual_vs_budget(self.user, year=2025, month=1)
         self.assertEqual(result["total_budget"], 100.0)
         self.assertEqual(result["total_actual"], 120.0)
@@ -1136,12 +1201,12 @@ class CrossDomainTests(TestCase):
 
     def test_budget_unique_per_category_month(self):
         budget_service.create(
-            self.user, {
-                "category": "Food", "year": 2025, "month": 1, "amount": "100.00"})
+            self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "100.00"}
+        )
         with self.assertRaises(Exception):
             budget_service.create(
-                self.user, {
-                    "category": "Food", "year": 2025, "month": 1, "amount": "50.00"})
+                self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "50.00"}
+            )
 
     # --- P2-08: DailyActivityAggregate ---
 
@@ -1153,7 +1218,8 @@ class CrossDomainTests(TestCase):
             text="Health",
             category="daily",
             status="completed",
-            completed_at="2025-06-01T00:00:00Z")
+            completed_at="2025-06-01T00:00:00Z",
+        )
         block = PlannerBlock.objects.create(id="b-ag", user=self.user, title="B")
         PlannerTask.objects.create(id="t-ag", block=block, text="Run", completed=True)
         JournalEntry.objects.create(user=self.user, date="2025-06-01", content="Hello")
@@ -1165,7 +1231,8 @@ class CrossDomainTests(TestCase):
             item="Coffee",
             category="Food",
             quantity=1,
-            price="3.50")
+            price="3.50",
+        )
         Achievement.objects.create(user=self.user, title="Win", date="2025-06-01")
 
         aggregate = analytics_service.compute_day(self.user, "2025-06-01")
@@ -1199,11 +1266,16 @@ class HabitEnhancementsTests(TestCase):
         self.user = _make_user("habits3", "habits3@test.com")
 
     def test_create_with_schedule_and_reminders(self):
-        habit = habit_service.create(self.user, {
-            "name": "Run", "schedule": "weekly",
-            "schedule_days": [0, 2, 4], "reminders": [{"at": "07:00"}],
-            "grace_period": 1,
-        })
+        habit = habit_service.create(
+            self.user,
+            {
+                "name": "Run",
+                "schedule": "weekly",
+                "schedule_days": [0, 2, 4],
+                "reminders": [{"at": "07:00"}],
+                "grace_period": 1,
+            },
+        )
         self.assertEqual(habit.schedule, "weekly")
         self.assertEqual(habit.schedule_days, [0, 2, 4])
         self.assertEqual(habit.grace_period, 1)
@@ -1220,15 +1292,25 @@ class HabitEnhancementsTests(TestCase):
         self.assertTrue(habit_service.is_due_today(habit))
 
     def test_is_due_today_weekly_matching(self):
-        habit = habit_service.create(self.user, {
-            "name": "Weekly", "schedule": "weekly", "schedule_days": [date.today().weekday()],
-        })
+        habit = habit_service.create(
+            self.user,
+            {
+                "name": "Weekly",
+                "schedule": "weekly",
+                "schedule_days": [date.today().weekday()],
+            },
+        )
         self.assertTrue(habit_service.is_due_today(habit))
 
     def test_is_due_today_weekly_non_matching(self):
-        habit = habit_service.create(self.user, {
-            "name": "Weekly", "schedule": "weekly", "schedule_days": [],
-        })
+        habit = habit_service.create(
+            self.user,
+            {
+                "name": "Weekly",
+                "schedule": "weekly",
+                "schedule_days": [],
+            },
+        )
         self.assertFalse(habit_service.is_due_today(habit))
 
     def test_log_score_updates_streak(self):
@@ -1292,10 +1374,15 @@ class RecurringTests(TestCase):
         self.user = _make_user("recur", "recur@test.com")
 
     def test_generate_daily_goal(self):
-        goal_service.create(self.user, {
-            "text": "Daily goal", "category": "daily", "recurrence": "daily",
-            "start_date": "2025-06-01",
-        })
+        goal_service.create(
+            self.user,
+            {
+                "text": "Daily goal",
+                "category": "daily",
+                "recurrence": "daily",
+                "start_date": "2025-06-01",
+            },
+        )
         created = recurring_service.generate_goals(self.user, up_to_date="2025-06-05")
         self.assertGreaterEqual(len(created), 1)
         self.assertEqual(created[0].recurrence, "daily")
@@ -1303,7 +1390,10 @@ class RecurringTests(TestCase):
     def test_generate_weekly_task(self):
         block = PlannerBlock.objects.create(id="b-rec", user=self.user, title="B")
         PlannerTask.objects.create(
-            id="t-rec", block=block, text="Weekly", recurrence="weekly",
+            id="t-rec",
+            block=block,
+            text="Weekly",
+            recurrence="weekly",
             due_date="2025-06-01",
         )
         created = recurring_service.generate_tasks(self.user, up_to_date="2025-06-30")
@@ -1315,10 +1405,16 @@ class PlannerTemplateAndSearchTests(TestCase):
         self.user = _make_user("templates", "templates@test.com")
 
     def test_create_and_apply_template(self):
-        template = planner_template_service.create(self.user, {
-            "name": "Morning",
-            "data": {"blocks": [{"id": "b1", "title": "B", "x": 0, "y": 0, "tasks": []}], "links": []},
-        })
+        template = planner_template_service.create(
+            self.user,
+            {
+                "name": "Morning",
+                "data": {
+                    "blocks": [{"id": "b1", "title": "B", "x": 0, "y": 0, "tasks": []}],
+                    "links": [],
+                },
+            },
+        )
         blocks, links = planner_template_service.apply(self.user, template.id)
         self.assertEqual(blocks, 1)
         self.assertEqual(links, 0)

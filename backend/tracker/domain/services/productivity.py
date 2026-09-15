@@ -3,6 +3,7 @@
 Produces a unified daily/weekly productivity score by combining the
 points engine with goal/habit/planner completion signals.
 """
+
 from datetime import date, datetime, timedelta
 
 
@@ -19,6 +20,7 @@ def _coerce_date(value):
         return value
     if isinstance(value, str):
         from .. import validation
+
         return validation.parse_date(value, field="date")
     raise ValidationError("date must be a date or YYYY-MM-DD string")
 
@@ -28,7 +30,8 @@ class ProductivityService:
         """Unified daily productivity summary."""
         target_date = _coerce_date(target_date)
         aggregate = DailyActivityAggregate.objects.filter(
-            user=user, date=target_date,
+            user=user,
+            date=target_date,
         ).first()
         points = points_engine.score_day(user, target_date)
         if aggregate is None:
@@ -101,6 +104,7 @@ class ProductivityService:
 
 def _days_in_month(y, m):
     import calendar
+
     return calendar.monthrange(y, m)[1]
 
 

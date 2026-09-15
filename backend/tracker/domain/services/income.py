@@ -2,6 +2,7 @@
 
 Owns Income CRUD plus analytics. All queries are scoped to the requesting user.
 """
+
 from datetime import date
 
 from ...models import Income, RecurringIncome
@@ -41,14 +42,8 @@ class IncomeService:
         return qs.filter(date__year=y, date__month=m)
 
     def list_with_summary(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            source=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, source=None, start_date=None, end_date=None
+    ):
         incomes = self.list(
             user,
             year=year,
@@ -60,8 +55,9 @@ class IncomeService:
         total_amount = sum(float(income.amount) for income in incomes)
         source_breakdown = {}
         for income in incomes:
-            source_breakdown[income.source] = source_breakdown.get(
-                income.source, 0.0) + float(income.amount)
+            source_breakdown[income.source] = source_breakdown.get(income.source, 0.0) + float(
+                income.amount
+            )
         return {
             "count": len(incomes),
             "total_amount": round(total_amount, 2),
@@ -191,21 +187,26 @@ class IncomeService:
         if amount < 0:
             raise ValidationError("amount must be non-negative")
         frequency = validation.choice(
-            data.get(
-                "frequency", "monthly"), RecurringIncome.FREQUENCY_CHOICES if hasattr(
-                RecurringIncome, 'FREQUENCY_CHOICES') else [
-                ('monthly', 'Monthly'), ('yearly', 'Yearly')], field="frequency", )
+            data.get("frequency", "monthly"),
+            (
+                RecurringIncome.FREQUENCY_CHOICES
+                if hasattr(RecurringIncome, "FREQUENCY_CHOICES")
+                else [("monthly", "Monthly"), ("yearly", "Yearly")]
+            ),
+            field="frequency",
+        )
         start_date = validation.parse_date(data.get("start_date"), field="start_date")
-        end_date = validation.parse_date(data["end_date"],
-                                         field="end_date") if data.get("end_date") else None
+        end_date = (
+            validation.parse_date(data["end_date"], field="end_date")
+            if data.get("end_date")
+            else None
+        )
         day_of_month = data.get("day_of_month")
         if day_of_month is not None:
             day_of_month = validation.in_range(day_of_month, 1, 31, field="day_of_month")
         next_occurrence = validation.parse_date(
-            data.get(
-                "next_occurrence",
-                start_date),
-            field="next_occurrence")
+            data.get("next_occurrence", start_date), field="next_occurrence"
+        )
         is_active = bool(data.get("is_active", True))
 
         recurring = RecurringIncome.objects.create(
@@ -231,7 +232,8 @@ class IncomeService:
             recurring.name = validation.bounded_text(data["name"], max_length=255, field="name")
         if "source" in data:
             recurring.source = validation.bounded_text(
-                data["source"], max_length=20, field="source")
+                data["source"], max_length=20, field="source"
+            )
         if "amount" in data:
             amount = validation.bounded_decimal(data["amount"], field="amount")
             if amount < 0:
@@ -239,20 +241,32 @@ class IncomeService:
             recurring.amount = amount
         if "frequency" in data:
             recurring.frequency = validation.choice(
-                data["frequency"], RecurringIncome.FREQUENCY_CHOICES if hasattr(
-                    RecurringIncome, 'FREQUENCY_CHOICES') else [
-                    ('monthly', 'Monthly'), ('yearly', 'Yearly')], field="frequency", )
+                data["frequency"],
+                (
+                    RecurringIncome.FREQUENCY_CHOICES
+                    if hasattr(RecurringIncome, "FREQUENCY_CHOICES")
+                    else [("monthly", "Monthly"), ("yearly", "Yearly")]
+                ),
+                field="frequency",
+            )
         if "start_date" in data:
             recurring.start_date = validation.parse_date(data["start_date"], field="start_date")
         if "end_date" in data:
-            recurring.end_date = validation.parse_date(
-                data["end_date"], field="end_date") if data["end_date"] else None
+            recurring.end_date = (
+                validation.parse_date(data["end_date"], field="end_date")
+                if data["end_date"]
+                else None
+            )
         if "day_of_month" in data:
-            recurring.day_of_month = validation.in_range(
-                data["day_of_month"], 1, 31, field="day_of_month") if data["day_of_month"] else None
+            recurring.day_of_month = (
+                validation.in_range(data["day_of_month"], 1, 31, field="day_of_month")
+                if data["day_of_month"]
+                else None
+            )
         if "next_occurrence" in data:
             recurring.next_occurrence = validation.parse_date(
-                data["next_occurrence"], field="next_occurrence")
+                data["next_occurrence"], field="next_occurrence"
+            )
         if "is_active" in data:
             recurring.is_active = bool(data["is_active"])
         recurring.save()

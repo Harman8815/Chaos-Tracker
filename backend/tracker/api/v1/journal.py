@@ -2,6 +2,7 @@
 
 Delegates all business logic to :class:`tracker.domain.services.JournalService`.
 """
+
 from rest_framework import status
 
 from ._base import TrackerAPIView
@@ -40,6 +41,7 @@ class JournalEntryDetailView(TrackerAPIView):
         instance = journal_service.get(request.user, kwargs["date"])
         if instance is None:
             from ...domain.exceptions import NotFoundError
+
             return self.fail(NotFoundError("Journal entry not found"))
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data)

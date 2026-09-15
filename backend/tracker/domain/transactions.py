@@ -4,6 +4,7 @@ Domain services that touch more than one model should wrap the whole
 operation in :func:`atomic`. This keeps behavior consistent and makes
 rollback semantics explicit.
 """
+
 from contextlib import contextmanager
 from django.db import transaction
 

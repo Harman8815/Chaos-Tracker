@@ -2,13 +2,17 @@
 
 Handles processing of recurring expenses, income, and subscription billing.
 """
+
 from datetime import date, timedelta
 
 from django.db import transaction
 from django.utils import timezone
 
 from ...models import (
-    RecurringExpense, Expense, RecurringIncome, Income,
+    RecurringExpense,
+    Expense,
+    RecurringIncome,
+    Income,
     Subscription,
 )
 from .notifications import notification_service
@@ -60,15 +64,25 @@ class RecurringExpenseJobService:
 
             # Notify user
             notification_service.create_notification(
-                user=recurring.user, notification_type='recurring_transaction', title=f"Recurring expense created: {
-                    recurring.item}", message=f"${
+                user=recurring.user,
+                notification_type="recurring_transaction",
+                title=f"Recurring expense created: {
+                    recurring.item}",
+                message=f"${
                     recurring.total:.2f} for {
                     recurring.item} ({
-                    recurring.category}) has been recorded.", priority='low', data={
-                        'expense_id': expense.id, 'recurring_expense_id': recurring.id, 'amount': float(
-                            recurring.total), }, dedupe_key=f"recurring_expense_{
+                    recurring.category}) has been recorded.",
+                priority="low",
+                data={
+                    "expense_id": expense.id,
+                    "recurring_expense_id": recurring.id,
+                    "amount": float(recurring.total),
+                },
+                dedupe_key=f"recurring_expense_{
                                 recurring.id}_{
-                                    recurring.next_occurrence}", dedupe_window_hours=24, )
+                                    recurring.next_occurrence}",
+                dedupe_window_hours=24,
+            )
 
         return expense
 
@@ -76,11 +90,11 @@ class RecurringExpenseJobService:
         """Calculate and set the next occurrence date."""
         current = recurring.next_occurrence
 
-        if recurring.frequency == 'daily':
+        if recurring.frequency == "daily":
             next_date = current + timedelta(days=1)
-        elif recurring.frequency == 'weekly':
+        elif recurring.frequency == "weekly":
             next_date = current + timedelta(weeks=1)
-        elif recurring.frequency == 'monthly':
+        elif recurring.frequency == "monthly":
             # Handle day of month
             if recurring.day_of_month:
                 # Find next month with this day
@@ -90,13 +104,14 @@ class RecurringExpenseJobService:
                     next_month = current.month + 1
                     # Handle months with fewer days
                     import calendar
+
                     max_day = calendar.monthrange(current.year, next_month)[1]
                     day = min(recurring.day_of_month, max_day)
                     next_date = date(current.year, next_month, day)
             else:
                 # Same day next month
                 next_date = self._add_months(current, 1)
-        elif recurring.frequency == 'yearly':
+        elif recurring.frequency == "yearly":
             next_date = self._add_months(current, 12)
         else:
             next_date = current + timedelta(days=1)
@@ -105,10 +120,10 @@ class RecurringExpenseJobService:
         if recurring.end_date and next_date > recurring.end_date:
             recurring.is_active = False
             recurring.next_occurrence = next_date
-            recurring.save(update_fields=['is_active', 'next_occurrence', 'updated_at'])
+            recurring.save(update_fields=["is_active", "next_occurrence", "updated_at"])
         else:
             recurring.next_occurrence = next_date
-            recurring.save(update_fields=['next_occurrence', 'updated_at'])
+            recurring.save(update_fields=["next_occurrence", "updated_at"])
 
     def _add_months(self, dt: date, months: int) -> date:
         """Add months to a date, handling year rollover."""
@@ -117,6 +132,7 @@ class RecurringExpenseJobService:
         month = month % 12 + 1
         # Handle day overflow
         import calendar
+
         max_day = calendar.monthrange(year, month)[1]
         day = min(dt.day, max_day)
         return date(year, month, day)
@@ -124,11 +140,11 @@ class RecurringExpenseJobService:
     def _notify_failure(self, user, recurring: RecurringExpense, error: str) -> None:
         notification_service.create_notification(
             user=user,
-            notification_type='recurring_transaction',
+            notification_type="recurring_transaction",
             title=f"Failed to process recurring expense: {recurring.item}",
             message=f"Error: {error}",
-            priority='high',
-            data={'recurring_expense_id': recurring.id, 'error': error},
+            priority="high",
+            data={"recurring_expense_id": recurring.id, "error": error},
             dedupe_key=f"recurring_expense_failed_{recurring.id}",
             dedupe_window_hours=12,
         )
@@ -161,7 +177,7 @@ class RecurringIncomeJobService:
 
         return count
 
-    def _create_income(self, recurring: 'RecurringIncome') -> Income:
+    def _create_income(self, recurring: "RecurringIncome") -> Income:
         with transaction.atomic():
             income = Income.objects.create(
                 user=recurring.user,
@@ -172,23 +188,33 @@ class RecurringIncomeJobService:
             )
 
             notification_service.create_notification(
-                user=recurring.user, notification_type='recurring_transaction', title=f"Recurring income received: {
-                    recurring.name}", message=f"${
+                user=recurring.user,
+                notification_type="recurring_transaction",
+                title=f"Recurring income received: {
+                    recurring.name}",
+                message=f"${
                     recurring.amount:.2f} from {
-                    recurring.get_source_display()} has been recorded.", priority='low', data={
-                    'income_id': income.id, 'recurring_income_id': recurring.id, 'amount': float(
-                        recurring.amount), }, dedupe_key=f"recurring_income_{
+                    recurring.get_source_display()} has been recorded.",
+                priority="low",
+                data={
+                    "income_id": income.id,
+                    "recurring_income_id": recurring.id,
+                    "amount": float(recurring.amount),
+                },
+                dedupe_key=f"recurring_income_{
                             recurring.id}_{
-                                recurring.next_occurrence}", dedupe_window_hours=24, )
+                                recurring.next_occurrence}",
+                dedupe_window_hours=24,
+            )
 
         return income
 
-    def _update_next_occurrence(self, recurring: 'RecurringIncome') -> None:
+    def _update_next_occurrence(self, recurring: "RecurringIncome") -> None:
         current = recurring.next_occurrence
 
-        if recurring.frequency == 'monthly':
+        if recurring.frequency == "monthly":
             next_date = self._add_months(current, 1)
-        elif recurring.frequency == 'yearly':
+        elif recurring.frequency == "yearly":
             next_date = self._add_months(current, 12)
         else:
             next_date = current + timedelta(days=1)
@@ -197,25 +223,26 @@ class RecurringIncomeJobService:
             recurring.is_active = False
 
         recurring.next_occurrence = next_date
-        recurring.save(update_fields=['next_occurrence', 'is_active', 'updated_at'])
+        recurring.save(update_fields=["next_occurrence", "is_active", "updated_at"])
 
     def _add_months(self, dt: date, months: int) -> date:
         month = dt.month - 1 + months
         year = dt.year + month // 12
         month = month % 12 + 1
         import calendar
+
         max_day = calendar.monthrange(year, month)[1]
         day = min(dt.day, max_day)
         return date(year, month, day)
 
-    def _notify_failure(self, user, recurring: 'RecurringIncome', error: str) -> None:
+    def _notify_failure(self, user, recurring: "RecurringIncome", error: str) -> None:
         notification_service.create_notification(
             user=user,
-            notification_type='recurring_transaction',
+            notification_type="recurring_transaction",
             title=f"Failed to process recurring income: {recurring.name}",
             message=f"Error: {error}",
-            priority='high',
-            data={'recurring_income_id': recurring.id, 'error': error},
+            priority="high",
+            data={"recurring_income_id": recurring.id, "error": error},
             dedupe_key=f"recurring_income_failed_{recurring.id}",
             dedupe_window_hours=12,
         )
@@ -230,7 +257,7 @@ class SubscriptionBillingJobService:
         today = now.date()
 
         qs = Subscription.objects.filter(
-            status='active',
+            status="active",
             next_billing_date__lte=today,
         )
         if user:
@@ -261,19 +288,19 @@ class SubscriptionBillingJobService:
 
             # Update subscription next billing date
             subscription.next_billing_date = self._next_billing_date(subscription)
-            subscription.save(update_fields=['next_billing_date', 'updated_at'])
+            subscription.save(update_fields=["next_billing_date", "updated_at"])
 
             # Notify
             notification_service.create_notification(
                 user=subscription.user,
-                notification_type='recurring_transaction',
+                notification_type="recurring_transaction",
                 title=f"Subscription payment: {subscription.name}",
                 message=f"${subscription.amount:.2f} charged for {subscription.name}.",
-                priority='low',
+                priority="low",
                 data={
-                    'expense_id': expense.id,
-                    'subscription_id': subscription.id,
-                    'amount': float(subscription.amount),
+                    "expense_id": expense.id,
+                    "subscription_id": subscription.id,
+                    "amount": float(subscription.amount),
                 },
                 dedupe_key=f"subscription_{subscription.id}_{subscription.next_billing_date}",
                 dedupe_window_hours=24,
@@ -281,11 +308,11 @@ class SubscriptionBillingJobService:
 
     def _next_billing_date(self, subscription: Subscription) -> date:
         current = subscription.next_billing_date
-        if subscription.billing_cycle == 'monthly':
+        if subscription.billing_cycle == "monthly":
             return self._add_months(current, 1)
-        elif subscription.billing_cycle == 'quarterly':
+        elif subscription.billing_cycle == "quarterly":
             return self._add_months(current, 3)
-        elif subscription.billing_cycle == 'yearly':
+        elif subscription.billing_cycle == "yearly":
             return self._add_months(current, 12)
         return current + timedelta(days=1)
 
@@ -294,6 +321,7 @@ class SubscriptionBillingJobService:
         year = dt.year + month // 12
         month = month % 12 + 1
         import calendar
+
         max_day = calendar.monthrange(year, month)[1]
         day = min(dt.day, max_day)
         return date(year, month, day)
@@ -301,11 +329,11 @@ class SubscriptionBillingJobService:
     def _notify_failure(self, user, subscription: Subscription, error: str) -> None:
         notification_service.create_notification(
             user=user,
-            notification_type='recurring_transaction',
+            notification_type="recurring_transaction",
             title=f"Failed to process subscription: {subscription.name}",
             message=f"Error: {error}",
-            priority='high',
-            data={'subscription_id': subscription.id, 'error': error},
+            priority="high",
+            data={"subscription_id": subscription.id, "error": error},
             dedupe_key=f"subscription_failed_{subscription.id}",
             dedupe_window_hours=12,
         )

@@ -7,6 +7,7 @@ source of truth, and this service recomputes them on demand.
 Enhanced with: consistency score, goal velocity, financial health metrics,
 trend detection, correlation engine, and insight generation.
 """
+
 from datetime import date, datetime, timedelta
 from statistics import mean
 from collections import defaultdict
@@ -38,7 +39,9 @@ class AnalyticsService:
         target_date = _coerce_date(target_date)
         data = self._gather(user, target_date)
         aggregate, _created = DailyActivityAggregate.objects.update_or_create(
-            user=user, date=target_date, defaults=data,
+            user=user,
+            date=target_date,
+            defaults=data,
         )
         return aggregate
 
@@ -59,7 +62,8 @@ class AnalyticsService:
         """Return the aggregate for a date, computing it if missing."""
         target_date = _coerce_date(target_date)
         aggregate = DailyActivityAggregate.objects.filter(
-            user=user, date=target_date,
+            user=user,
+            date=target_date,
         ).first()
         if aggregate is None:
             aggregate = self.compute_day(user, target_date)
@@ -71,7 +75,7 @@ class AnalyticsService:
             qs = qs.filter(date__gte=_coerce_date(start_date))
         if end_date:
             qs = qs.filter(date__lte=_coerce_date(end_date))
-        qs = qs.order_by('-date')
+        qs = qs.order_by("-date")
         if limit:
             qs = qs[:limit]
         return list(qs)
@@ -89,7 +93,7 @@ class AnalyticsService:
 
         aggregates = DailyActivityAggregate.objects.filter(
             user=user, date__range=[start_date, end_date]
-        ).order_by('date')
+        ).order_by("date")
 
         if not aggregates:
             return {"score": 0, "days_analyzed": 0, "message": "No data available"}
@@ -98,8 +102,9 @@ class AnalyticsService:
         total_completed = 0
 
         for agg in aggregates:
-            total_possible += agg.habits_total + \
-                (1 if agg.habits_total > 0 else 0)  # habits + journal
+            total_possible += agg.habits_total + (
+                1 if agg.habits_total > 0 else 0
+            )  # habits + journal
             total_completed += agg.habits_completed + (1 if agg.has_journal else 0)
 
         # Also consider planner tasks
@@ -125,7 +130,7 @@ class AnalyticsService:
         start_date = end_date - timedelta(days=days - 1)
 
         goals_completed = Goal.objects.filter(
-            user=user, status='completed', completed_at__date__range=[start_date, end_date]
+            user=user, status="completed", completed_at__date__range=[start_date, end_date]
         )
 
         completed_count = goals_completed.count()
@@ -135,7 +140,7 @@ class AnalyticsService:
                 "goals_completed": 0,
                 "avg_completion_days": 0,
                 "velocity_per_week": 0,
-                "message": "No goals completed in period"
+                "message": "No goals completed in period",
             }
 
         completion_times = []
@@ -162,13 +167,9 @@ class AnalyticsService:
         end_date = date.today()
         start_date = end_date - timedelta(days=days - 1)
 
-        expenses = Expense.objects.filter(
-            user=user, date__range=[start_date, end_date]
-        )
+        expenses = Expense.objects.filter(user=user, date__range=[start_date, end_date])
 
-        incomes = Income.objects.filter(
-            user=user, date__range=[start_date, end_date]
-        )
+        incomes = Income.objects.filter(user=user, date__range=[start_date, end_date])
 
         total_expenses = sum(float(e.total) for e in expenses)
         total_income = sum(float(i.amount) for i in incomes)
@@ -203,7 +204,7 @@ class AnalyticsService:
 
         aggregates = DailyActivityAggregate.objects.filter(
             user=user, date__range=[start_date, end_date]
-        ).order_by('date')
+        ).order_by("date")
 
         if len(aggregates) < 7:
             return {"trends": {}, "message": "Insufficient data for trend analysis"}
@@ -219,8 +220,12 @@ class AnalyticsService:
 
         trends = {}
         fields = [
-            'habits_completed', 'goals_completed', 'planner_tasks_completed',
-            'water_glasses', 'expense_total', 'points'
+            "habits_completed",
+            "goals_completed",
+            "planner_tasks_completed",
+            "water_glasses",
+            "expense_total",
+            "points",
         ]
 
         for field in fields:
@@ -254,22 +259,24 @@ class AnalyticsService:
         end_date = date.today()
         start_date = end_date - timedelta(days=days - 1)
 
-        aggregates = list(DailyActivityAggregate.objects.filter(
-            user=user, date__range=[start_date, end_date]
-        ).order_by('date'))
+        aggregates = list(
+            DailyActivityAggregate.objects.filter(
+                user=user, date__range=[start_date, end_date]
+            ).order_by("date")
+        )
 
         if len(aggregates) < 7:
             return {"correlations": {}, "message": "Insufficient data for correlation analysis"}
 
         # Extract numeric series for each domain
         series = {
-            'habits_completed': [a.habits_completed for a in aggregates],
-            'goals_completed': [a.goals_completed for a in aggregates],
-            'planner_tasks_completed': [a.planner_tasks_completed for a in aggregates],
-            'water_glasses': [a.water_glasses for a in aggregates],
-            'expense_total': [float(a.expense_total) for a in aggregates],
-            'points': [a.points for a in aggregates],
-            'has_journal': [1 if a.has_journal else 0 for a in aggregates],
+            "habits_completed": [a.habits_completed for a in aggregates],
+            "goals_completed": [a.goals_completed for a in aggregates],
+            "planner_tasks_completed": [a.planner_tasks_completed for a in aggregates],
+            "water_glasses": [a.water_glasses for a in aggregates],
+            "expense_total": [float(a.expense_total) for a in aggregates],
+            "points": [a.points for a in aggregates],
+            "has_journal": [1 if a.has_journal else 0 for a in aggregates],
         }
 
         def correlation(x, y):
@@ -283,13 +290,13 @@ class AnalyticsService:
             denom_y = sum(d * d for d in dy)
             if denom_x == 0 or denom_y == 0:
                 return 0
-            return numerator / (denom_x ** 0.5 * denom_y ** 0.5)
+            return numerator / (denom_x**0.5 * denom_y**0.5)
 
         domains = list(series.keys())
         correlations = {}
 
         for i, d1 in enumerate(domains):
-            for d2 in domains[i + 1:]:
+            for d2 in domains[i + 1 :]:
                 corr = correlation(series[d1], series[d2])
                 if abs(corr) > 0.3:  # Only report meaningful correlations
                     strength = "strong" if abs(corr) > 0.7 else "moderate"
@@ -312,19 +319,23 @@ class AnalyticsService:
         # Get consistency
         consistency = self.get_consistency_score(user, days=days)
         if consistency["score"] >= 80:
-            insights.append({
-                "type": "positive",
-                "title": "Excellent Consistency",
-                "message": f"You're completing {consistency['score']}% of your tracked activities. Keep up the great work!",
-                "domain": "consistency",
-            })
+            insights.append(
+                {
+                    "type": "positive",
+                    "title": "Excellent Consistency",
+                    "message": f"You're completing {consistency['score']}% of your tracked activities. Keep up the great work!",
+                    "domain": "consistency",
+                }
+            )
         elif consistency["score"] >= 50:
-            insights.append({
-                "type": "neutral",
-                "title": "Moderate Consistency",
-                "message": f"You're completing {consistency['score']}% of activities. Try to build a daily routine to improve.",
-                "domain": "consistency",
-            })
+            insights.append(
+                {
+                    "type": "neutral",
+                    "title": "Moderate Consistency",
+                    "message": f"You're completing {consistency['score']}% of activities. Try to build a daily routine to improve.",
+                    "domain": "consistency",
+                }
+            )
         else:
             insights.append(
                 {
@@ -333,7 +344,8 @@ class AnalyticsService:
                     "message": f"Only {
                         consistency['score']}% completion rate. Consider reducing habit targets or focusing on 1-2 key habits.",
                     "domain": "consistency",
-                })
+                }
+            )
 
         # Goal velocity
         velocity = self.get_goal_velocity(user, days=days)
@@ -347,7 +359,8 @@ class AnalyticsService:
                             velocity['velocity_per_week']} goals/week. Average completion time: {
                             velocity['avg_completion_days']} days.",
                         "domain": "goals",
-                    })
+                    }
+                )
             else:
                 insights.append(
                     {
@@ -356,31 +369,38 @@ class AnalyticsService:
                         "message": f"Only {
                             velocity['goals_completed']} goals completed in {days} days. Consider breaking goals into smaller milestones.",
                         "domain": "goals",
-                    })
+                    }
+                )
         else:
-            insights.append({
-                "type": "neutral",
-                "title": "No Goals Completed",
-                "message": "No goals completed in this period. Set smaller, achievable goals to build momentum.",
-                "domain": "goals",
-            })
+            insights.append(
+                {
+                    "type": "neutral",
+                    "title": "No Goals Completed",
+                    "message": "No goals completed in this period. Set smaller, achievable goals to build momentum.",
+                    "domain": "goals",
+                }
+            )
 
         # Financial health
         financial = self.get_financial_health_metrics(user, days=days)
         if financial["savings_rate"] >= 20:
-            insights.append({
-                "type": "positive",
-                "title": "Healthy Savings Rate",
-                "message": f"Saving {financial['savings_rate']}% of income. Great financial discipline!",
-                "domain": "finance",
-            })
+            insights.append(
+                {
+                    "type": "positive",
+                    "title": "Healthy Savings Rate",
+                    "message": f"Saving {financial['savings_rate']}% of income. Great financial discipline!",
+                    "domain": "finance",
+                }
+            )
         elif financial["savings_rate"] >= 0:
-            insights.append({
-                "type": "neutral",
-                "title": "Positive Cash Flow",
-                "message": f"Saving {financial['savings_rate']}% of income. Consider increasing savings rate.",
-                "domain": "finance",
-            })
+            insights.append(
+                {
+                    "type": "neutral",
+                    "title": "Positive Cash Flow",
+                    "message": f"Saving {financial['savings_rate']}% of income. Consider increasing savings rate.",
+                    "domain": "finance",
+                }
+            )
         else:
             insights.append(
                 {
@@ -394,25 +414,30 @@ class AnalyticsService:
                                 financial['category_breakdown'].keys())[
                                 :3])}.",
                     "domain": "finance",
-                })
+                }
+            )
 
         # Trends
         trends = self.detect_trends(user, days=days)
         for domain, data in trends.get("trends", {}).items():
             if data["direction"] == "rising" and data["pct_change"] > 20:
-                insights.append({
-                    "type": "positive",
-                    "title": f"{domain.replace('_', ' ').title()} Improving",
-                    "message": f"{domain.replace('_', ' ').title()} increased by {data['pct_change']}% recently.",
-                    "domain": "trends",
-                })
+                insights.append(
+                    {
+                        "type": "positive",
+                        "title": f"{domain.replace('_', ' ').title()} Improving",
+                        "message": f"{domain.replace('_', ' ').title()} increased by {data['pct_change']}% recently.",
+                        "domain": "trends",
+                    }
+                )
             elif data["direction"] == "falling" and data["pct_change"] < -20:
-                insights.append({
-                    "type": "negative",
-                    "title": f"{domain.replace('_', ' ').title()} Declining",
-                    "message": f"{domain.replace('_', ' ').title()} decreased by {abs(data['pct_change'])}% recently. Consider addressing this.",
-                    "domain": "trends",
-                })
+                insights.append(
+                    {
+                        "type": "negative",
+                        "title": f"{domain.replace('_', ' ').title()} Declining",
+                        "message": f"{domain.replace('_', ' ').title()} decreased by {abs(data['pct_change'])}% recently. Consider addressing this.",
+                        "domain": "trends",
+                    }
+                )
 
         # Correlations
         correlations = self.correlation_engine(user, days=days)
@@ -421,16 +446,21 @@ class AnalyticsService:
                 d1, d2 = key.split("_vs_")
                 insights.append(
                     {
-                        "type": "insight", "title": f"{
+                        "type": "insight",
+                        "title": f"{
                             d1.replace(
                                 '_', ' ').title()} Correlates with {
                             d2.replace(
-                                '_', ' ').title()}", "message": f"When {
+                                '_', ' ').title()}",
+                        "message": f"When {
                             d1.replace(
                                 '_', ' ')} increases, {
                                     d2.replace(
                                         '_', ' ')} tends to increase too (r={
-                                            data['coefficient']}).", "domain": "correlation", })
+                                            data['coefficient']}).",
+                        "domain": "correlation",
+                    }
+                )
 
         return {"insights": insights, "generated_at": datetime.now().isoformat()}
 
@@ -456,33 +486,34 @@ class AnalyticsService:
         task_score = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 50
 
         journal_days = sum(1 for a in aggregates if a.has_journal)
-        journal_score = (journal_days / len(aggregates) * 100)
+        journal_score = journal_days / len(aggregates) * 100
 
-        water_days = sum(1 for a in aggregates if a.water_glasses >=
-                         a.water_target and a.water_target > 0)
-        water_score = (water_days / len(aggregates) * 100)
+        water_days = sum(
+            1 for a in aggregates if a.water_glasses >= a.water_target and a.water_target > 0
+        )
+        water_score = water_days / len(aggregates) * 100
 
         # Weighted average
         weights = {
-            'habits': 0.35,
-            'tasks': 0.25,
-            'journal': 0.15,
-            'water': 0.10,
-            'goals': 0.15,
+            "habits": 0.35,
+            "tasks": 0.25,
+            "journal": 0.15,
+            "water": 0.10,
+            "goals": 0.15,
         }
 
         goals_completed = sum(a.goals_completed for a in aggregates)
         goals_created = Goal.objects.filter(
-            user=user, created_at__date__range=[
-                start_date, end_date]).count()
+            user=user, created_at__date__range=[start_date, end_date]
+        ).count()
         goal_score = (goals_completed / goals_created * 100) if goals_created > 0 else 50
 
         productivity = (
-            habit_score * weights['habits'] +
-            task_score * weights['tasks'] +
-            journal_score * weights['journal'] +
-            water_score * weights['water'] +
-            goal_score * weights['goals']
+            habit_score * weights["habits"]
+            + task_score * weights["tasks"]
+            + journal_score * weights["journal"]
+            + water_score * weights["water"]
+            + goal_score * weights["goals"]
         )
 
         return {
@@ -506,10 +537,13 @@ class AnalyticsService:
         habits_total = habit_scores.count()
 
         goals_completed = Goal.objects.filter(
-            user=user, status='completed', completed_at__date=target_date,
+            user=user,
+            status="completed",
+            completed_at__date=target_date,
         ).count()
         goals_created = Goal.objects.filter(
-            user=user, created_at__date=target_date,
+            user=user,
+            created_at__date=target_date,
         ).count()
 
         task_qs = PlannerTask.objects.filter(block__user=user)
@@ -520,7 +554,7 @@ class AnalyticsService:
         has_journal = journal is not None
 
         mood = Mood.objects.filter(user=user, date=target_date).first()
-        mood_value = mood.mood if mood is not None else ''
+        mood_value = mood.mood if mood is not None else ""
 
         water = Water.objects.filter(user=user, date=target_date).first()
         water_glasses = water.glasses if water is not None else 0
@@ -533,20 +567,20 @@ class AnalyticsService:
         achievements = Achievement.objects.filter(user=user, date=target_date).count()
 
         return {
-            'habits_completed': habits_completed,
-            'habits_total': habits_total,
-            'goals_completed': goals_completed,
-            'goals_created': goals_created,
-            'planner_tasks_completed': tasks_completed,
-            'planner_tasks_created': tasks_created,
-            'has_journal': has_journal,
-            'mood': mood_value,
-            'water_glasses': water_glasses,
-            'water_target': water_target,
-            'expense_count': expense_count,
-            'expense_total': expense_total,
-            'points': 0,
-            'achievements_earned': achievements,
+            "habits_completed": habits_completed,
+            "habits_total": habits_total,
+            "goals_completed": goals_completed,
+            "goals_created": goals_created,
+            "planner_tasks_completed": tasks_completed,
+            "planner_tasks_created": tasks_created,
+            "has_journal": has_journal,
+            "mood": mood_value,
+            "water_glasses": water_glasses,
+            "water_target": water_target,
+            "expense_count": expense_count,
+            "expense_total": expense_total,
+            "points": 0,
+            "achievements_earned": achievements,
         }
 
 
@@ -555,6 +589,7 @@ def _coerce_date(value):
         return value
     if isinstance(value, str):
         from .. import validation
+
         return validation.parse_date(value, field="date")
     raise ValidationError("date must be a date or YYYY-MM-DD string")
 

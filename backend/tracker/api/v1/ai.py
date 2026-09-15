@@ -1,4 +1,5 @@
 """Thin v1 controller for AI assistant endpoints."""
+
 from rest_framework import status
 from rest_framework import serializers
 from django.http import StreamingHttpResponse
@@ -18,10 +19,8 @@ from ...serializers import (
 
 class AIConversationQuerySerializer(serializers.Serializer):
     status = serializers.CharField(
-        required=False,
-        max_length=20,
-        allow_blank=True,
-        default='active')
+        required=False, max_length=20, allow_blank=True, default="active"
+    )
     limit = serializers.IntegerField(required=False, min_value=1, max_value=100, default=50)
     offset = serializers.IntegerField(required=False, min_value=0, default=0)
 
@@ -38,7 +37,7 @@ class AIConversationListCreateView(TrackerAPIView):
         )
         # Apply offset manually
         offset = query.get("offset", 0)
-        conversations = conversations[offset:offset + query.get("limit", 50)]
+        conversations = conversations[offset : offset + query.get("limit", 50)]
         serializer = AIConversationSerializer(conversations, many=True)
         return self.ok(data=serializer.data, count=len(conversations))
 
@@ -90,7 +89,7 @@ class AIConversationArchiveView(TrackerAPIView):
 
 class AIMessageSerializer_view(serializers.Serializer):
     content = serializers.CharField()
-    role = serializers.ChoiceField(choices=['user', 'assistant', 'system'], default='user')
+    role = serializers.ChoiceField(choices=["user", "assistant", "system"], default="user")
 
 
 class AIChatView(TrackerAPIView):
@@ -115,20 +114,22 @@ class AIChatStreamView(TrackerAPIView):
 
         # Add user message
         user_message = ai_assistant_service.send_message(
-            request.user, int(id), content, role='user')
+            request.user, int(id), content, role="user"
+        )
 
         # Save user message as memory
         conv = ai_assistant_service.get_conversation(request.user, int(id))
         if conv:
             from ..domain.services.memory import memory_service
+
             memory_service.store_memory(
                 user=request.user,
                 content=f"User: {content}",
-                memory_type='conversation',
-                source='ai_conversation',
+                memory_type="conversation",
+                source="ai_conversation",
                 conversation_id=conv.id,
                 importance=3,
-                metadata={'message_id': user_message.id, 'role': 'user'},
+                metadata={"message_id": user_message.id, "role": "user"},
             )
 
         def generate():
@@ -142,21 +143,23 @@ class AIChatStreamView(TrackerAPIView):
                 return
 
             from ...domain.services import build_context, detect_intent
+
             context = build_context(request.user, conv)
             intent_result = detect_intent(content, context)
 
             # Add available tools to context
             available_tools = ai_assistant_service.get_available_tools(request.user)
-            context['available_tools'] = available_tools
+            context["available_tools"] = available_tools
 
             # Yield intent
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent_result.intent, 'confidence': intent_result.confidence, 'entities': intent_result.entities})}\n\n"
 
             # Get conversation history
-            conversation_history = context.get('conversation_history', [])
+            conversation_history = context.get("conversation_history", [])
 
             # Stream response from LLM
             from ...domain.services.llm import llm_service
+
             full_content = ""
             try:
                 for chunk in llm_service.generate_response(
@@ -180,22 +183,23 @@ class AIChatStreamView(TrackerAPIView):
             # Save assistant response as memory
             if conv and full_content:
                 from ..domain.services.memory import memory_service
+
                 memory_service.store_memory(
                     user=request.user,
                     content=f"Assistant: {full_content}",
-                    memory_type='conversation',
-                    source='ai_conversation',
+                    memory_type="conversation",
+                    source="ai_conversation",
                     conversation_id=conv.id,
                     importance=3,
-                    metadata={'role': 'assistant', 'intent': intent_result.intent},
+                    metadata={"role": "assistant", "intent": intent_result.intent},
                 )
 
             # Yield completion
             yield f"data: {json.dumps({'type': 'done', 'message': {'role': 'assistant', 'content': full_content}})}\n\n"
 
-        response = StreamingHttpResponse(generate(), content_type='text/event-stream')
-        response['Cache-Control'] = 'no-cache'
-        response['X-Accel-Buffering'] = 'no'
+        response = StreamingHttpResponse(generate(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
         return response
 
 
@@ -266,7 +270,12 @@ class AIToolCallConfirmView(TrackerAPIView):
         ser = AIToolCallSerializer(tool_call)
         return self.ok(
             data=ser.data,
-            message="Tool call confirmed" if serializer.validated_data["confirmed"] else "Tool call cancelled")
+            message=(
+                "Tool call confirmed"
+                if serializer.validated_data["confirmed"]
+                else "Tool call cancelled"
+            ),
+        )
 
 
 class AIToolCallRetryView(TrackerAPIView):

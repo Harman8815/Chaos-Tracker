@@ -31,6 +31,7 @@ class JournalService:
     def get_by_id(self, user, entry_id):
         """Return the entry with ``entry_id`` or raise :class:`NotFoundError`."""
         from ..exceptions import NotFoundError
+
         instance = JournalEntry.objects.filter(id=entry_id, user=user).first()
         if instance is None:
             raise NotFoundError("Journal entry not found")
@@ -43,15 +44,21 @@ class JournalService:
         """
         d = validation.parse_date(date_value, field="date")
         content = validation.bounded_text(
-            content, max_length=JournalEntry._meta.get_field("content").max_length or 10000,
-            field="content", allow_blank=True,
+            content,
+            max_length=JournalEntry._meta.get_field("content").max_length or 10000,
+            field="content",
+            allow_blank=True,
         )
         instance, created = JournalEntry.objects.update_or_create(
-            user=user, date=d, defaults={"content": content},
+            user=user,
+            date=d,
+            defaults={"content": content},
         )
         logger.info(
             "journal.upsert user_id=%s date=%s created=%s",
-            user.id, d.isoformat(), created,
+            user.id,
+            d.isoformat(),
+            created,
         )
         return created, instance
 
@@ -79,7 +86,10 @@ class JournalService:
         for raw in entries:
             d = validation.parse_date(raw.get("date"), field="date")
             content = validation.bounded_text(
-                raw.get("content", ""), max_length=10000, field="content", allow_blank=True,
+                raw.get("content", ""),
+                max_length=10000,
+                field="content",
+                allow_blank=True,
             )
             JournalEntry.objects.create(user=user, date=d, content=content)
             created += 1

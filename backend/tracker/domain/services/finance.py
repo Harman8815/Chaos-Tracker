@@ -3,6 +3,7 @@
 Owns expense CRUD plus the analytics/summary queries. All queries are
 scoped to the requesting user.
 """
+
 from datetime import date
 
 from ...models import Expense
@@ -74,14 +75,8 @@ class ExpenseService:
         return list(qs)
 
     def list_with_summary(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            category=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, category=None, start_date=None, end_date=None
+    ):
         expenses = self.list(
             user,
             year=year,
@@ -94,7 +89,8 @@ class ExpenseService:
         category_breakdown = {}
         for expense in expenses:
             category_breakdown[expense.category] = category_breakdown.get(
-                expense.category, 0.0) + float(expense.total)
+                expense.category, 0.0
+            ) + float(expense.total)
         return {
             "count": len(expenses),
             "total_amount": round(total_amount, 2),
@@ -135,10 +131,12 @@ class ExpenseService:
             expense.item = validation.bounded_text(data["item"], max_length=255, field="item")
         if "category" in data:
             expense.category = validation.bounded_text(
-                data["category"], max_length=100, field="category")
+                data["category"], max_length=100, field="category"
+            )
         if "quantity" in data:
             expense.quantity = validation.positive_int(
-                data["quantity"], field="quantity", minimum=1)
+                data["quantity"], field="quantity", minimum=1
+            )
         if "price" in data:
             price = validation.bounded_decimal(data["price"], field="price")
             if price < 0:
@@ -161,14 +159,8 @@ class ExpenseService:
     # --- analytics ---
 
     def summary(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            category=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, category=None, start_date=None, end_date=None
+    ):
         qs = _apply_filters(
             Expense.objects.filter(user=user),
             year=year,
@@ -191,14 +183,8 @@ class ExpenseService:
         }
 
     def categories(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            category=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, category=None, start_date=None, end_date=None
+    ):
         qs = _apply_filters(
             Expense.objects.filter(user=user),
             year=year,
@@ -209,22 +195,14 @@ class ExpenseService:
         )
         totals = {}
         for e in qs:
-            entry = totals.setdefault(
-                e.category, {"name": e.category, "count": 0, "total": 0.0}
-            )
+            entry = totals.setdefault(e.category, {"name": e.category, "count": 0, "total": 0.0})
             entry["count"] += 1
             entry["total"] += float(e.total)
         return sorted(totals.values(), key=lambda x: x["total"], reverse=True)
 
     def analytics(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            category=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, category=None, start_date=None, end_date=None
+    ):
         y, m = _normalize_period(year, month)
         if m is None:
             m = date.today().month
@@ -244,6 +222,7 @@ class ExpenseService:
             category_totals[e.category] = category_totals.get(e.category, 0.0) + float(e.total)
 
         import calendar
+
         days_in_month = calendar.monthrange(y, m)[1]
         total_month = sum(daily_totals.values())
         return {
@@ -257,9 +236,7 @@ class ExpenseService:
             ],
             "category_breakdown": [
                 {"name": cat, "value": round(total, 2)}
-                for cat, total in sorted(
-                    category_totals.items(), key=lambda x: x[1], reverse=True
-                )
+                for cat, total in sorted(category_totals.items(), key=lambda x: x[1], reverse=True)
             ],
             "average_per_day": round(total_month / days_in_month, 2) if days_in_month else 0.0,
         }
@@ -293,15 +270,16 @@ class ExpenseService:
         }
 
     def top_items(
-            self,
-            user,
-            *,
-            limit=10,
-            year=None,
-            month=None,
-            category=None,
-            start_date=None,
-            end_date=None):
+        self,
+        user,
+        *,
+        limit=10,
+        year=None,
+        month=None,
+        category=None,
+        start_date=None,
+        end_date=None,
+    ):
         try:
             limit = int(limit)
         except (TypeError, ValueError):

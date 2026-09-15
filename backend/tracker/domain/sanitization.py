@@ -7,6 +7,7 @@ Provides reusable validation functions for API inputs, including:
 - Length and format validation
 - Type coercion with safety
 """
+
 import re
 import html
 from typing import Any, Optional, List, Dict
@@ -14,18 +15,17 @@ from urllib.parse import urlparse
 
 from .exceptions import ValidationError
 
-
 XSS_PATTERNS = [
-    re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-    re.compile(r'javascript:', re.IGNORECASE),
-    re.compile(r'on\w+\s*=', re.IGNORECASE),
-    re.compile(r'<iframe[^>]*>', re.IGNORECASE),
-    re.compile(r'<object[^>]*>', re.IGNORECASE),
-    re.compile(r'<embed[^>]*>', re.IGNORECASE),
-    re.compile(r'<form[^>]*>', re.IGNORECASE),
-    re.compile(r'expression\s*\(', re.IGNORECASE),
-    re.compile(r'vbscript:', re.IGNORECASE),
-    re.compile(r'data:', re.IGNORECASE),
+    re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL),
+    re.compile(r"javascript:", re.IGNORECASE),
+    re.compile(r"on\w+\s*=", re.IGNORECASE),
+    re.compile(r"<iframe[^>]*>", re.IGNORECASE),
+    re.compile(r"<object[^>]*>", re.IGNORECASE),
+    re.compile(r"<embed[^>]*>", re.IGNORECASE),
+    re.compile(r"<form[^>]*>", re.IGNORECASE),
+    re.compile(r"expression\s*\(", re.IGNORECASE),
+    re.compile(r"vbscript:", re.IGNORECASE),
+    re.compile(r"data:", re.IGNORECASE),
 ]
 
 SQL_INJECTION_PATTERNS = [
@@ -41,12 +41,12 @@ SQL_INJECTION_PATTERNS = [
 ]
 
 PATH_TRAVERSAL_PATTERNS = [
-    re.compile(r'\.\./'),
-    re.compile(r'\.\.\\'),
-    re.compile(r'%2e%2e%2f', re.IGNORECASE),
-    re.compile(r'%2e%2e%5c', re.IGNORECASE),
-    re.compile(r'\.\.%2f', re.IGNORECASE),
-    re.compile(r'\.\.%5c', re.IGNORECASE),
+    re.compile(r"\.\./"),
+    re.compile(r"\.\.\\"),
+    re.compile(r"%2e%2e%2f", re.IGNORECASE),
+    re.compile(r"%2e%2e%5c", re.IGNORECASE),
+    re.compile(r"\.\.%2f", re.IGNORECASE),
+    re.compile(r"\.\.%5c", re.IGNORECASE),
 ]
 
 
@@ -66,11 +66,11 @@ def sanitize_html(value: str, *, allow_basic_formatting: bool = False) -> str:
     escaped = html.escape(value)
 
     if allow_basic_formatting:
-        escaped = escaped.replace('<b>', '<b>').replace('</b>', '</b>')
-        escaped = escaped.replace('<i>', '<i>').replace('</i>', '</i>')
-        escaped = escaped.replace('<u>', '<u>').replace('</u>', '</u>')
-        escaped = escaped.replace('<em>', '<em>').replace('</em>', '</em>')
-        escaped = escaped.replace('<strong>', '<strong>').replace('</strong>', '</strong>')
+        escaped = escaped.replace("<b>", "<b>").replace("</b>", "</b>")
+        escaped = escaped.replace("<i>", "<i>").replace("</i>", "</i>")
+        escaped = escaped.replace("<u>", "<u>").replace("</u>", "</u>")
+        escaped = escaped.replace("<em>", "<em>").replace("</em>", "</em>")
+        escaped = escaped.replace("<strong>", "<strong>").replace("</strong>", "</strong>")
 
     return escaped
 
@@ -85,7 +85,7 @@ def strip_xss(value: str) -> str:
 
     result = value
     for pattern in XSS_PATTERNS:
-        result = pattern.sub('', result)
+        result = pattern.sub("", result)
     return result
 
 
@@ -208,8 +208,8 @@ def validate_decimal(
         raise ValidationError(f"{field} must be at most {maximum}")
 
     str_val = str(value)
-    if '.' in str_val:
-        decimal_places = len(str_val.split('.')[1])
+    if "." in str_val:
+        decimal_places = len(str_val.split(".")[1])
         if decimal_places > max_decimal_places:
             raise ValidationError(f"{field} has too many decimal places (max {max_decimal_places})")
 
@@ -221,9 +221,9 @@ def validate_boolean(value: Any, *, field: str = "value") -> bool:
     if isinstance(value, bool):
         return value
     if isinstance(value, str):
-        if value.lower() in ('true', '1', 'yes', 'on'):
+        if value.lower() in ("true", "1", "yes", "on"):
             return True
-        if value.lower() in ('false', '0', 'no', 'off'):
+        if value.lower() in ("false", "0", "no", "off"):
             return False
     if isinstance(value, int):
         return bool(value)
@@ -294,8 +294,9 @@ def validate_dict(
     return value
 
 
-def validate_url(value: Any, *, field: str = "value",
-                 allowed_schemes: Optional[List[str]] = None) -> str:
+def validate_url(
+    value: Any, *, field: str = "value", allowed_schemes: Optional[List[str]] = None
+) -> str:
     """Validate URL format and scheme."""
     if not isinstance(value, str):
         raise ValidationError(f"{field} must be a string")
@@ -316,7 +317,7 @@ def validate_email(value: Any, *, field: str = "value") -> str:
     """Basic email validation."""
     if not isinstance(value, str):
         raise ValidationError(f"{field} must be a string")
-    email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    email_pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
     if not email_pattern.match(value):
         raise ValidationError(f"{field} must be a valid email address")
     return value.lower()
@@ -326,11 +327,12 @@ def validate_iso_date(value: Any, *, field: str = "value") -> str:
     """Validate ISO 8601 date string (YYYY-MM-DD)."""
     if not isinstance(value, str):
         raise ValidationError(f"{field} must be a string")
-    if not re.match(r'^\d{4}-\d{2}-\d{2}$', value):
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", value):
         raise ValidationError(f"{field} must be in YYYY-MM-DD format")
     try:
         from datetime import datetime
-        datetime.strptime(value, '%Y-%m-%d')
+
+        datetime.strptime(value, "%Y-%m-%d")
     except ValueError:
         raise ValidationError(f"{field} is not a valid date")
     return value
@@ -341,8 +343,7 @@ def validate_uuid(value: Any, *, field: str = "value") -> str:
     if not isinstance(value, str):
         raise ValidationError(f"{field} must be a string")
     uuid_pattern = re.compile(
-        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-        re.IGNORECASE
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
     )
     if not uuid_pattern.match(value):
         raise ValidationError(f"{field} must be a valid UUID")

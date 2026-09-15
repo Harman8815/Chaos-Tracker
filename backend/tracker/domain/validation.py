@@ -7,14 +7,15 @@ Each rule is a small callable that raises :class:`DomainError` (specifically
 ``ValidationError``) on failure, so services can call them and let the API
 layer translate the error into an HTTP response.
 """
+
 from datetime import date, datetime
 
 from .exceptions import ValidationError
 
-
 # ---------------------------------------------------------------------------
 # Date helpers
 # ---------------------------------------------------------------------------
+
 
 def parse_date(value, *, field="date"):
     """Parse a ``YYYY-MM-DD`` string into a :class:`datetime.date`.
@@ -46,6 +47,7 @@ def ensure_future_or_today(value, *, field="date"):
 # ---------------------------------------------------------------------------
 # Numeric / range rules
 # ---------------------------------------------------------------------------
+
 
 def in_range(value, low, high, *, field="value"):
     """Ensure ``low <= value <= high``."""
@@ -81,6 +83,7 @@ def bounded_decimal(value, *, maximum_digits=10, maximum_decimal_places=2, field
     """Ensure a decimal string/number fits within the model's schema."""
     try:
         from decimal import Decimal
+
         d = Decimal(str(value))
     except Exception:
         raise ValidationError(f"{field} must be a number")
@@ -95,6 +98,7 @@ def bounded_decimal(value, *, maximum_digits=10, maximum_decimal_places=2, field
 # ---------------------------------------------------------------------------
 # Text rules
 # ---------------------------------------------------------------------------
+
 
 def bounded_text(value, *, max_length, field="value", allow_blank=False):
     """Ensure ``value`` is a string within ``max_length``."""
@@ -130,6 +134,7 @@ def enum_choice(value, enum_cls, *, field="value"):
 # ---------------------------------------------------------------------------
 # Collection rules
 # ---------------------------------------------------------------------------
+
 
 def bounded_list(value, *, max_length, field="value"):
     """Ensure ``value`` is a list with at most ``max_length`` items."""

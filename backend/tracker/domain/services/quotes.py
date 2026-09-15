@@ -4,6 +4,7 @@ Owns QuoteSource / Quote / QuoteTag business logic. Every operation
 verifies the requesting user owns the source (quotes are owned
 transitively through their source).
 """
+
 import uuid
 
 from django.db.models import Count, Prefetch
@@ -32,10 +33,7 @@ def _get_source(user, source_id):
 
 def _get_quote(user, quote_id):
     quote = (
-        Quote.objects.select_related("source")
-        .prefetch_related("tags")
-        .filter(id=quote_id)
-        .first()
+        Quote.objects.select_related("source").prefetch_related("tags").filter(id=quote_id).first()
     )
     if quote is None or quote.source.user_id != user.id:
         raise NotFoundError("Quote not found")
@@ -63,9 +61,7 @@ def _replace_tags(quote, tags):
 
 class QuoteSourceService:
     def list(self, user, *, source_type=None, include_quotes=True):
-        qs = QuoteSource.objects.filter(user=user).annotate(
-            quote_count=Count("quotes")
-        )
+        qs = QuoteSource.objects.filter(user=user).annotate(quote_count=Count("quotes"))
         if source_type:
             qs = qs.filter(type=source_type)
         if include_quotes:
@@ -79,13 +75,20 @@ class QuoteSourceService:
 
     def create(self, user, data):
         title = validation.bounded_text(
-            data.get("title"), max_length=255, field="title",
+            data.get("title"),
+            max_length=255,
+            field="title",
         )
         source_type = validation.choice(
-            data.get("type"), SOURCE_TYPE_KEYS, field="type",
+            data.get("type"),
+            SOURCE_TYPE_KEYS,
+            field="type",
         )
         cover_image = validation.bounded_text(
-            data.get("cover_image", ""), max_length=500, field="cover_image", allow_blank=True,
+            data.get("cover_image", ""),
+            max_length=500,
+            field="cover_image",
+            allow_blank=True,
         )
         source = QuoteSource.objects.create(
             id=str(uuid.uuid4()),
@@ -106,10 +109,14 @@ class QuoteSourceService:
             fields["title"] = validation.bounded_text(data["title"], max_length=255, field="title")
         if "type" in data:
             fields["type"] = validation.choice(
-                data["type"], QuoteSource.SOURCE_TYPES_KEYS, field="type")
+                data["type"], QuoteSource.SOURCE_TYPES_KEYS, field="type"
+            )
         if "cover_image" in data:
             fields["cover_image"] = validation.bounded_text(
-                data["cover_image"], max_length=500, field="cover_image", allow_blank=True,
+                data["cover_image"],
+                max_length=500,
+                field="cover_image",
+                allow_blank=True,
             )
         for k, v in fields.items():
             setattr(source, k, v)
@@ -124,28 +131,19 @@ class QuoteSourceService:
         return True
 
     def _load_source(self, user, source_id):
-        source = (
-            QuoteSource.objects.annotate(quote_count=Count("quotes"))
-            .get(id=source_id, user=user)
+        source = QuoteSource.objects.annotate(quote_count=Count("quotes")).get(
+            id=source_id, user=user
         )
         return source
 
     def _create_quote(self, user, source, raw):
         text = validation.bounded_text(raw.get("text"), max_length=5000, field="text")
         author = validation.bounded_text(
-            raw.get(
-                "author",
-                "Unknown"),
-            max_length=255,
-            field="author",
-            allow_blank=True)
+            raw.get("author", "Unknown"), max_length=255, field="author", allow_blank=True
+        )
         image = validation.bounded_text(
-            raw.get(
-                "image",
-                ""),
-            max_length=500,
-            field="image",
-            allow_blank=True)
+            raw.get("image", ""), max_length=500, field="image", allow_blank=True
+        )
         quote = Quote.objects.create(
             id=str(uuid.uuid4()),
             source=source,
@@ -202,12 +200,14 @@ class QuoteService:
                             match_types.append(match_type)
 
             if source_matched or matched_quotes:
-                results.append({
-                    "source": source,
-                    "matched_quotes": matched_quotes,
-                    "relevance_score": len(matched_quotes) + (1 if source_matched else 0),
-                    "match_type": ", ".join(match_types),
-                })
+                results.append(
+                    {
+                        "source": source,
+                        "matched_quotes": matched_quotes,
+                        "relevance_score": len(matched_quotes) + (1 if source_matched else 0),
+                        "match_type": ", ".join(match_types),
+                    }
+                )
 
         results.sort(key=lambda result: result["relevance_score"], reverse=True)
         return results[:limit]
@@ -221,14 +221,16 @@ class QuoteService:
         if "text" in data:
             quote.text = validation.bounded_text(data["text"], max_length=5000, field="text")
         if "author" in data:
-            quote.author = validation.bounded_text(
-                data["author"],
-                max_length=255,
-                field="author",
-                allow_blank=True) or "Unknown"
+            quote.author = (
+                validation.bounded_text(
+                    data["author"], max_length=255, field="author", allow_blank=True
+                )
+                or "Unknown"
+            )
         if "image" in data:
             quote.image = validation.bounded_text(
-                data["image"], max_length=500, field="image", allow_blank=True)
+                data["image"], max_length=500, field="image", allow_blank=True
+            )
         quote.save()
         if "tags" in data:
             _replace_tags(quote, _normalize_tags(data["tags"]))

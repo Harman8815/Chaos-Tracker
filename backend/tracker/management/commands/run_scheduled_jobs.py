@@ -3,6 +3,7 @@
 Processes due recurring transactions, sends reminders, checks alerts,
 and generates summaries. Designed to be run periodically (e.g., via cron).
 """
+
 from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
@@ -27,18 +28,23 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--user", type=str, default=None,
+            "--user",
+            type=str,
+            default=None,
             help="Optional username to run jobs only for that user.",
         )
         parser.add_argument(
-            "--jobs", type=str, default="all",
+            "--jobs",
+            type=str,
+            default="all",
             help="Comma-separated list of jobs to run (default: all). "
-                 "Options: recurring_expenses, recurring_income, subscriptions, "
-                 "goal_deadlines, habit_reminders, budget_alerts, streak_alerts, "
-                 "weekly_summary, monthly_summary, job_processor, all",
+            "Options: recurring_expenses, recurring_income, subscriptions, "
+            "goal_deadlines, habit_reminders, budget_alerts, streak_alerts, "
+            "weekly_summary, monthly_summary, job_processor, all",
         )
         parser.add_argument(
-            "--dry-run", action="store_true",
+            "--dry-run",
+            action="store_true",
             help="Show what would be done without making changes.",
         )
 
@@ -181,29 +187,30 @@ class Command(BaseCommand):
         job_type = job.job_type
         payload = job.payload
 
-        if job_type == 'goal_deadline_check':
+        if job_type == "goal_deadline_check":
             goal_deadline_alert_service.check_user(user)
-        elif job_type == 'habit_reminder':
+        elif job_type == "habit_reminder":
             habit_reminder_service.check_user(user)
-        elif job_type == 'budget_alert_check':
+        elif job_type == "budget_alert_check":
             budget_alert_service.check_user(user)
-        elif job_type == 'streak_alert_check':
+        elif job_type == "streak_alert_check":
             streak_alert_service.check_user(user)
-        elif job_type == 'weekly_summary':
+        elif job_type == "weekly_summary":
             summary_notification_service.send_weekly_summary(user)
-        elif job_type == 'monthly_summary':
+        elif job_type == "monthly_summary":
             summary_notification_service.send_monthly_summary(user)
-        elif job_type == 'recurring_expense_process':
+        elif job_type == "recurring_expense_process":
             recurring_expense_job_service.process_due(user)
-        elif job_type == 'recurring_income_process':
+        elif job_type == "recurring_income_process":
             recurring_income_job_service.process_due(user)
-        elif job_type == 'subscription_billing':
+        elif job_type == "subscription_billing":
             subscription_billing_job_service.process_due(user)
         else:
             raise ValueError(f"Unknown job type: {job_type}")
 
     def _count_due_recurring_expenses(self, user) -> int:
         from tracker.models import RecurringExpense
+
         today = date.today()
         return RecurringExpense.objects.filter(
             user=user, is_active=True, next_occurrence__lte=today
@@ -211,6 +218,7 @@ class Command(BaseCommand):
 
     def _count_due_recurring_income(self, user) -> int:
         from tracker.models import RecurringIncome
+
         today = date.today()
         return RecurringIncome.objects.filter(
             user=user, is_active=True, next_occurrence__lte=today
@@ -218,20 +226,22 @@ class Command(BaseCommand):
 
     def _count_due_subscriptions(self, user) -> int:
         from tracker.models import Subscription
+
         today = date.today()
         return Subscription.objects.filter(
-            user=user, status='active', next_billing_date__lte=today
+            user=user, status="active", next_billing_date__lte=today
         ).count()
 
     def _count_due_goal_deadlines(self, user) -> int:
         today = date.today()
         target = today + timedelta(days=3)
         return Goal.objects.filter(
-            user=user, status='active', due_date__gte=today, due_date__lte=target
+            user=user, status="active", due_date__gte=today, due_date__lte=target
         ).count()
 
     def _count_due_habit_reminders(self, user) -> int:
         from tracker.models import Habit, DailyHabitScore
+
         today = date.today()
         habits = Habit.objects.filter(user=user)
         count = 0
@@ -239,19 +249,27 @@ class Command(BaseCommand):
             if self._is_due_today(habit, today):
                 # Check if already completed
                 if not DailyHabitScore.objects.filter(
-                        user=user, habit=habit, date=today, score__gt=0).exists():
+                    user=user, habit=habit, date=today, score__gt=0
+                ).exists():
                     count += 1
         return count
 
     def _count_budget_alerts(self, user) -> int:
         from tracker.models import Budget, Expense
         from django.db.models import Sum, F
+
         today = date.today()
         count = 0
         for budget in Budget.objects.filter(user=user, year=today.year, month=today.month):
-            spent = Expense.objects.filter(
-                user=user, category=budget.category, date__year=today.year, date__month=today.month
-            ).aggregate(total=Sum(F('quantity') * F('price')))['total'] or 0
+            spent = (
+                Expense.objects.filter(
+                    user=user,
+                    category=budget.category,
+                    date__year=today.year,
+                    date__month=today.month,
+                ).aggregate(total=Sum(F("quantity") * F("price")))["total"]
+                or 0
+            )
             if budget.amount > 0:
                 percent = float(spent) / float(budget.amount) * 100
                 if percent >= 80:
@@ -260,6 +278,7 @@ class Command(BaseCommand):
 
     def _count_streak_alerts(self, user) -> int:
         from tracker.models import Habit, DailyHabitScore
+
         today = date.today()
         count = 0
         for habit in Habit.objects.filter(user=user):
@@ -267,14 +286,16 @@ class Command(BaseCommand):
                 count += 1
             if habit.streak > 0 and habit.grace_period == 0:
                 if not DailyHabitScore.objects.filter(
-                        user=user, habit=habit, date=today, score__gt=0).exists():
+                    user=user, habit=habit, date=today, score__gt=0
+                ).exists():
                     count += 1
         return count
 
     def _count_pending_jobs(self) -> int:
         from tracker.models import ScheduledJob
+
         return ScheduledJob.objects.filter(
-            status='pending', scheduled_at__lte=timezone.now()
+            status="pending", scheduled_at__lte=timezone.now()
         ).count()
 
     def _is_due_today(self, habit, check_date):

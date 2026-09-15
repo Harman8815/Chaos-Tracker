@@ -25,6 +25,7 @@ class GoalService:
 
     def get_by_id(self, user, goal_id):
         from ..exceptions import NotFoundError
+
         goal = Goal.objects.filter(id=goal_id, user=user).first()
         if goal is None:
             raise NotFoundError("Goal not found")
@@ -33,49 +34,67 @@ class GoalService:
     def create(self, user, data):
         text = validation.bounded_text(data.get("text"), max_length=500, field="text")
         category = validation.choice(
-            data.get("category", "daily"), Goal.GOAL_CATEGORIES_KEYS, field="category",
+            data.get("category", "daily"),
+            Goal.GOAL_CATEGORIES_KEYS,
+            field="category",
         )
         status_value = validation.choice(
-            data.get("status", "active"), Goal.GOAL_STATUS_KEYS, field="status",
+            data.get("status", "active"),
+            Goal.GOAL_STATUS_KEYS,
+            field="status",
         )
         tags = validation.bounded_list(data.get("tags", []), max_length=50, field="tags")
         target = validation.positive_int(data.get("target", 1), field="target", minimum=1)
         completed_tasks = validation.non_negative_int(
-            data.get("completed_tasks", 0), field="completed_tasks",
+            data.get("completed_tasks", 0),
+            field="completed_tasks",
         )
         description = validation.bounded_text(
-            data.get("description", ""), max_length=2000, field="description", allow_blank=True,
+            data.get("description", ""),
+            max_length=2000,
+            field="description",
+            allow_blank=True,
         )
-        start_date = validation.parse_date(
-            data["start_date"],
-            field="start_date") if data.get("start_date") else None
-        due_date = validation.parse_date(data["due_date"],
-                                         field="due_date") if data.get("due_date") else None
+        start_date = (
+            validation.parse_date(data["start_date"], field="start_date")
+            if data.get("start_date")
+            else None
+        )
+        due_date = (
+            validation.parse_date(data["due_date"], field="due_date")
+            if data.get("due_date")
+            else None
+        )
         priority = validation.choice(
-            data.get("priority", "medium"), Goal.PRIORITY_LEVELS_KEYS, field="priority",
+            data.get("priority", "medium"),
+            Goal.PRIORITY_LEVELS_KEYS,
+            field="priority",
         )
         frequency = validation.bounded_text(
-            data.get("frequency", ""), max_length=50, field="frequency", allow_blank=True,
+            data.get("frequency", ""),
+            max_length=50,
+            field="frequency",
+            allow_blank=True,
         )
         recurrence = validation.choice(
-            data.get("recurrence", Goal.RECURRENCE_NONE), Goal.RECURRENCE_KEYS, field="recurrence",
+            data.get("recurrence", Goal.RECURRENCE_NONE),
+            Goal.RECURRENCE_KEYS,
+            field="recurrence",
         )
         reminders = validation.bounded_list(
-            data.get(
-                "reminders",
-                []),
-            max_length=50,
-            field="reminders")
+            data.get("reminders", []), max_length=50, field="reminders"
+        )
         completion_criteria = validation.bounded_text(
-            data.get(
-                "completion_criteria",
-                ""),
+            data.get("completion_criteria", ""),
             max_length=2000,
             field="completion_criteria",
             allow_blank=True,
         )
         notes = validation.bounded_text(
-            data.get("notes", ""), max_length=2000, field="notes", allow_blank=True,
+            data.get("notes", ""),
+            max_length=2000,
+            field="notes",
+            allow_blank=True,
         )
 
         completed_at = timezone.now() if status_value == "completed" else None
@@ -113,14 +132,24 @@ class GoalService:
             "tags": lambda v: validation.bounded_list(v, max_length=50, field="tags"),
             "target": lambda v: validation.positive_int(v, field="target", minimum=1),
             "completed_tasks": lambda v: validation.non_negative_int(v, field="completed_tasks"),
-            "description": lambda v: validation.bounded_text(v, max_length=2000, field="description", allow_blank=True),
-            "start_date": lambda v: None if v is None else validation.parse_date(v, field="start_date"),
+            "description": lambda v: validation.bounded_text(
+                v, max_length=2000, field="description", allow_blank=True
+            ),
+            "start_date": lambda v: (
+                None if v is None else validation.parse_date(v, field="start_date")
+            ),
             "due_date": lambda v: None if v is None else validation.parse_date(v, field="due_date"),
             "priority": lambda v: validation.choice(v, Goal.PRIORITY_LEVELS_KEYS, field="priority"),
-            "frequency": lambda v: validation.bounded_text(v, max_length=50, field="frequency", allow_blank=True),
+            "frequency": lambda v: validation.bounded_text(
+                v, max_length=50, field="frequency", allow_blank=True
+            ),
             "reminders": lambda v: validation.bounded_list(v, max_length=50, field="reminders"),
-            "completion_criteria": lambda v: validation.bounded_text(v, max_length=2000, field="completion_criteria", allow_blank=True),
-            "notes": lambda v: validation.bounded_text(v, max_length=2000, field="notes", allow_blank=True),
+            "completion_criteria": lambda v: validation.bounded_text(
+                v, max_length=2000, field="completion_criteria", allow_blank=True
+            ),
+            "notes": lambda v: validation.bounded_text(
+                v, max_length=2000, field="notes", allow_blank=True
+            ),
         }
         for field, coerce in field_map.items():
             if field in data:

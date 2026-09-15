@@ -50,10 +50,8 @@ class QueryOptimizer:
 
     @staticmethod
     def annotate_subquery(
-            queryset: QuerySet,
-            name: str,
-            subquery: Subquery,
-            output_field=None) -> QuerySet:
+        queryset: QuerySet, name: str, subquery: Subquery, output_field=None
+    ) -> QuerySet:
         """Add subquery annotation efficiently."""
         kwargs = {name: subquery}
         if output_field:
@@ -65,7 +63,7 @@ class QueryOptimizer:
 class EfficientQuerySet(QuerySet):
     """QuerySet with built-in optimization methods."""
 
-    def with_user_data(self, user_field: str = 'user') -> QuerySet:
+    def with_user_data(self, user_field: str = "user") -> QuerySet:
         """Optimize for user-scoped queries."""
         return self.select_related(user_field)
 
@@ -83,35 +81,34 @@ class EfficientQuerySet(QuerySet):
     def paginate(self, page: int, page_size: int = 50) -> QuerySet:
         """Efficient pagination using cursor-based approach for large datasets."""
         offset = (page - 1) * page_size
-        return self[offset:offset + page_size]
+        return self[offset : offset + page_size]
 
     def cursor_paginate(
-            self,
-            cursor_field: str,
-            cursor_value: Any,
-            page_size: int,
-            direction: str = 'next') -> QuerySet:
+        self, cursor_field: str, cursor_value: Any, page_size: int, direction: str = "next"
+    ) -> QuerySet:
         """Cursor-based pagination for better performance on large datasets."""
-        if direction == 'next':
-            return self.filter(**{f"{cursor_field}__gt": cursor_value}
-                               ).order_by(cursor_field)[:page_size]
+        if direction == "next":
+            return self.filter(**{f"{cursor_field}__gt": cursor_value}).order_by(cursor_field)[
+                :page_size
+            ]
         else:
-            return self.filter(**{f"{cursor_field}__lt": cursor_value}
-                               ).order_by(f"-{cursor_field}")[:page_size]
+            return self.filter(**{f"{cursor_field}__lt": cursor_value}).order_by(
+                f"-{cursor_field}"
+            )[:page_size]
 
 
 def explain_query(queryset: QuerySet) -> List[Dict]:
     """Get query execution plan."""
-    if connection.vendor == 'postgresql':
+    if connection.vendor == "postgresql":
         sql, params = queryset.query.sql_with_params()
         with connection.cursor() as cursor:
             cursor.execute(f"EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) {sql}", params)
             return cursor.fetchall()[0][0]
-    elif connection.vendor == 'sqlite':
+    elif connection.vendor == "sqlite":
         sql, params = queryset.query.sql_with_params()
         with connection.cursor() as cursor:
             cursor.execute(f"EXPLAIN QUERY PLAN {sql}", params)
-            return [{'detail': row[3]} for row in cursor.fetchall()]
+            return [{"detail": row[3]} for row in cursor.fetchall()]
     return []
 
 
@@ -119,9 +116,9 @@ def get_query_stats(queryset: QuerySet) -> Dict[str, Any]:
     """Get query statistics."""
     sql, params = queryset.query.sql_with_params()
     return {
-        'sql': sql,
-        'params': params,
-        'query_count': len(connection.queries),
+        "sql": sql,
+        "params": params,
+        "query_count": len(connection.queries),
     }
 
 
@@ -137,16 +134,16 @@ class QueryProfiler:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.end_count = len(connection.queries)
-        self.queries = connection.queries[self.start_count:self.end_count]
+        self.queries = connection.queries[self.start_count : self.end_count]
 
     def get_stats(self) -> Dict[str, Any]:
-        total_time = sum(float(q['time']) for q in self.queries)
+        total_time = sum(float(q["time"]) for q in self.queries)
         return {
-            'query_count': len(self.queries),
-            'total_time': total_time,
-            'avg_time': total_time / len(self.queries) if self.queries else 0,
-            'slowest': max(self.queries, key=lambda q: float(q['time'])) if self.queries else None,
-            'queries': self.queries,
+            "query_count": len(self.queries),
+            "total_time": total_time,
+            "avg_time": total_time / len(self.queries) if self.queries else 0,
+            "slowest": max(self.queries, key=lambda q: float(q["time"])) if self.queries else None,
+            "queries": self.queries,
         }
 
     def print_summary(self):
@@ -154,19 +151,17 @@ class QueryProfiler:
         print(f"Queries: {stats['query_count']}")
         print(f"Total time: {stats['total_time']:.3f}s")
         print(f"Avg time: {stats['avg_time']:.3f}s")
-        if stats['slowest']:
+        if stats["slowest"]:
             print(f"Slowest: {stats['slowest']['time']}s - {stats['slowest']['sql'][:100]}")
 
 
 def optimize_bulk_create(
-        model_class,
-        objects: List,
-        batch_size: int = 1000,
-        ignore_conflicts: bool = False):
+    model_class, objects: List, batch_size: int = 1000, ignore_conflicts: bool = False
+):
     """Optimized bulk create with chunking."""
     created = []
     for i in range(0, len(objects), batch_size):
-        batch = objects[i:i + batch_size]
+        batch = objects[i : i + batch_size]
         created.extend(model_class.objects.bulk_create(batch, ignore_conflicts=ignore_conflicts))
     return created
 
@@ -175,23 +170,21 @@ def optimize_bulk_update(model_class, objects: List, fields: List[str], batch_si
     """Optimized bulk update with chunking."""
     updated = 0
     for i in range(0, len(objects), batch_size):
-        batch = objects[i:i + batch_size]
+        batch = objects[i : i + batch_size]
         updated += model_class.objects.bulk_update(batch, fields)
     return updated
 
 
 def optimize_update_or_create(
-        model_class,
-        lookup_field: str,
-        objects_data: List[Dict],
-        batch_size: int = 100):
+    model_class, lookup_field: str, objects_data: List[Dict], batch_size: int = 100
+):
     """Efficient upsert pattern for multiple objects."""
     from django.db import transaction
 
     results = []
     with transaction.atomic():
         for i in range(0, len(objects_data), batch_size):
-            batch = objects_data[i:i + batch_size]
+            batch = objects_data[i : i + batch_size]
             for data in batch:
                 lookup = {lookup_field: data.pop(lookup_field)}
                 obj, created = model_class.objects.update_or_create(defaults=data, **lookup)
@@ -209,6 +202,7 @@ class QueryCache:
 
     def get(self, key: str):
         import time
+
         if key in self._cache:
             if time.time() - self._timestamps[key] < self.ttl:
                 return self._cache[key]
@@ -219,6 +213,7 @@ class QueryCache:
 
     def set(self, key: str, value):
         import time
+
         self._cache[key] = value
         self._timestamps[key] = time.time()
 
@@ -237,6 +232,7 @@ query_cache = QueryCache()
 
 def cached_query(ttl: int = 300):
     """Decorator to cache queryset results."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -246,83 +242,85 @@ def cached_query(ttl: int = 300):
                 result = func(*args, **kwargs)
                 query_cache.set(cache_key, result)
             return result
+
         return wrapper
+
     return decorator
 
 
 # Database index recommendations
 INDEX_RECOMMENDATIONS = {
-    'Expense': [
-        ['user', 'date'],
-        ['user', 'category'],
-        ['user', 'date', 'category'],
+    "Expense": [
+        ["user", "date"],
+        ["user", "category"],
+        ["user", "date", "category"],
     ],
-    'Goal': [
-        ['user', 'category'],
-        ['user', 'status'],
-        ['user', 'recurrence'],
+    "Goal": [
+        ["user", "category"],
+        ["user", "status"],
+        ["user", "recurrence"],
     ],
-    'Habit': [
-        ['user'],
-        ['goal'],
+    "Habit": [
+        ["user"],
+        ["goal"],
     ],
-    'JournalEntry': [
-        ['user', 'date'],
+    "JournalEntry": [
+        ["user", "date"],
     ],
-    'Mood': [
-        ['user', 'date'],
+    "Mood": [
+        ["user", "date"],
     ],
-    'Water': [
-        ['user', 'date'],
+    "Water": [
+        ["user", "date"],
     ],
-    'Budget': [
-        ['user', 'year', 'month'],
+    "Budget": [
+        ["user", "year", "month"],
     ],
-    'Income': [
-        ['user', 'date'],
-        ['user', 'source'],
+    "Income": [
+        ["user", "date"],
+        ["user", "source"],
     ],
-    'Account': [
-        ['user', 'is_active'],
+    "Account": [
+        ["user", "is_active"],
     ],
-    'RecurringExpense': [
-        ['user', 'is_active'],
-        ['next_occurrence'],
+    "RecurringExpense": [
+        ["user", "is_active"],
+        ["next_occurrence"],
     ],
-    'Subscription': [
-        ['user', 'status'],
-        ['next_billing_date'],
+    "Subscription": [
+        ["user", "status"],
+        ["next_billing_date"],
     ],
-    'Notification': [
-        ['user', 'is_read'],
-        ['user', 'type'],
-        ['user', 'created_at'],
+    "Notification": [
+        ["user", "is_read"],
+        ["user", "type"],
+        ["user", "created_at"],
     ],
-    'AIConversation': [
-        ['user', 'status'],
-        ['user', 'last_message_at'],
+    "AIConversation": [
+        ["user", "status"],
+        ["user", "last_message_at"],
     ],
-    'AIMessage': [
-        ['conversation', 'created_at'],
+    "AIMessage": [
+        ["conversation", "created_at"],
     ],
-    'UserEvent': [
-        ['user', 'event_type'],
-        ['user', 'occurred_at'],
-        ['user', 'subject_type', 'subject_id'],
+    "UserEvent": [
+        ["user", "event_type"],
+        ["user", "occurred_at"],
+        ["user", "subject_type", "subject_id"],
     ],
-    'DailyActivityAggregate': [
-        ['user', 'date'],
+    "DailyActivityAggregate": [
+        ["user", "date"],
     ],
-    'ScheduledJob': [
-        ['status', 'scheduled_at'],
-        ['job_type', 'status'],
-        ['user', 'status'],
+    "ScheduledJob": [
+        ["status", "scheduled_at"],
+        ["job_type", "status"],
+        ["user", "status"],
     ],
-    'AIMemory': [
-        ['user', 'is_active', 'memory_type'],
-        ['user', 'is_active', 'priority'],
-        ['user', 'expires_at'],
-        ['conversation'],
+    "AIMemory": [
+        ["user", "is_active", "memory_type"],
+        ["user", "is_active", "priority"],
+        ["user", "expires_at"],
+        ["conversation"],
     ],
 }
 
@@ -335,12 +333,11 @@ def generate_index_migrations():
             operations.append(
                 migrations.AddIndex(
                     model_name=model_name.lower(),
-                    index=models.Index(
-                        fields=fields,
-                        name=f"{
+                    index=models.Index(fields=fields, name=f"{
                             model_name.lower()}_{
                             '_'.join(fields)}_idx"),
-                ))
+                )
+            )
     return operations
 
 

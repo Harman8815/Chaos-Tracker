@@ -5,6 +5,7 @@ Derives a user's daily, weekly and monthly point totals from
 centralized so scores cannot be manipulated unexpectedly by individual
 domain services.
 """
+
 from datetime import date
 
 
@@ -34,7 +35,8 @@ class PointsEngine:
         """Return the point total for a single day."""
         target_date = _coerce_date(target_date)
         aggregate = DailyActivityAggregate.objects.filter(
-            user=user, date=target_date,
+            user=user,
+            date=target_date,
         ).first()
         if aggregate is None:
             return 0
@@ -47,7 +49,8 @@ class PointsEngine:
         if start > end:
             raise ValidationError("start_date must be on or before end_date")
         rows = DailyActivityAggregate.objects.filter(
-            user=user, date__range=[start, end],
+            user=user,
+            date__range=[start, end],
         ).order_by("date")
         return [
             {
@@ -70,7 +73,8 @@ class PointsEngine:
             start = date(y, m, 1)
             end = date(y, m, _days_in_month(y, m))
         rows = DailyActivityAggregate.objects.filter(
-            user=user, date__range=[start, end],
+            user=user,
+            date__range=[start, end],
         )
         daily = [
             {"date": r.date.isoformat(), "points": self._score_aggregate(r)}
@@ -103,17 +107,18 @@ def _coerce_date(value):
         return value
     if isinstance(value, str):
         from .. import validation
+
         return validation.parse_date(value, field="date")
     raise ValidationError("date must be a date or YYYY-MM-DD string")
 
 
 def _days_in_month(y, m):
     import calendar
+
     return calendar.monthrange(y, m)[1]
 
 
 # Late import to avoid circular dependency.
 from datetime import datetime  # noqa: E402
-
 
 points_engine = PointsEngine()

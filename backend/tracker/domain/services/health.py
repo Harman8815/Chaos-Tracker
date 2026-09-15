@@ -13,6 +13,7 @@ class MoodService:
 
     def get_by_id(self, user, mood_id):
         from ..exceptions import NotFoundError
+
         instance = Mood.objects.filter(id=mood_id, user=user).first()
         if instance is None:
             raise NotFoundError("Mood not found")
@@ -22,10 +23,13 @@ class MoodService:
         mood_value = validation.choice(data.get("mood"), Mood.MOOD_CHOICES_KEYS, field="mood")
         entry_date = validation.parse_date(data.get("date"), field="date")
         instance, created = Mood.objects.update_or_create(
-            user=user, date=entry_date, defaults={"mood": mood_value},
+            user=user,
+            date=entry_date,
+            defaults={"mood": mood_value},
         )
-        logger.info("mood.upsert user_id=%s date=%s created=%s",
-                    user.id, entry_date.isoformat(), created)
+        logger.info(
+            "mood.upsert user_id=%s date=%s created=%s", user.id, entry_date.isoformat(), created
+        )
         return instance
 
     def update(self, user, mood_id, data, *, partial=True):
@@ -51,6 +55,7 @@ class WaterService:
 
     def get_by_id(self, user, water_id):
         from ..exceptions import NotFoundError
+
         instance = Water.objects.filter(id=water_id, user=user).first()
         if instance is None:
             raise NotFoundError("Water entry not found")
@@ -61,10 +66,13 @@ class WaterService:
         target = validation.positive_int(data.get("target", 8), field="target", minimum=1)
         entry_date = validation.parse_date(data.get("date"), field="date")
         instance, created = Water.objects.update_or_create(
-            user=user, date=entry_date, defaults={"glasses": glasses, "target": target},
+            user=user,
+            date=entry_date,
+            defaults={"glasses": glasses, "target": target},
         )
-        logger.info("water.upsert user_id=%s date=%s created=%s",
-                    user.id, entry_date.isoformat(), created)
+        logger.info(
+            "water.upsert user_id=%s date=%s created=%s", user.id, entry_date.isoformat(), created
+        )
         return instance
 
     def update(self, user, water_id, data, *, partial=True):

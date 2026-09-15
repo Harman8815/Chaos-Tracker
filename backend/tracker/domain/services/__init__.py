@@ -4,6 +4,7 @@ Each sub-module owns the business operations for one aggregate area.
 Services receive a requesting ``User`` (or ``user_id``) and enforce
 ownership via :mod:`tracker.domain.permissions`.
 """
+
 from .achievement_engine import AchievementEngine, achievement_engine
 from .analytics import AnalyticsService, analytics_service
 from .budgets import BudgetService, budget_service
@@ -49,8 +50,6 @@ from .alerts import (
     goal_deadline_alert_service,
     HabitReminderService,
     habit_reminder_service,
-    BudgetAlertService as AlertBudgetAlertService,
-    budget_alert_service,
     StreakAlertService,
     streak_alert_service,
     AchievementNotificationService,

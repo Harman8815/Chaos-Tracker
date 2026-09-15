@@ -2,6 +2,7 @@
 
 Owns Transfer CRUD plus analytics. All queries are scoped to the requesting user.
 """
+
 from datetime import date
 
 from ...models import Transfer, Account
@@ -14,14 +15,8 @@ logger = get_logger("tracker.domain.transfers")
 
 class TransferService:
     def list(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            transfer_type=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, transfer_type=None, start_date=None, end_date=None
+    ):
         qs = Transfer.objects.filter(user=user)
         if year is not None or month is not None:
             qs = self._apply_period_filters(qs, year=year, month=month)
@@ -49,14 +44,8 @@ class TransferService:
         return qs.filter(date__year=y, date__month=m)
 
     def list_with_summary(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            transfer_type=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, transfer_type=None, start_date=None, end_date=None
+    ):
         transfers = self.list(
             user,
             year=year,
@@ -68,8 +57,9 @@ class TransferService:
         total_amount = sum(float(t.amount) for t in transfers)
         type_breakdown = {}
         for t in transfers:
-            type_breakdown[t.transfer_type] = type_breakdown.get(
-                t.transfer_type, 0.0) + float(t.amount)
+            type_breakdown[t.transfer_type] = type_breakdown.get(t.transfer_type, 0.0) + float(
+                t.amount
+            )
         return {
             "count": len(transfers),
             "total_amount": round(total_amount, 2),
@@ -88,23 +78,19 @@ class TransferService:
         if amount <= 0:
             raise ValidationError("amount must be positive")
         transfer_type = validation.bounded_text(
-            data.get(
-                "transfer_type",
-                "internal"),
-            max_length=20,
-            field="transfer_type")
+            data.get("transfer_type", "internal"), max_length=20, field="transfer_type"
+        )
         if transfer_type not in dict(Transfer.TRANSFER_TYPES):
             raise ValidationError(
-                f"Invalid transfer_type. Must be one of: {[k for k, _ in Transfer.TRANSFER_TYPES]}")
+                f"Invalid transfer_type. Must be one of: {[k for k, _ in Transfer.TRANSFER_TYPES]}"
+            )
         status = validation.bounded_text(
-            data.get(
-                "status",
-                "completed"),
-            max_length=20,
-            field="status")
+            data.get("status", "completed"), max_length=20, field="status"
+        )
         if status not in dict(Transfer.STATUS_CHOICES):
             raise ValidationError(
-                f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}")
+                f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}"
+            )
         transfer_date = validation.parse_date(data.get("date"), field="date")
         description = data.get("description", "")
 
@@ -120,15 +106,15 @@ class TransferService:
                 raise NotFoundError("To account not found")
 
         # Update account balances if internal transfer and completed
-        if transfer_type == 'internal' and status == 'completed' and from_account and to_account:
+        if transfer_type == "internal" and status == "completed" and from_account and to_account:
             from_account.balance -= amount
             to_account.balance += amount
             from_account.save()
             to_account.save()
-        elif transfer_type == 'withdrawal' and status == 'completed' and from_account:
+        elif transfer_type == "withdrawal" and status == "completed" and from_account:
             from_account.balance -= amount
             from_account.save()
-        elif transfer_type == 'deposit' and status == 'completed' and to_account:
+        elif transfer_type == "deposit" and status == "completed" and to_account:
             to_account.balance += amount
             to_account.save()
 
@@ -155,32 +141,41 @@ class TransferService:
             status = validation.bounded_text(data["status"], max_length=20, field="status")
             if status not in dict(Transfer.STATUS_CHOICES):
                 raise ValidationError(
-                    f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}")
+                    f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}"
+                )
             # Handle balance updates if status changes
-            if transfer.status == 'completed' and status != 'completed':
+            if transfer.status == "completed" and status != "completed":
                 # Revert balance changes
-                if transfer.transfer_type == 'internal' and transfer.from_account and transfer.to_account:
+                if (
+                    transfer.transfer_type == "internal"
+                    and transfer.from_account
+                    and transfer.to_account
+                ):
                     transfer.from_account.balance += transfer.amount
                     transfer.to_account.balance -= transfer.amount
                     transfer.from_account.save()
                     transfer.to_account.save()
-                elif transfer.transfer_type == 'withdrawal' and transfer.from_account:
+                elif transfer.transfer_type == "withdrawal" and transfer.from_account:
                     transfer.from_account.balance += transfer.amount
                     transfer.from_account.save()
-                elif transfer.transfer_type == 'deposit' and transfer.to_account:
+                elif transfer.transfer_type == "deposit" and transfer.to_account:
                     transfer.to_account.balance -= transfer.amount
                     transfer.to_account.save()
-            elif transfer.status != 'completed' and status == 'completed':
+            elif transfer.status != "completed" and status == "completed":
                 # Apply balance changes
-                if transfer.transfer_type == 'internal' and transfer.from_account and transfer.to_account:
+                if (
+                    transfer.transfer_type == "internal"
+                    and transfer.from_account
+                    and transfer.to_account
+                ):
                     transfer.from_account.balance -= transfer.amount
                     transfer.to_account.balance += transfer.amount
                     transfer.from_account.save()
                     transfer.to_account.save()
-                elif transfer.transfer_type == 'withdrawal' and transfer.from_account:
+                elif transfer.transfer_type == "withdrawal" and transfer.from_account:
                     transfer.from_account.balance -= transfer.amount
                     transfer.from_account.save()
-                elif transfer.transfer_type == 'deposit' and transfer.to_account:
+                elif transfer.transfer_type == "deposit" and transfer.to_account:
                     transfer.to_account.balance += transfer.amount
                     transfer.to_account.save()
             transfer.status = status
@@ -197,16 +192,20 @@ class TransferService:
         if transfer is None:
             raise NotFoundError("Transfer not found")
         # Revert balance changes if completed
-        if transfer.status == 'completed':
-            if transfer.transfer_type == 'internal' and transfer.from_account and transfer.to_account:
+        if transfer.status == "completed":
+            if (
+                transfer.transfer_type == "internal"
+                and transfer.from_account
+                and transfer.to_account
+            ):
                 transfer.from_account.balance += transfer.amount
                 transfer.to_account.balance -= transfer.amount
                 transfer.from_account.save()
                 transfer.to_account.save()
-            elif transfer.transfer_type == 'withdrawal' and transfer.from_account:
+            elif transfer.transfer_type == "withdrawal" and transfer.from_account:
                 transfer.from_account.balance += transfer.amount
                 transfer.from_account.save()
-            elif transfer.transfer_type == 'deposit' and transfer.to_account:
+            elif transfer.transfer_type == "deposit" and transfer.to_account:
                 transfer.to_account.balance -= transfer.amount
                 transfer.to_account.save()
         transfer.delete()
@@ -214,14 +213,8 @@ class TransferService:
         return True
 
     def summary(
-            self,
-            user,
-            *,
-            year=None,
-            month=None,
-            transfer_type=None,
-            start_date=None,
-            end_date=None):
+        self, user, *, year=None, month=None, transfer_type=None, start_date=None, end_date=None
+    ):
         qs = Transfer.objects.filter(user=user)
         if year is not None or month is not None:
             qs = self._apply_period_filters(qs, year=year, month=month)

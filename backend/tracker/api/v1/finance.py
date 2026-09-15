@@ -1,4 +1,5 @@
 """Thin v1 controller for finance: expenses, income, accounts, budgets, recurring, transfers, subscriptions, alerts."""
+
 from rest_framework import status
 from rest_framework import serializers
 
@@ -67,10 +68,8 @@ class ExpenseDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = expense_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data={"expense": serializer.data}, message="Expense updated")
 
@@ -148,6 +147,7 @@ class ExpenseTopItemsView(TrackerAPIView):
 
 # ==================== INCOME ====================
 
+
 class IncomeQuerySerializer(serializers.Serializer):
     year = serializers.IntegerField(required=False, min_value=1900, max_value=9999)
     month = serializers.IntegerField(required=False, min_value=0, max_value=11)
@@ -194,10 +194,8 @@ class IncomeDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = income_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data={"income": serializer.data}, message="Income updated")
 
@@ -232,6 +230,7 @@ class IncomeMonthlyStatsView(TrackerAPIView):
 
 # ==================== ACCOUNTS ====================
 
+
 class AccountListCreateView(TrackerAPIView):
     serializer_class = AccountSerializer
 
@@ -263,10 +262,8 @@ class AccountDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = account_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data={"account": serializer.data}, message="Account updated")
 
@@ -282,6 +279,7 @@ class AccountSummaryView(TrackerAPIView):
 
 
 # ==================== RECURRING EXPENSES ====================
+
 
 class RecurringExpenseQuerySerializer(serializers.Serializer):
     is_active = serializers.BooleanField(required=False)
@@ -317,10 +315,12 @@ class RecurringExpenseDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = recurring_expense_service.update(
-            request.user, kwargs["id"], serializer.validated_data, partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
-        return self.ok(data={"recurring_expense": serializer.data},
-                       message="Recurring expense updated")
+        return self.ok(
+            data={"recurring_expense": serializer.data}, message="Recurring expense updated"
+        )
 
     def destroy(self, request, *args, **kwargs):
         recurring_expense_service.delete(request.user, kwargs["id"])
@@ -337,6 +337,7 @@ class RecurringExpenseProcessView(TrackerAPIView):
 
 
 # ==================== TRANSFERS ====================
+
 
 class TransferQuerySerializer(serializers.Serializer):
     year = serializers.IntegerField(required=False, min_value=1900, max_value=9999)
@@ -384,10 +385,8 @@ class TransferDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = transfer_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data={"transfer": serializer.data}, message="Transfer updated")
 
@@ -411,6 +410,7 @@ class TransferSummaryView(TrackerAPIView):
 
 
 # ==================== SUBSCRIPTIONS ====================
+
 
 class SubscriptionQuerySerializer(serializers.Serializer):
     status = serializers.CharField(required=False, max_length=20, allow_blank=True)
@@ -445,7 +445,8 @@ class SubscriptionDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = subscription_service.update(
-            request.user, kwargs["id"], serializer.validated_data, partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data={"subscription": serializer.data}, message="Subscription updated")
 
@@ -469,6 +470,7 @@ class SubscriptionUpcomingView(TrackerAPIView):
 
 
 # ==================== BUDGET ALERTS ====================
+
 
 class BudgetAlertQuerySerializer(serializers.Serializer):
     is_read = serializers.BooleanField(required=False)
@@ -526,10 +528,11 @@ class BudgetAlertCheckView(TrackerAPIView):
         month = request.data.get("month")
         if not year or not month:
             return self.error(
-                "year and month are required",
-                status_code=status.HTTP_400_BAD_REQUEST)
+                "year and month are required", status_code=status.HTTP_400_BAD_REQUEST
+            )
         alerts = budget_alert_service.check_and_create_alerts(
-            request.user, year=int(year), month=int(month))
+            request.user, year=int(year), month=int(month)
+        )
         serializer = BudgetAlertSerializer(alerts, many=True)
         return self.ok(data={"created_alerts": serializer.data}, count=len(alerts))
 
@@ -541,6 +544,7 @@ class BudgetAlertUnreadCountView(TrackerAPIView):
 
 
 # ==================== BUDGETS ====================
+
 
 class BudgetQuerySerializer(serializers.Serializer):
     year = serializers.IntegerField(required=False, min_value=1900, max_value=9999)
@@ -582,10 +586,8 @@ class BudgetDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = budget_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data={"budget": serializer.data}, message="Budget updated")
 
@@ -601,8 +603,8 @@ class BudgetActualVsBudgetView(TrackerAPIView):
         month = query.get("month")
         if not year or not month:
             return self.error(
-                "year and month are required",
-                status_code=status.HTTP_400_BAD_REQUEST)
+                "year and month are required", status_code=status.HTTP_400_BAD_REQUEST
+            )
         result = budget_service.actual_vs_budget(
             request.user,
             year=int(year),

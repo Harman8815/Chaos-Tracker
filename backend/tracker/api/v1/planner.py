@@ -1,4 +1,5 @@
 """Thin v1 controller for planner data."""
+
 from rest_framework import status
 
 from ._base import TrackerAPIView
@@ -22,19 +23,18 @@ class PlannerDataView(TrackerAPIView):
 class PlannerBlockDetailView(TrackerAPIView):
     def get(self, request, block_id):
         block = planner_service.get_block_by_id(request.user, block_id)
-        tasks = [
-            {"id": t.id, "text": t.text, "completed": t.completed}
-            for t in block.tasks.all()
-        ]
-        return self.ok(data={
-            "block": {
-                "id": block.id,
-                "title": block.title,
-                "x": block.x,
-                "y": block.y,
-                "tasks": tasks,
+        tasks = [{"id": t.id, "text": t.text, "completed": t.completed} for t in block.tasks.all()]
+        return self.ok(
+            data={
+                "block": {
+                    "id": block.id,
+                    "title": block.title,
+                    "x": block.x,
+                    "y": block.y,
+                    "tasks": tasks,
+                }
             }
-        })
+        )
 
     def put(self, request, block_id):
         planner_service.update_block(request.user, block_id, request.data)

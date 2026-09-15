@@ -4,6 +4,7 @@ Deletes raw event rows older than the configured retention window
 (default 24 months) after ensuring DailyActivityAggregate rows are
 current for the affected period.
 """
+
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
@@ -18,11 +19,15 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--months", type=int, default=24,
+            "--months",
+            type=int,
+            default=24,
             help="Retention window in months (default 24).",
         )
         parser.add_argument(
-            "--user", type=str, default=None,
+            "--user",
+            type=str,
+            default=None,
             help="Optional username to compact only that user.",
         )
 

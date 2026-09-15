@@ -4,6 +4,7 @@ Automatically generates recurring goals and planner tasks based on
 their recurrence configuration. Runs on demand; intended to be wired
 into a scheduler later (Phase 6).
 """
+
 from datetime import date, datetime, timedelta
 
 from django.db import transaction
@@ -20,6 +21,7 @@ def _coerce_date(value):
         return value
     if isinstance(value, str):
         from .. import validation as v
+
         return v.parse_date(value, field="date")
     raise ValidationError("date must be a date or YYYY-MM-DD string")
 
@@ -35,7 +37,9 @@ class RecurringService:
             if next_date is None:
                 continue
             exists = Goal.objects.filter(
-                user=user, text=goal.text, start_date=next_date,
+                user=user,
+                text=goal.text,
+                start_date=next_date,
             ).exists()
             if exists:
                 continue
@@ -43,7 +47,7 @@ class RecurringService:
                 user=user,
                 text=goal.text,
                 category=goal.category,
-                status='active',
+                status="active",
                 target=goal.target,
                 description=goal.description,
                 start_date=next_date,
@@ -63,13 +67,16 @@ class RecurringService:
         up_to_date = _coerce_date(up_to_date) if up_to_date else date.today() + timedelta(days=30)
         created = []
         for task in PlannerTask.objects.filter(
-            block__user=user, recurrence__in=PlannerTask.RECURRENCE_KEYS[1:],
+            block__user=user,
+            recurrence__in=PlannerTask.RECURRENCE_KEYS[1:],
         ):
             next_date = self._next_task_occurrence(task, up_to_date)
             if next_date is None:
                 continue
             exists = PlannerTask.objects.filter(
-                block__user=user, text=task.text, due_date=next_date,
+                block__user=user,
+                text=task.text,
+                due_date=next_date,
             ).exists()
             if exists:
                 continue
@@ -126,6 +133,7 @@ def _add_month(d, months):
     year = d.year + month // 12
     month = month % 12 + 1
     import calendar
+
     day = min(d.day, calendar.monthrange(year, month)[1])
     return date(year, month, day)
 

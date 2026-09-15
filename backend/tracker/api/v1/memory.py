@@ -1,4 +1,5 @@
 """Thin v1 controller for memory endpoints."""
+
 from rest_framework import status
 from rest_framework import serializers
 
@@ -39,7 +40,7 @@ class MemoryListCreateView(TrackerAPIView):
 
     def post(self, request):
         # Required fields
-        required = ['memory_type', 'title', 'content']
+        required = ["memory_type", "title", "content"]
         for field in required:
             if field not in request.data:
                 return self.error(f"{field} is required", status_code=status.HTTP_400_BAD_REQUEST)
@@ -47,14 +48,17 @@ class MemoryListCreateView(TrackerAPIView):
         conversation = None
         if request.data.get("conversation_id"):
             from ...models import AIConversation
+
             conversation = AIConversation.objects.filter(
-                id=request.data["conversation_id"], user=request.user).first()
+                id=request.data["conversation_id"], user=request.user
+            ).first()
             if not conversation:
                 return self.error("Conversation not found", status_code=status.HTTP_404_NOT_FOUND)
 
         source_message = None
         if request.data.get("source_message_id"):
             from ...models import AIMessage
+
             source_message = AIMessage.objects.filter(id=request.data["source_message_id"]).first()
 
         memory = memory_service.create_memory(
@@ -130,7 +134,8 @@ class MemorySearchView(TrackerAPIView):
         )
 
         serializer = AIMemorySearchResultSerializer(
-            [{'memory': r['memory'], 'score': r['score']} for r in results], many=True)
+            [{"memory": r["memory"], "score": r["score"]} for r in results], many=True
+        )
         return self.ok(data=serializer.data, count=len(results))
 
 
@@ -161,6 +166,7 @@ class SummarizationJobView(TrackerAPIView):
 
     def post(self, request, id):
         from ...models import AIConversation
+
         conversation = AIConversation.objects.filter(id=id, user=request.user).first()
         if not conversation:
             return self.error("Conversation not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -175,6 +181,7 @@ class SummarizationStatusView(TrackerAPIView):
 
     def get(self, request, id):
         from ...models import AIConversation
+
         conversation = AIConversation.objects.filter(id=id, user=request.user).first()
         if not conversation:
             return self.error("Conversation not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -190,6 +197,7 @@ class SummarizationProcessView(TrackerAPIView):
 
     def post(self, request, id):
         from ...models import AIMemorySummarization
+
         job = AIMemorySummarization.objects.filter(id=id, conversation__user=request.user).first()
         if not job:
             return self.error("Summarization job not found", status_code=status.HTTP_404_NOT_FOUND)

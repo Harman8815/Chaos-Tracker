@@ -1,4 +1,5 @@
 """AI Tool system and permission layer (P7-05, P7-06)."""
+
 from typing import Callable, Dict, List, Optional
 from django.utils import timezone
 from django.db import transaction
@@ -22,12 +23,13 @@ class ToolExecutor:
         self._schemas: Dict[str, dict] = {}
 
     def register(
-            self,
-            name: str,
-            func: Callable,
-            schema: dict,
-            required_permissions: List[str] = None,
-            is_destructive: bool = False):
+        self,
+        name: str,
+        func: Callable,
+        schema: dict,
+        required_permissions: List[str] = None,
+        is_destructive: bool = False,
+    ):
         """Register a tool function with its schema and permissions."""
         self._tools[name] = func
         self._schemas[name] = schema
@@ -39,12 +41,12 @@ class ToolExecutor:
             AITool.objects.update_or_create(
                 name=name,
                 defaults={
-                    'description': schema.get('description', ''),
-                    'parameters_schema': schema.get('parameters', {}),
-                    'required_permissions': required_permissions or [],
-                    'is_destructive': is_destructive,
-                    'is_enabled': True,
-                }
+                    "description": schema.get("description", ""),
+                    "parameters_schema": schema.get("parameters", {}),
+                    "required_permissions": required_permissions or [],
+                    "is_destructive": is_destructive,
+                    "is_enabled": True,
+                },
             )
         except Exception:
             # Database not ready (table missing) or unavailable; registration
@@ -62,12 +64,14 @@ class ToolExecutor:
         tools = []
         for tool in AITool.objects.filter(is_enabled=True):
             if self._user_has_permissions(user, tool.required_permissions):
-                tools.append({
-                    'name': tool.name,
-                    'description': tool.description,
-                    'parameters': tool.parameters_schema,
-                    'is_destructive': tool.is_destructive,
-                })
+                tools.append(
+                    {
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": tool.parameters_schema,
+                        "is_destructive": tool.is_destructive,
+                    }
+                )
         return tools
 
     def _user_has_permissions(self, user: User, required: List[str]) -> bool:
@@ -103,7 +107,7 @@ class ToolExecutor:
                 message_id=message_id,
                 tool=tool_def,
                 arguments=arguments,
-                status='pending',
+                status="pending",
                 requires_confirmation=requires_confirmation or tool_def.is_destructive,
             )
 
@@ -115,8 +119,8 @@ class ToolExecutor:
                     user=user,
                     expires_at=expires_at,
                 )
-                tool_call.status = 'pending'
-                tool_call.save(update_fields=['status'])
+                tool_call.status = "pending"
+                tool_call.save(update_fields=["status"])
                 return tool_call
 
         # Execute immediately if no confirmation needed
@@ -128,28 +132,27 @@ class ToolExecutor:
         func = self._tools.get(tool_name)
 
         if not func:
-            tool_call.status = 'failed'
+            tool_call.status = "failed"
             tool_call.error = f"Tool function not registered: {tool_name}"
-            tool_call.save(update_fields=['status', 'error'])
+            tool_call.save(update_fields=["status", "error"])
             return tool_call
 
-        tool_call.status = 'executing'
-        tool_call.save(update_fields=['status'])
+        tool_call.status = "executing"
+        tool_call.save(update_fields=["status"])
 
         try:
             result = func(user, **tool_call.arguments)
-            tool_call.status = 'completed'
+            tool_call.status = "completed"
             tool_call.result = result
             tool_call.executed_at = timezone.now()
-            tool_call.save(update_fields=['status', 'result', 'executed_at'])
+            tool_call.save(update_fields=["status", "result", "executed_at"])
             logger.info(
-                "ai_tool.executed name=%s conversation_id=%s",
-                tool_name,
-                tool_call.conversation_id)
+                "ai_tool.executed name=%s conversation_id=%s", tool_name, tool_call.conversation_id
+            )
         except Exception as e:
-            tool_call.status = 'failed'
+            tool_call.status = "failed"
             tool_call.error = str(e)
-            tool_call.save(update_fields=['status', 'error'])
+            tool_call.save(update_fields=["status", "error"])
             logger.error("ai_tool.failed name=%s error=%s", tool_name, e)
 
         return tool_call
@@ -157,7 +160,7 @@ class ToolExecutor:
     def confirm_and_execute(self, user: User, tool_call_id: int, confirmed: bool) -> AIToolCall:
         """Confirm a pending destructive tool call and execute if confirmed."""
         try:
-            confirmation = AIActionConfirmation.objects.select_related('tool_call').get(
+            confirmation = AIActionConfirmation.objects.select_related("tool_call").get(
                 tool_call_id=tool_call_id, user=user
             )
         except AIActionConfirmation.DoesNotExist:
@@ -167,22 +170,22 @@ class ToolExecutor:
             raise ValidationError("Already confirmed")
 
         if timezone.now() > confirmation.expires_at:
-            confirmation.tool_call.status = 'cancelled'
-            confirmation.tool_call.save(update_fields=['status'])
+            confirmation.tool_call.status = "cancelled"
+            confirmation.tool_call.save(update_fields=["status"])
             raise ValidationError("Confirmation expired")
 
         if not confirmed:
-            confirmation.tool_call.status = 'cancelled'
-            confirmation.tool_call.save(update_fields=['status'])
+            confirmation.tool_call.status = "cancelled"
+            confirmation.tool_call.save(update_fields=["status"])
             confirmation.confirmed = False
             confirmation.confirmed_at = timezone.now()
-            confirmation.save(update_fields=['confirmed', 'confirmed_at'])
+            confirmation.save(update_fields=["confirmed", "confirmed_at"])
             return confirmation.tool_call
 
         # Execute the tool call
         confirmation.confirmed = True
         confirmation.confirmed_at = timezone.now()
-        confirmation.save(update_fields=['confirmed', 'confirmed_at'])
+        confirmation.save(update_fields=["confirmed", "confirmed_at"])
 
         return self._execute_tool_call(confirmation.tool_call, user)
 

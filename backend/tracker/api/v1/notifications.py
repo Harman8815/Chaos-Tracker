@@ -1,4 +1,5 @@
 """Thin v1 controller for notifications and scheduled jobs."""
+
 from rest_framework import status
 from rest_framework import serializers
 
@@ -68,8 +69,9 @@ class NotificationMarkAllReadView(TrackerAPIView):
 
     def post(self, request):
         count = notification_service.mark_all_read(request.user)
-        return self.ok(data={"marked_count": count},
-                       message=f"Marked {count} notifications as read")
+        return self.ok(
+            data={"marked_count": count}, message=f"Marked {count} notifications as read"
+        )
 
 
 class NotificationDeleteView(TrackerAPIView):
@@ -116,16 +118,17 @@ class ScheduledJobListView(TrackerAPIView):
         query = self.validated_query(ScheduledJobQuerySerializer)
         # Filter by user for non-staff
         from ...models import ScheduledJob
+
         qs = ScheduledJob.objects.filter(user=request.user)
         if query.get("status"):
             qs = qs.filter(status=query["status"])
         if query.get("job_type"):
             qs = qs.filter(job_type=query["job_type"])
-        qs = qs.order_by('-scheduled_at')
+        qs = qs.order_by("-scheduled_at")
 
         offset = query.get("offset", 0)
         limit = query.get("limit", 50)
-        jobs = list(qs[offset:offset + limit])
+        jobs = list(qs[offset : offset + limit])
 
         serializer = ScheduledJobSerializer(jobs, many=True)
         return self.ok(data=serializer.data, count=len(jobs))
@@ -193,8 +196,8 @@ class RunJobNowView(TrackerAPIView):
         service = job_map.get(job_type)
         if not service:
             return self.error(
-                f"Unknown job type: {job_type}",
-                status_code=status.HTTP_400_BAD_REQUEST)
+                f"Unknown job type: {job_type}", status_code=status.HTTP_400_BAD_REQUEST
+            )
 
         if job_type == "weekly_summary":
             service.send_weekly_summary(request.user)
@@ -211,6 +214,7 @@ class RecurringIncomeListCreateView(TrackerAPIView):
 
     def list(self, request, *args, **kwargs):
         from ...models import RecurringIncome
+
         is_active = request.query_params.get("is_active")
         if is_active is not None:
             is_active = is_active.lower() == "true"
@@ -224,6 +228,7 @@ class RecurringIncomeListCreateView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         from ...domain.services import income_service
+
         instance = income_service.create_recurring_income(request.user, serializer.validated_data)
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, status_code=status.HTTP_201_CREATED)
@@ -234,6 +239,7 @@ class RecurringIncomeDetailView(TrackerAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         from ...models import RecurringIncome
+
         instance = RecurringIncome.objects.filter(id=kwargs["id"], user=request.user).first()
         if not instance:
             return self.error("Recurring income not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -242,19 +248,23 @@ class RecurringIncomeDetailView(TrackerAPIView):
 
     def update(self, request, *args, **kwargs):
         from ...models import RecurringIncome
+
         instance = RecurringIncome.objects.filter(id=kwargs["id"], user=request.user).first()
         if not instance:
             return self.error("Recurring income not found", status_code=status.HTTP_404_NOT_FOUND)
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         from ...domain.services import income_service
+
         instance = income_service.update_recurring_income(
-            request.user, kwargs["id"], serializer.validated_data, partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, message="Recurring income updated")
 
     def destroy(self, request, *args, **kwargs):
         from ...models import RecurringIncome
+
         instance = RecurringIncome.objects.filter(id=kwargs["id"], user=request.user).first()
         if not instance:
             return self.error("Recurring income not found", status_code=status.HTTP_404_NOT_FOUND)

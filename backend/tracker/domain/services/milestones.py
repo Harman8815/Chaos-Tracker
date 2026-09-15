@@ -3,6 +3,7 @@
 Breaks large goals into ordered milestones. Completing a milestone
 advances the parent goal's progress.
 """
+
 from django.db.models import F
 
 from ...models import Goal, GoalMilestone
@@ -32,11 +33,18 @@ class GoalMilestoneService:
             raise NotFoundError("Goal not found")
         title = validation.bounded_text(data.get("title"), max_length=255, field="title")
         description = validation.bounded_text(
-            data.get("description", ""), max_length=2000, field="description", allow_blank=True,
+            data.get("description", ""),
+            max_length=2000,
+            field="description",
+            allow_blank=True,
         )
         order = validation.in_range(data.get("order", 0), 0, 10000, field="order")
         milestone = GoalMilestone.objects.create(
-            user=user, goal=goal, title=title, description=description, order=order,
+            user=user,
+            goal=goal,
+            title=title,
+            description=description,
+            order=order,
         )
         logger.info("milestones.create user_id=%s id=%s", user.id, milestone.id)
         return milestone
@@ -57,10 +65,8 @@ class GoalMilestoneService:
                     completed_tasks=F("completed_tasks") - 1,
                 )
         logger.info(
-            "milestones.complete user_id=%s id=%s completed=%s",
-            user.id,
-            milestone_id,
-            completed)
+            "milestones.complete user_id=%s id=%s completed=%s", user.id, milestone_id, completed
+        )
         return milestone
 
     def delete(self, user, milestone_id):
@@ -72,6 +78,7 @@ class GoalMilestoneService:
 
 def _now():
     from django.utils import timezone
+
     return timezone.now()
 
 

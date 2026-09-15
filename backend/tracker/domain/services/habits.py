@@ -7,6 +7,7 @@ contribute to goal progress when configured.
 Phase 3 additions: schedules, reminders, streak protection, and
 history queries (P3-01 .. P3-05).
 """
+
 from datetime import date, timedelta
 
 from django.db.models import F
@@ -50,23 +51,19 @@ class HabitService:
         range_max = validation.in_range(data.get("range_max", 10), 1, 1000, field="range_max")
         schedule = validation.choice(
             data.get("schedule", Habit.SCHEDULE_DAILY),
-            Habit.SCHEDULE_KEYS, field="schedule",
+            Habit.SCHEDULE_KEYS,
+            field="schedule",
         )
         schedule_days = validation.bounded_list(
-            data.get(
-                "schedule_days",
-                []),
-            max_length=7,
-            field="schedule_days")
+            data.get("schedule_days", []), max_length=7, field="schedule_days"
+        )
         schedule_days = sorted({_normalize_weekday(d) for d in schedule_days})
         reminders = validation.bounded_list(
-            data.get(
-                "reminders",
-                []),
-            max_length=20,
-            field="reminders")
+            data.get("reminders", []), max_length=20, field="reminders"
+        )
         grace_period = validation.in_range(
-            data.get("grace_period", 0), 0, 365, field="grace_period")
+            data.get("grace_period", 0), 0, 365, field="grace_period"
+        )
         goal = self._resolve_goal(user, data.get("goal"))
         habit = Habit.objects.create(
             user=user,
@@ -94,17 +91,21 @@ class HabitService:
             habit.range_max = validation.in_range(data["range_max"], 1, 1000, field="range_max")
         if "schedule" in data:
             habit.schedule = validation.choice(
-                data["schedule"], Habit.SCHEDULE_KEYS, field="schedule")
+                data["schedule"], Habit.SCHEDULE_KEYS, field="schedule"
+            )
         if "schedule_days" in data:
             days = validation.bounded_list(
-                data["schedule_days"], max_length=7, field="schedule_days")
+                data["schedule_days"], max_length=7, field="schedule_days"
+            )
             habit.schedule_days = sorted({_normalize_weekday(d) for d in days})
         if "reminders" in data:
             habit.reminders = validation.bounded_list(
-                data["reminders"], max_length=20, field="reminders")
+                data["reminders"], max_length=20, field="reminders"
+            )
         if "grace_period" in data:
             habit.grace_period = validation.in_range(
-                data["grace_period"], 0, 365, field="grace_period")
+                data["grace_period"], 0, 365, field="grace_period"
+            )
         if "goal" in data:
             habit.goal = self._resolve_goal(user, data["goal"])
         habit.save()
@@ -128,7 +129,9 @@ class HabitService:
         entry_date = validation.parse_date(date, field="date")
 
         instance, _created = DailyHabitScore.objects.update_or_create(
-            user=user, habit=habit, date=entry_date,
+            user=user,
+            habit=habit,
+            date=entry_date,
             defaults={"score": score},
         )
         self._update_completion_record(habit, entry_date, score > 0)
@@ -142,7 +145,8 @@ class HabitService:
             user.id,
             habit_id,
             entry_date,
-            score)
+            score,
+        )
         return instance
 
     def history(self, user, habit_id, *, start_date=None, end_date=None):

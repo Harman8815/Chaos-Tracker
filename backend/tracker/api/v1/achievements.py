@@ -1,4 +1,5 @@
 """Thin v1 controller for achievements."""
+
 from rest_framework import status
 
 from ._base import TrackerAPIView
@@ -34,10 +35,8 @@ class AchievementDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = achievement_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, message="Achievement updated")
 

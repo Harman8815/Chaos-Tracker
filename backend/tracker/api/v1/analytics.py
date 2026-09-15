@@ -1,4 +1,5 @@
 """Thin v1 controller for analytics endpoints."""
+
 from rest_framework import serializers
 
 from ._base import TrackerAPIView
@@ -99,13 +100,15 @@ class AnalyticsDashboardView(TrackerAPIView):
         correlations = analytics_service.correlation_engine(request.user, days=days)
         insights = analytics_service.generate_insights(request.user, days=days)
 
-        return self.ok(data={
-            "period_days": days,
-            "productivity": productivity,
-            "consistency": consistency,
-            "goal_velocity": velocity,
-            "financial_health": financial,
-            "trends": trends,
-            "correlations": correlations,
-            "insights": insights,
-        })
+        return self.ok(
+            data={
+                "period_days": days,
+                "productivity": productivity,
+                "consistency": consistency,
+                "goal_velocity": velocity,
+                "financial_health": financial,
+                "trends": trends,
+                "correlations": correlations,
+                "insights": insights,
+            }
+        )

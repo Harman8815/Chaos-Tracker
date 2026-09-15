@@ -7,6 +7,7 @@ Controllers here do exactly three things:
 
 All business rules live in :mod:`tracker.domain.services`.
 """
+
 from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -92,7 +93,10 @@ class TrackerAPIView(APIView):
 
     def ok(self, data=None, message=None, count=None, status_code=status.HTTP_200_OK):
         return success_response(
-            data=data, message=message, count=count, status_code=status_code,
+            data=data,
+            message=message,
+            count=count,
+            status_code=status_code,
         )
 
     def fail(self, exc: DomainError):

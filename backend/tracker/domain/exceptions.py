@@ -4,6 +4,7 @@ Every domain service raises :class:`DomainError` subclasses instead of
 ``PermissionError`` / ``Http404`` / ``ValueError``. The API layer maps
 these to predictable HTTP responses via :class:`domain_exception_handler`.
 """
+
 from rest_framework import status
 
 

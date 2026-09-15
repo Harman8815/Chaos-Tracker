@@ -2,6 +2,7 @@
 
 Owns RecurringExpense CRUD plus processing logic. All queries are scoped to the requesting user.
 """
+
 from datetime import date, timedelta
 
 from ...models import RecurringExpense, Expense
@@ -35,31 +36,31 @@ class RecurringExpenseService:
         frequency = validation.bounded_text(data.get("frequency"), max_length=20, field="frequency")
         if frequency not in dict(RecurringExpense.FREQUENCY_CHOICES):
             raise ValidationError(
-                f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}")
+                f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}"
+            )
         start_date = validation.parse_date(data.get("start_date"), field="start_date")
         end_date = None
         if data.get("end_date"):
             end_date = validation.parse_date(data.get("end_date"), field="end_date")
         day_of_month = None
         day_of_week = None
-        if frequency == 'monthly':
+        if frequency == "monthly":
             day_of_month = validation.positive_int(
-                data.get(
-                    "day_of_month",
-                    start_date.day),
+                data.get("day_of_month", start_date.day),
                 field="day_of_month",
                 minimum=1,
-                maximum=31)
-        elif frequency == 'weekly':
+                maximum=31,
+            )
+        elif frequency == "weekly":
             day_of_week = validation.positive_int(
-                data.get(
-                    "day_of_week",
-                    start_date.weekday()),
+                data.get("day_of_week", start_date.weekday()),
                 field="day_of_week",
                 minimum=0,
-                maximum=6)
+                maximum=6,
+            )
         next_occurrence = self._calculate_next_occurrence(
-            frequency, start_date, day_of_month, day_of_week)
+            frequency, start_date, day_of_month, day_of_week
+        )
         is_active = data.get("is_active", True)
         recurring = RecurringExpense.objects.create(
             user=user,
@@ -79,21 +80,18 @@ class RecurringExpenseService:
         return recurring
 
     def _calculate_next_occurrence(
-            self,
-            frequency,
-            start_date,
-            day_of_month=None,
-            day_of_week=None):
+        self, frequency, start_date, day_of_month=None, day_of_week=None
+    ):
         """Calculate the next occurrence date based on frequency."""
-        if frequency == 'daily':
+        if frequency == "daily":
             return start_date
-        elif frequency == 'weekly':
+        elif frequency == "weekly":
             # Find the next occurrence of the specified day of week
             days_ahead = day_of_week - start_date.weekday()
             if days_ahead <= 0:
                 days_ahead += 7
             return start_date + timedelta(days=days_ahead)
-        elif frequency == 'monthly':
+        elif frequency == "monthly":
             # Find the next occurrence of the specified day of month
             try:
                 next_date = start_date.replace(day=day_of_month)
@@ -101,16 +99,18 @@ class RecurringExpenseService:
                     # Move to next month
                     if start_date.month == 12:
                         next_date = start_date.replace(
-                            year=start_date.year + 1, month=1, day=day_of_month)
+                            year=start_date.year + 1, month=1, day=day_of_month
+                        )
                     else:
                         next_date = start_date.replace(month=start_date.month + 1, day=day_of_month)
                 return next_date
             except ValueError:
                 # Day doesn't exist in month (e.g., Feb 30), use last day of month
                 import calendar
+
                 last_day = calendar.monthrange(start_date.year, start_date.month)[1]
                 return start_date.replace(day=min(day_of_month, last_day))
-        elif frequency == 'yearly':
+        elif frequency == "yearly":
             return start_date
         return start_date
 
@@ -122,10 +122,12 @@ class RecurringExpenseService:
             recurring.item = validation.bounded_text(data["item"], max_length=255, field="item")
         if "category" in data:
             recurring.category = validation.bounded_text(
-                data["category"], max_length=100, field="category")
+                data["category"], max_length=100, field="category"
+            )
         if "quantity" in data:
             recurring.quantity = validation.positive_int(
-                data["quantity"], field="quantity", minimum=1)
+                data["quantity"], field="quantity", minimum=1
+            )
         if "price" in data:
             price = validation.bounded_decimal(data["price"], field="price")
             if price < 0:
@@ -135,34 +137,42 @@ class RecurringExpenseService:
             frequency = validation.bounded_text(data["frequency"], max_length=20, field="frequency")
             if frequency not in dict(RecurringExpense.FREQUENCY_CHOICES):
                 raise ValidationError(
-                    f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}")
+                    f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}"
+                )
             recurring.frequency = frequency
         if "start_date" in data:
             recurring.start_date = validation.parse_date(data["start_date"], field="start_date")
         if "end_date" in data:
-            recurring.end_date = validation.parse_date(
-                data["end_date"], field="end_date") if data["end_date"] else None
+            recurring.end_date = (
+                validation.parse_date(data["end_date"], field="end_date")
+                if data["end_date"]
+                else None
+            )
         if "day_of_month" in data:
-            recurring.day_of_month = validation.positive_int(
-                data["day_of_month"],
-                field="day_of_month",
-                minimum=1,
-                maximum=31) if data["day_of_month"] else None
+            recurring.day_of_month = (
+                validation.positive_int(
+                    data["day_of_month"], field="day_of_month", minimum=1, maximum=31
+                )
+                if data["day_of_month"]
+                else None
+            )
         if "day_of_week" in data:
-            recurring.day_of_week = validation.positive_int(
-                data["day_of_week"],
-                field="day_of_week",
-                minimum=0,
-                maximum=6) if data["day_of_week"] else None
+            recurring.day_of_week = (
+                validation.positive_int(
+                    data["day_of_week"], field="day_of_week", minimum=0, maximum=6
+                )
+                if data["day_of_week"]
+                else None
+            )
         if "is_active" in data:
             recurring.is_active = data["is_active"]
         # Recalculate next_occurrence if relevant fields changed
-        if any(k in data for k in ['frequency', 'start_date', 'day_of_month', 'day_of_week']):
+        if any(k in data for k in ["frequency", "start_date", "day_of_month", "day_of_week"]):
             recurring.next_occurrence = self._calculate_next_occurrence(
                 recurring.frequency,
                 recurring.start_date,
                 recurring.day_of_month,
-                recurring.day_of_week
+                recurring.day_of_week,
             )
         recurring.save()
         logger.info("recurring_expenses.update user_id=%s id=%s", user.id, recurring.id)
@@ -180,12 +190,8 @@ class RecurringExpenseService:
         """Process all due recurring expenses and create actual expense records."""
         today = date.today()
         due_recurring = RecurringExpense.objects.filter(
-            user=user,
-            is_active=True,
-            next_occurrence__lte=today
-        ).exclude(
-            end_date__lt=today
-        )
+            user=user, is_active=True, next_occurrence__lte=today
+        ).exclude(end_date__lt=today)
         created_expenses = []
         for recurring in due_recurring:
             # Create the expense
@@ -203,7 +209,7 @@ class RecurringExpenseService:
                 recurring.frequency,
                 recurring.next_occurrence,
                 recurring.day_of_month,
-                recurring.day_of_week
+                recurring.day_of_week,
             )
             # Check if we've passed the end_date
             if recurring.end_date and recurring.next_occurrence > recurring.end_date:
@@ -213,7 +219,8 @@ class RecurringExpenseService:
                 "recurring_expenses.processed user_id=%s recurring_id=%s expense_id=%s",
                 user.id,
                 recurring.id,
-                expense.id)
+                expense.id,
+            )
         return created_expenses
 
 

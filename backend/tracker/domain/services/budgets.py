@@ -5,7 +5,6 @@ to ``(user, category, year, month)`` and compared against Expense
 records for the same period.
 """
 
-
 from ...models import Budget, Expense
 from .. import validation
 from ..exceptions import NotFoundError, ValidationError
@@ -59,7 +58,11 @@ class BudgetService:
         if amount < 0:
             raise ValidationError("amount must be non-negative")
         budget = Budget.objects.create(
-            user=user, category=category, year=year, month=month, amount=amount,
+            user=user,
+            category=category,
+            year=year,
+            month=month,
+            amount=amount,
         )
         logger.info("budgets.create user_id=%s id=%s", user.id, budget.id)
         return budget
@@ -70,7 +73,8 @@ class BudgetService:
             raise NotFoundError("Budget not found")
         if "category" in data:
             budget.category = validation.bounded_text(
-                data["category"], max_length=100, field="category")
+                data["category"], max_length=100, field="category"
+            )
         if "year" in data:
             budget.year = _normalize_year(data["year"])
         if "month" in data:
@@ -103,17 +107,20 @@ class BudgetService:
         result = []
         for budget in budgets:
             actual = round(actual_map.get(budget.category, 0.0), 2)
-            spent_pct = round((actual / float(budget.amount)) * 100,
-                              2) if float(budget.amount) > 0 else 0.0
-            result.append({
-                "id": budget.id,
-                "category": budget.category,
-                "budget_amount": float(budget.amount),
-                "actual_amount": actual,
-                "remaining": round(float(budget.amount) - actual, 2),
-                "spent_percent": spent_pct,
-                "is_over_budget": actual > float(budget.amount),
-            })
+            spent_pct = (
+                round((actual / float(budget.amount)) * 100, 2) if float(budget.amount) > 0 else 0.0
+            )
+            result.append(
+                {
+                    "id": budget.id,
+                    "category": budget.category,
+                    "budget_amount": float(budget.amount),
+                    "actual_amount": actual,
+                    "remaining": round(float(budget.amount) - actual, 2),
+                    "spent_percent": spent_pct,
+                    "is_over_budget": actual > float(budget.amount),
+                }
+            )
         return {
             "year": y,
             "month": m,

@@ -58,9 +58,8 @@ class SafeMigrationMixin:
 
     @staticmethod
     def conditional_run_python(
-            forward_fn: Callable,
-            reverse_fn: Callable = None,
-            elidable: bool = False):
+        forward_fn: Callable, reverse_fn: Callable = None, elidable: bool = False
+    ):
         """Run Python conditionally - only if not already applied."""
         return RunPython(
             code=forward_fn,
@@ -75,7 +74,7 @@ def check_migration_safety(apps, schema_editor) -> List[str]:
 
     # Check for non-nullable columns without defaults
     with connection.cursor() as cursor:
-        if connection.vendor == 'postgresql':
+        if connection.vendor == "postgresql":
             cursor.execute("""
                 SELECT table_name, column_name, data_type
                 FROM information_schema.columns
@@ -87,11 +86,11 @@ def check_migration_safety(apps, schema_editor) -> List[str]:
             for row in cursor.fetchall():
                 issues.append(f"Non-nullable column without default: {row[0]}.{row[1]} ({row[2]})")
 
-        elif connection.vendor == 'sqlite':
+        elif connection.vendor == "sqlite":
             cursor.execute("SELECT sql FROM sqlite_master WHERE type='table'")
             for row in cursor.fetchall():
-                sql = row[0] or ''
-                if 'NOT NULL' in sql and 'DEFAULT' not in sql:
+                sql = row[0] or ""
+                if "NOT NULL" in sql and "DEFAULT" not in sql:
                     issues.append(f"Potential non-nullable column without default in: {sql[:100]}")
 
     return issues
@@ -106,14 +105,14 @@ def create_data_migration_safe(
     batch_size: int = 1000,
 ):
     """Create a safe data migration that processes in batches."""
-    Model = apps.get_model('tracker', model_name)
+    Model = apps.get_model("tracker", model_name)
 
     def forward(apps, schema_editor):
         queryset = Model.objects.all()
         total = queryset.count()
 
         for i in range(0, total, batch_size):
-            batch = queryset[i:i + batch_size]
+            batch = queryset[i : i + batch_size]
             for obj in batch:
                 current_value = getattr(obj, field_name)
                 new_value = transform_fn(current_value, obj)
@@ -126,7 +125,7 @@ def create_data_migration_safe(
             queryset = Model.objects.all()
             total = queryset.count()
             for i in range(0, total, batch_size):
-                batch = queryset[i:i + batch_size]
+                batch = queryset[i : i + batch_size]
                 for obj in batch:
                     current_value = getattr(obj, field_name)
                     new_value = reverse_fn(current_value, obj)
@@ -160,7 +159,7 @@ def validate_migration_dependencies(migration_loader: MigrationLoader, app_label
 class MigrationPlanValidator:
     """Validate migration plan before applying."""
 
-    def __init__(self, app_label: str = 'tracker'):
+    def __init__(self, app_label: str = "tracker"):
         self.app_label = app_label
 
     def get_plan(self) -> List:
@@ -181,10 +180,10 @@ class MigrationPlanValidator:
     def validate(self) -> dict:
         """Run all validation checks."""
         return {
-            'plan': self.get_plan(),
-            'conflicts': self.check_conflicts(),
-            'unapplied': self.check_unapplied(),
-            'safety_issues': check_migration_safety(None, None),
+            "plan": self.get_plan(),
+            "conflicts": self.check_conflicts(),
+            "unapplied": self.check_unapplied(),
+            "safety_issues": check_migration_safety(None, None),
         }
 
 
@@ -200,7 +199,7 @@ def generate_safe_migration_template(
     class Migration(migrations.Migration):
         initial = False
         dependencies = dependencies or [
-            ('tracker', '__latest__'),
+            ("tracker", "__latest__"),
         ]
         replaces = replaces or []
         operations = operations

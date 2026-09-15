@@ -1,4 +1,5 @@
 """Thin v1 controller for water entries."""
+
 from rest_framework import status
 
 from ._base import TrackerAPIView
@@ -34,15 +35,13 @@ class WaterDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         instance = _water_service.update(
-            request.user,
-            kwargs["id"],
-            serializer.validated_data,
-            partial=True)
+            request.user, kwargs["id"], serializer.validated_data, partial=True
+        )
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, message="Water intake updated successfully")
 
     def destroy(self, request, *args, **kwargs):
         _water_service.delete(request.user, kwargs["id"])
         return self.ok(
-            message="Water intake deleted successfully",
-            status_code=status.HTTP_204_NO_CONTENT)
+            message="Water intake deleted successfully", status_code=status.HTTP_204_NO_CONTENT
+        )
