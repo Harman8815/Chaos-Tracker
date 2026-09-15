@@ -8,7 +8,6 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from django.db import connection
 from django.apps import apps
 
 
@@ -54,7 +53,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        output_dir = Path(options["output_dir"] or getattr(settings, 'BACKUP_DIR', settings.BASE_DIR / 'backups'))
+        output_dir = Path(
+            options["output_dir"] or getattr(
+                settings,
+                'BACKUP_DIR',
+                settings.BASE_DIR /
+                'backups'))
         compress = options["compress"]
         verify = options["verify"]
         include_media = options["include_media"]
@@ -211,7 +215,12 @@ class Command(BaseCommand):
         self.stdout.write(f"Media backup: {media_backup}")
         return media_backup
 
-    def _create_manifest(self, backup_path: Path, media_path: Path, compress: bool, db_name: str) -> dict:
+    def _create_manifest(
+            self,
+            backup_path: Path,
+            media_path: Path,
+            compress: bool,
+            db_name: str) -> dict:
         """Create backup manifest with metadata."""
         stat = backup_path.stat()
         return {

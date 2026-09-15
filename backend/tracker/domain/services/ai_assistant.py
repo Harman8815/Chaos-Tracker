@@ -2,13 +2,8 @@
 
 Main service that coordinates AI conversations, tool calls, and error recovery.
 """
-import uuid
-import json
-import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Generator
+from typing import Dict, List, Optional, Any
 
-from django.db import transaction
 from django.utils import timezone
 
 from ...models import AIConversation, AIMessage, AIToolCall, User
@@ -29,7 +24,11 @@ class AIAssistantService:
         self.context_builder = ContextBuilder
         self.intent_detector = IntentDetector()
 
-    def create_conversation(self, user: User, title: str = '', model: str = 'gemini-2.5-flash') -> AIConversation:
+    def create_conversation(
+            self,
+            user: User,
+            title: str = '',
+            model: str = 'gemini-2.5-flash') -> AIConversation:
         """Create a new AI conversation."""
         if not title:
             title = f"Chat {timezone.now().strftime('%b %d, %I:%M %p')}"
@@ -43,7 +42,8 @@ class AIAssistantService:
         logger.info("ai_conversation.created user_id=%s id=%s", user.id, conv.id)
         return conv
 
-    def list_conversations(self, user: User, status: str = 'active', limit: int = 50) -> List[AIConversation]:
+    def list_conversations(self, user: User, status: str = 'active',
+                           limit: int = 50) -> List[AIConversation]:
         """List user's conversations."""
         qs = AIConversation.objects.filter(user=user, status=status).order_by('-last_message_at')
         return list(qs[:limit])
@@ -73,7 +73,11 @@ class AIAssistantService:
         conv.save(update_fields=['status', 'updated_at'])
         return True
 
-    def update_conversation_title(self, user: User, conversation_id: int, title: str) -> Optional[AIConversation]:
+    def update_conversation_title(
+            self,
+            user: User,
+            conversation_id: int,
+            title: str) -> Optional[AIConversation]:
         """Update conversation title."""
         conv = self.get_conversation(user, conversation_id)
         if not conv:
@@ -242,7 +246,10 @@ class AIAssistantService:
                 source='ai_conversation',
                 conversation_id=conv.id,
                 importance=3,
-                metadata={'role': 'assistant', 'intent': intent_result.intent, 'tool_calls': len(all_tool_calls)},
+                metadata={
+                    'role': 'assistant',
+                    'intent': intent_result.intent,
+                    'tool_calls': len(all_tool_calls)},
             )
 
         return {
@@ -373,9 +380,20 @@ def register_builtin_tools():
             'parameters': {
                 'type': 'object',
                 'properties': {
-                    'name': {'type': 'string', 'description': 'Habit name'},
-                    'target': {'type': 'integer', 'minimum': 1, 'default': 1},
-                    'schedule': {'type': 'string', 'enum': ['daily', 'weekly', 'custom'], 'default': 'daily'},
+                    'name': {
+                        'type': 'string',
+                        'description': 'Habit name'},
+                    'target': {
+                        'type': 'integer',
+                        'minimum': 1,
+                        'default': 1},
+                    'schedule': {
+                        'type': 'string',
+                        'enum': [
+                                'daily',
+                                'weekly',
+                                'custom'],
+                        'default': 'daily'},
                 },
                 'required': ['name'],
             },
@@ -448,7 +466,17 @@ def register_builtin_tools():
             'parameters': {
                 'type': 'object',
                 'properties': {
-                    'mood': {'type': 'string', 'enum': ['happy', 'sad', 'neutral', 'excited', 'tired', 'grateful', 'anxious', 'energetic']},
+                    'mood': {
+                        'type': 'string',
+                        'enum': [
+                            'happy',
+                            'sad',
+                            'neutral',
+                            'excited',
+                            'tired',
+                            'grateful',
+                            'anxious',
+                            'energetic']},
                 },
                 'required': ['mood'],
             },
@@ -482,7 +510,13 @@ def register_builtin_tools():
             'parameters': {
                 'type': 'object',
                 'properties': {
-                    'period': {'type': 'string', 'enum': ['day', 'week', 'month'], 'default': 'week'},
+                    'period': {
+                        'type': 'string',
+                        'enum': [
+                            'day',
+                            'week',
+                            'month'],
+                        'default': 'week'},
                 },
             },
         },
@@ -542,7 +576,8 @@ def _log_habit(user: User, habit_id: str, score: int = 1) -> Dict:
         user=user, habit=habit, date=today,
         defaults={'score': validation.in_range(score, 0, 1000, field='score')},
     )
-    return {'habit_id': habit_id, 'score': score, 'message': f'Logged {habit.name}: {score}/{habit.target}'}
+    return {'habit_id': habit_id, 'score': score,
+            'message': f'Logged {habit.name}: {score}/{habit.target}'}
 
 
 def _create_expense(user: User, item: str, category: str, price: float,
@@ -590,11 +625,11 @@ def _log_water(user: User, glasses: int) -> Dict:
         user=user, date=today,
         defaults={'glasses': glasses},
     )
-    return {'glasses': glasses, 'target': water.target, 'message': f'Water: {glasses}/{water.target} glasses'}
+    return {'glasses': glasses, 'target': water.target,
+            'message': f'Water: {glasses}/{water.target} glasses'}
 
 
 def _get_analytics(user: User, period: str = 'week') -> Dict:
-    from ..services.analytics import analytics_service
     today = date.today()
     if period == 'day':
         start = today

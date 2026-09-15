@@ -1,10 +1,8 @@
 """Memory storage and retrieval service (P8-02, P8-03, P8-05, P8-07, P8-08, P8-09, P8-10)."""
-import json
 import hashlib
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from typing import List, Dict, Optional
 
-from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -132,7 +130,14 @@ class MemoryService:
         """Update a memory."""
         memory = self.get_memory(user, memory_id)
 
-        allowed_fields = ['title', 'content', 'memory_type', 'priority', 'confidence', 'entities', 'is_active']
+        allowed_fields = [
+            'title',
+            'content',
+            'memory_type',
+            'priority',
+            'confidence',
+            'entities',
+            'is_active']
         for field in allowed_fields:
             if field in data:
                 if field == 'content':
@@ -280,7 +285,9 @@ class MemoryService:
             'total_memories': total,
             'by_type': by_type,
             'max_entries': prefs.max_memory_entries,
-            'usage_percent': round((total / prefs.max_memory_entries * 100) if prefs.max_memory_entries > 0 else 0, 1),
+            'usage_percent': round(
+                (total / prefs.max_memory_entries * 100) if prefs.max_memory_entries > 0 else 0,
+                1),
             'memory_enabled': prefs.memory_enabled,
         }
 
@@ -334,7 +341,10 @@ class SummarizationService:
             job.completed_at = timezone.now()
             job.save(update_fields=['summary_text', 'summary_memory', 'status', 'completed_at'])
 
-            logger.info("summarization.completed conversation_id=%s job_id=%s", job.conversation.id, job.id)
+            logger.info(
+                "summarization.completed conversation_id=%s job_id=%s",
+                job.conversation.id,
+                job.id)
 
         except Exception as e:
             job.status = 'failed'
@@ -351,8 +361,10 @@ class SummarizationService:
         assistant_msgs = [m for m in messages if m.role == 'assistant']
 
         summary_parts = [
-            f"Conversation with {len(messages)} messages ({len(user_msgs)} user, {len(assistant_msgs)} assistant).",
-        ]
+            f"Conversation with {
+                len(messages)} messages ({
+                len(user_msgs)} user, {
+                len(assistant_msgs)} assistant).", ]
 
         # Extract key topics from user messages
         topics = set()
@@ -368,7 +380,8 @@ class SummarizationService:
 
     def get_summarization_status(self, conversation: AIConversation) -> Optional[Dict]:
         """Get latest summarization status for conversation."""
-        job = AIMemorySummarization.objects.filter(conversation=conversation).order_by('-created_at').first()
+        job = AIMemorySummarization.objects.filter(
+            conversation=conversation).order_by('-created_at').first()
         if not job:
             return None
         return {

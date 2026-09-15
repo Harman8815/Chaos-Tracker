@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, PlannerBlock, PlannerTask, PlannerLink, PlannerSettings, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy, Explanation, UserFeedback
-
-import base64
+from .models import JournalEntry, QuoteSource, Quote, QuoteTag, Achievement, Expense, Goal, Habit, ScoringRule, DailyHabitScore, UserProfile, Mood, Water, Budget, Income, Account, RecurringExpense, RecurringIncome, BudgetAlert, Transfer, Subscription, Notification, NotificationPreference, ScheduledJob, NotificationDeduplication, AIConversation, AIMessage, AITool, AIToolCall, AIActionConfirmation, UserPreference, AIMemory, AIMemorySummarization, MLDataSet, MLFeature, MLDataQualityCheck, MLTransactionCategory, MLSpendingPrediction, MLHabitConsistency, MLGoalCompletion, MLAnomaly, MLRecommendationScore, MLEvaluation, MLModelVersion, MLModelMonitoring, UnifiedPersonalState, CrossDomainReasoning, RankedRecommendation, Opportunity, Risk, Intervention, DailyPlan, WeeklyStrategy, Explanation, UserFeedback
 
 
 
@@ -24,12 +22,12 @@ class QuoteSerializer(serializers.ModelSerializer):
     Serializer for individual quotes
     """
     tags = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Quote
         fields = ['id', 'text', 'author', 'tags', 'image', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
-    
+
     def get_tags(self, obj):
         """Return tags as a list of strings"""
         return [tag.tag for tag in obj.tags.all()]
@@ -46,30 +44,30 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True
     )
-    
+
     class Meta:
         model = Quote
         fields = ['id', 'text', 'author', 'tags', 'image']
-    
+
     def create(self, validated_data):
         tags_data = validated_data.pop('tags', [])
         quote = Quote.objects.create(**validated_data)
-        
+
         # Create tags
         for tag in tags_data:
             QuoteTag.objects.create(quote=quote, tag=tag.strip())
-        
+
         return quote
-    
+
     def update(self, instance, validated_data):
         tags_data = validated_data.pop('tags', None)
-        
+
         # Update quote fields
         instance.text = validated_data.get('text', instance.text)
         instance.author = validated_data.get('author', instance.author)
         instance.image = validated_data.get('image', instance.image)
         instance.save()
-        
+
         # Update tags if provided
         if tags_data is not None:
             # Remove old tags
@@ -77,7 +75,7 @@ class QuoteCreateUpdateSerializer(serializers.ModelSerializer):
             # Create new tags
             for tag in tags_data:
                 QuoteTag.objects.create(quote=instance, tag=tag.strip())
-        
+
         return instance
 
 
@@ -87,10 +85,18 @@ class QuoteSourceSerializer(serializers.ModelSerializer):
     """
     quotes = QuoteSerializer(many=True, read_only=True)
     quote_count = serializers.IntegerField(read_only=True)
-    
+
     class Meta:
         model = QuoteSource
-        fields = ['id', 'title', 'type', 'cover_image', 'quotes', 'quote_count', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'title',
+            'type',
+            'cover_image',
+            'quotes',
+            'quote_count',
+            'created_at',
+            'updated_at']
         read_only_fields = ['created_at', 'updated_at', 'quote_count']
 
 
@@ -99,7 +105,7 @@ class QuoteSourceListSerializer(serializers.ModelSerializer):
     Lightweight serializer for listing quote sources (without full quotes)
     """
     quote_count = serializers.IntegerField(read_only=True)
-    
+
     class Meta:
         model = QuoteSource
         fields = ['id', 'title', 'type', 'cover_image', 'quote_count', 'created_at', 'updated_at']
@@ -113,38 +119,38 @@ class QuoteSourceCreateUpdateSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     cover_image = serializers.CharField(required=False, allow_blank=True)
     quotes = QuoteCreateUpdateSerializer(many=True, required=False)
-    
+
     class Meta:
         model = QuoteSource
         fields = ['id', 'title', 'type', 'cover_image', 'quotes']
-    
+
     def create(self, validated_data):
         quotes_data = validated_data.pop('quotes', [])
         source = QuoteSource.objects.create(**validated_data)
-        
+
         # Create quotes
         for quote_data in quotes_data:
             tags_data = quote_data.pop('tags', [])
             quote = Quote.objects.create(source=source, **quote_data)
-            
+
             # Create tags for quote
             for tag in tags_data:
                 QuoteTag.objects.create(quote=quote, tag=tag.strip())
-        
+
         return source
-    
+
     def update(self, instance, validated_data):
         quotes_data = validated_data.pop('quotes', None)
-        
+
         # Update source fields
         instance.title = validated_data.get('title', instance.title)
         instance.type = validated_data.get('type', instance.type)
         instance.cover_image = validated_data.get('cover_image', instance.cover_image)
         instance.save()
-        
+
         # Note: We don't update quotes here - use separate quote endpoints
         # This prevents accidental deletion of quotes when updating source
-        
+
         return instance
 
 
@@ -167,17 +173,44 @@ class AchievementSerializer(serializers.ModelSerializer):
 
 class ExpenseSerializer(serializers.ModelSerializer):
     total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    
+
     class Meta:
         model = Expense
-        fields = ['id', 'date', 'item', 'category', 'quantity', 'price', 'total', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'date',
+            'item',
+            'category',
+            'quantity',
+            'price',
+            'total',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'total', 'created_at', 'updated_at']
 
 
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
-        fields = ['id', 'text', 'category', 'status', 'tags', 'created_at', 'updated_at', 'completed_at', 'target', 'completed_tasks', 'description', 'start_date', 'due_date', 'priority', 'frequency', 'reminders', 'completion_criteria', 'notes']
+        fields = [
+            'id',
+            'text',
+            'category',
+            'status',
+            'tags',
+            'created_at',
+            'updated_at',
+            'completed_at',
+            'target',
+            'completed_tasks',
+            'description',
+            'start_date',
+            'due_date',
+            'priority',
+            'frequency',
+            'reminders',
+            'completion_criteria',
+            'notes']
         read_only_fields = ['id', 'created_at', 'updated_at', 'completed_at']
 
 
@@ -241,18 +274,27 @@ class HabitSerializer(serializers.ModelSerializer):
 class ScoringRuleSerializer(serializers.ModelSerializer):
     maxPoints = serializers.IntegerField(source='max_points')
     penaltyRule = serializers.CharField(source='penalty_rule', required=False, allow_blank=True)
-    zeroPointsCondition = serializers.CharField(source='zero_points_condition', required=False, allow_blank=True)
+    zeroPointsCondition = serializers.CharField(
+        source='zero_points_condition', required=False, allow_blank=True)
     scoringLogic = serializers.CharField(source='scoring_logic', required=False, allow_blank=True)
 
     class Meta:
         model = ScoringRule
-        fields = ['id', 'activity', 'maxPoints', 'penaltyRule', 'zeroPointsCondition', 'scoringLogic', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'activity',
+            'maxPoints',
+            'penaltyRule',
+            'zeroPointsCondition',
+            'scoringLogic',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class DailyHabitScoreSerializer(serializers.ModelSerializer):
     habit_id = serializers.CharField(source='habit.id', read_only=True)
-    
+
     class Meta:
         model = DailyHabitScore
         fields = ['date', 'habit_id', 'score', 'created_at', 'updated_at']
@@ -264,12 +306,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
-    
+
     class Meta:
         model = UserProfile
         fields = [
             'username', 'email', 'first_name', 'last_name',
-            'bio', 'avatar_url', 'date_of_birth', 'location', 
+            'bio', 'avatar_url', 'date_of_birth', 'location',
             'website', 'timezone', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -280,12 +322,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         for field in ['first_name', 'last_name']:
             if field in validated_data:
                 user_data[field] = validated_data.pop(field)
-        
+
         if user_data:
             for field, value in user_data.items():
                 setattr(instance.user, field, value)
             instance.user.save()
-        
+
         return super().update(instance, validated_data)
 
 
@@ -305,7 +347,7 @@ class WaterSerializer(serializers.ModelSerializer):
 
 class BudgetSerializer(serializers.ModelSerializer):
     period = serializers.CharField(read_only=True)
-    
+
     class Meta:
         model = Budget
         fields = ['id', 'category', 'year', 'month', 'amount', 'period', 'created_at', 'updated_at']
@@ -322,51 +364,134 @@ class IncomeSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['id', 'name', 'account_type', 'balance', 'currency', 'is_active', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'account_type',
+            'balance',
+            'currency',
+            'is_active',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class RecurringExpenseSerializer(serializers.ModelSerializer):
     total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    
+
     class Meta:
         model = RecurringExpense
-        fields = ['id', 'item', 'category', 'quantity', 'price', 'total', 'frequency', 'start_date', 'end_date', 'day_of_month', 'day_of_week', 'next_occurrence', 'is_active', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'item',
+            'category',
+            'quantity',
+            'price',
+            'total',
+            'frequency',
+            'start_date',
+            'end_date',
+            'day_of_month',
+            'day_of_week',
+            'next_occurrence',
+            'is_active',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'total', 'next_occurrence', 'created_at', 'updated_at']
 
 
 class BudgetAlertSerializer(serializers.ModelSerializer):
     budget_category = serializers.CharField(source='budget.category', read_only=True)
-    budget_amount = serializers.DecimalField(source='budget.amount', max_digits=12, decimal_places=2, read_only=True)
+    budget_amount = serializers.DecimalField(
+        source='budget.amount',
+        max_digits=12,
+        decimal_places=2,
+        read_only=True)
     budget_period = serializers.CharField(source='budget.period', read_only=True)
-    
+
     class Meta:
         model = BudgetAlert
-        fields = ['id', 'budget', 'budget_category', 'budget_amount', 'budget_period', 'alert_type', 'threshold_percent', 'message', 'is_read', 'is_dismissed', 'triggered_at', 'created_at']
-        read_only_fields = ['id', 'budget_category', 'budget_amount', 'budget_period', 'triggered_at', 'created_at']
+        fields = [
+            'id',
+            'budget',
+            'budget_category',
+            'budget_amount',
+            'budget_period',
+            'alert_type',
+            'threshold_percent',
+            'message',
+            'is_read',
+            'is_dismissed',
+            'triggered_at',
+            'created_at']
+        read_only_fields = [
+            'id',
+            'budget_category',
+            'budget_amount',
+            'budget_period',
+            'triggered_at',
+            'created_at']
 
 
 class TransferSerializer(serializers.ModelSerializer):
     from_account_name = serializers.CharField(source='from_account.name', read_only=True)
     to_account_name = serializers.CharField(source='to_account.name', read_only=True)
-    
+
     class Meta:
         model = Transfer
-        fields = ['id', 'from_account', 'from_account_name', 'to_account', 'to_account_name', 'amount', 'transfer_type', 'status', 'date', 'description', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'from_account_name', 'to_account_name', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'from_account',
+            'from_account_name',
+            'to_account',
+            'to_account_name',
+            'amount',
+            'transfer_type',
+            'status',
+            'date',
+            'description',
+            'created_at',
+            'updated_at']
+        read_only_fields = [
+            'id',
+            'from_account_name',
+            'to_account_name',
+            'created_at',
+            'updated_at']
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
-        fields = ['id', 'name', 'category', 'amount', 'billing_cycle', 'next_billing_date', 'start_date', 'end_date', 'status', 'description', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'category',
+            'amount',
+            'billing_cycle',
+            'next_billing_date',
+            'start_date',
+            'end_date',
+            'status',
+            'description',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'type', 'priority', 'title', 'message', 'data', 'is_read', 'read_at', 'created_at']
+        fields = [
+            'id',
+            'type',
+            'priority',
+            'title',
+            'message',
+            'data',
+            'is_read',
+            'read_at',
+            'created_at']
         read_only_fields = ['id', 'created_at', 'read_at']
 
 
@@ -387,10 +512,29 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
 class ScheduledJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduledJob
-        fields = ['id', 'user', 'job_type', 'status', 'scheduled_at', 'started_at', 'completed_at',
-                  'payload', 'result', 'error_message', 'retry_count', 'max_retries', 'next_retry_at',
-                  'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'started_at', 'completed_at', 'retry_count']
+        fields = [
+            'id',
+            'user',
+            'job_type',
+            'status',
+            'scheduled_at',
+            'started_at',
+            'completed_at',
+            'payload',
+            'result',
+            'error_message',
+            'retry_count',
+            'max_retries',
+            'next_retry_at',
+            'created_at',
+            'updated_at']
+        read_only_fields = [
+            'id',
+            'created_at',
+            'updated_at',
+            'started_at',
+            'completed_at',
+            'retry_count']
 
 
 class NotificationDeduplicationSerializer(serializers.ModelSerializer):
@@ -411,14 +555,31 @@ class RecurringIncomeSerializer(serializers.ModelSerializer):
 class AIToolSerializer(serializers.ModelSerializer):
     class Meta:
         model = AITool
-        fields = ['id', 'name', 'description', 'parameters_schema', 'required_permissions', 'is_destructive', 'is_enabled', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'description',
+            'parameters_schema',
+            'required_permissions',
+            'is_destructive',
+            'is_enabled',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class AIMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = AIMessage
-        fields = ['id', 'conversation', 'role', 'content', 'tool_calls', 'tool_call_id', 'metadata', 'created_at']
+        fields = [
+            'id',
+            'conversation',
+            'role',
+            'content',
+            'tool_calls',
+            'tool_call_id',
+            'metadata',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -427,7 +588,17 @@ class AIConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AIConversation
-        fields = ['id', 'title', 'status', 'model', 'system_prompt', 'metadata', 'created_at', 'updated_at', 'last_message_at', 'message_count']
+        fields = [
+            'id',
+            'title',
+            'status',
+            'model',
+            'system_prompt',
+            'metadata',
+            'created_at',
+            'updated_at',
+            'last_message_at',
+            'message_count']
         read_only_fields = ['id', 'created_at', 'updated_at', 'last_message_at', 'message_count']
 
     def get_message_count(self, obj):
@@ -446,7 +617,20 @@ class AIToolCallSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AIToolCall
-        fields = ['id', 'conversation', 'message', 'tool', 'tool_name', 'arguments', 'result', 'error', 'status', 'requires_confirmation', 'confirmed_by_user', 'executed_at', 'created_at']
+        fields = [
+            'id',
+            'conversation',
+            'message',
+            'tool',
+            'tool_name',
+            'arguments',
+            'result',
+            'error',
+            'status',
+            'requires_confirmation',
+            'confirmed_by_user',
+            'executed_at',
+            'created_at']
         read_only_fields = ['id', 'created_at', 'executed_at']
 
 
@@ -456,7 +640,15 @@ class AIActionConfirmationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AIActionConfirmation
-        fields = ['id', 'tool_call', 'tool_name', 'tool_arguments', 'confirmed', 'confirmed_at', 'expires_at', 'created_at']
+        fields = [
+            'id',
+            'tool_call',
+            'tool_name',
+            'tool_arguments',
+            'confirmed',
+            'confirmed_at',
+            'expires_at',
+            'created_at']
         read_only_fields = ['id', 'created_at', 'confirmed_at']
 
 
@@ -473,7 +665,8 @@ class UserPreferenceSerializer(serializers.ModelSerializer):
 
 
 class AIMemorySerializer(serializers.ModelSerializer):
-    conversation_title = serializers.CharField(source='conversation.title', read_only=True, allow_null=True)
+    conversation_title = serializers.CharField(
+        source='conversation.title', read_only=True, allow_null=True)
 
     class Meta:
         model = AIMemory
@@ -509,21 +702,51 @@ class AIMemorySummarizationSerializer(serializers.ModelSerializer):
 class MLDataSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLDataSet
-        fields = ['id', 'name', 'data_type', 'split', 'records_count', 'features', 'file_path', 'description', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'data_type',
+            'split',
+            'records_count',
+            'features',
+            'file_path',
+            'description',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'records_count', 'created_at', 'updated_at']
 
 
 class MLFeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLFeature
-        fields = ['id', 'name', 'feature_type', 'description', 'source_domains', 'computation_logic', 'is_active', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'feature_type',
+            'description',
+            'source_domains',
+            'computation_logic',
+            'is_active',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class MLDataQualityCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLDataQualityCheck
-        fields = ['id', 'check_type', 'domain', 'severity', 'total_records', 'valid_records', 'invalid_records', 'details', 'message', 'passed', 'created_at']
+        fields = [
+            'id',
+            'check_type',
+            'domain',
+            'severity',
+            'total_records',
+            'valid_records',
+            'invalid_records',
+            'details',
+            'message',
+            'passed',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -532,21 +755,48 @@ class MLDataQualityCheckSerializer(serializers.ModelSerializer):
 class MLTransactionCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MLTransactionCategory
-        fields = ['id', 'transaction_id', 'item_name', 'predicted_category', 'confidence', 'alternative_categories', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'transaction_id',
+            'item_name',
+            'predicted_category',
+            'confidence',
+            'alternative_categories',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class MLSpendingPredictionSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLSpendingPrediction
-        fields = ['id', 'category', 'period_type', 'period_start', 'period_end', 'predicted_amount', 'lower_bound', 'upper_bound', 'confidence', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'category',
+            'period_type',
+            'period_start',
+            'period_end',
+            'predicted_amount',
+            'lower_bound',
+            'upper_bound',
+            'confidence',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class MLHabitConsistencySerializer(serializers.ModelSerializer):
     class Meta:
         model = MLHabitConsistency
-        fields = ['id', 'habit_id', 'habit_name', 'prediction_date', 'likelihood_of_miss', 'contributing_factors', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'habit_id',
+            'habit_name',
+            'prediction_date',
+            'likelihood_of_miss',
+            'contributing_factors',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -555,21 +805,49 @@ class MLHabitConsistencySerializer(serializers.ModelSerializer):
 class MLGoalCompletionSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLGoalCompletion
-        fields = ['id', 'goal_id', 'goal_text', 'predicted_probability', 'estimated_completion_date', 'remaining_days', 'contributing_factors', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'goal_id',
+            'goal_text',
+            'predicted_probability',
+            'estimated_completion_date',
+            'remaining_days',
+            'contributing_factors',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class MLAnomalySerializer(serializers.ModelSerializer):
     class Meta:
         model = MLAnomaly
-        fields = ['id', 'anomaly_type', 'severity', 'domain', 'description', 'detected_value', 'expected_range_low', 'expected_range_high', 'is_resolved', 'created_at']
+        fields = [
+            'id',
+            'anomaly_type',
+            'severity',
+            'domain',
+            'description',
+            'detected_value',
+            'expected_range_low',
+            'expected_range_high',
+            'is_resolved',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class MLRecommendationScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLRecommendationScore
-        fields = ['id', 'rank_type', 'target_id', 'target_type', 'score', 'rank', 'reason', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'rank_type',
+            'target_id',
+            'target_type',
+            'score',
+            'rank',
+            'reason',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -578,21 +856,52 @@ class MLRecommendationScoreSerializer(serializers.ModelSerializer):
 class MLEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLEvaluation
-        fields = ['id', 'model_name', 'model_version', 'metric_type', 'value', 'dataset_name', 'evaluation_date', 'details']
+        fields = [
+            'id',
+            'model_name',
+            'model_version',
+            'metric_type',
+            'value',
+            'dataset_name',
+            'evaluation_date',
+            'details']
         read_only_fields = ['id', 'evaluation_date']
 
 
 class MLModelVersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLModelVersion
-        fields = ['id', 'model_name', 'version', 'status', 'training_data_set', 'features_used', 'hyperparameters', 'performance_metrics', 'file_path', 'description', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'model_name',
+            'version',
+            'status',
+            'training_data_set',
+            'features_used',
+            'hyperparameters',
+            'performance_metrics',
+            'file_path',
+            'description',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class MLModelMonitoringSerializer(serializers.ModelSerializer):
     class Meta:
         model = MLModelMonitoring
-        fields = ['id', 'model_name', 'model_version', 'monitor_type', 'alert_level', 'current_value', 'baseline_value', 'threshold', 'message', 'is_acknowledged', 'created_at']
+        fields = [
+            'id',
+            'model_name',
+            'model_version',
+            'monitor_type',
+            'alert_level',
+            'current_value',
+            'baseline_value',
+            'threshold',
+            'message',
+            'is_acknowledged',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -601,21 +910,49 @@ class MLModelMonitoringSerializer(serializers.ModelSerializer):
 class UnifiedPersonalStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnifiedPersonalState
-        fields = ['id', 'state_data', 'last_updated', 'productivity_score', 'financial_health', 'goal_progress', 'habit_consistency', 'mood_trend']
+        fields = [
+            'id',
+            'state_data',
+            'last_updated',
+            'productivity_score',
+            'financial_health',
+            'goal_progress',
+            'habit_consistency',
+            'mood_trend']
         read_only_fields = ['id', 'last_updated']
 
 
 class CrossDomainReasoningSerializer(serializers.ModelSerializer):
     class Meta:
         model = CrossDomainReasoning
-        fields = ['id', 'reasoning_type', 'domains_involved', 'insight', 'confidence', 'supporting_evidence', 'is_validated', 'created_at']
+        fields = [
+            'id',
+            'reasoning_type',
+            'domains_involved',
+            'insight',
+            'confidence',
+            'supporting_evidence',
+            'is_validated',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class RankedRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = RankedRecommendation
-        fields = ['id', 'rec_type', 'target_id', 'target_title', 'rank', 'score', 'explanation', 'action_suggested', 'is_accepted', 'is_dismissed', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'rec_type',
+            'target_id',
+            'target_title',
+            'rank',
+            'score',
+            'explanation',
+            'action_suggested',
+            'is_accepted',
+            'is_dismissed',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -624,21 +961,49 @@ class RankedRecommendationSerializer(serializers.ModelSerializer):
 class OpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
-        fields = ['id', 'opportunity_type', 'title', 'description', 'severity', 'potential_impact', 'suggested_action', 'is_actioned', 'created_at']
+        fields = [
+            'id',
+            'opportunity_type',
+            'title',
+            'description',
+            'severity',
+            'potential_impact',
+            'suggested_action',
+            'is_actioned',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class RiskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Risk
-        fields = ['id', 'risk_type', 'title', 'description', 'severity', 'trend_direction', 'estimated_timeframe', 'is_mitigated', 'created_at']
+        fields = [
+            'id',
+            'risk_type',
+            'title',
+            'description',
+            'severity',
+            'trend_direction',
+            'estimated_timeframe',
+            'is_mitigated',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class InterventionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Intervention
-        fields = ['id', 'intervention_type', 'title', 'description', 'status', 'priority', 'expected_outcome', 'steps', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'intervention_type',
+            'title',
+            'description',
+            'status',
+            'priority',
+            'expected_outcome',
+            'steps',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -647,14 +1012,32 @@ class InterventionSerializer(serializers.ModelSerializer):
 class DailyPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = DailyPlan
-        fields = ['id', 'date', 'plan_data', 'overall_priority', 'confidence', 'generated_by_model', 'is_completed', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'date',
+            'plan_data',
+            'overall_priority',
+            'confidence',
+            'generated_by_model',
+            'is_completed',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class WeeklyStrategySerializer(serializers.ModelSerializer):
     class Meta:
         model = WeeklyStrategy
-        fields = ['id', 'week_start_date', 'priorities', 'focus_areas', 'key_goals', 'risk_mitigations', 'confidence', 'generated_by_model', 'created_at']
+        fields = [
+            'id',
+            'week_start_date',
+            'priorities',
+            'focus_areas',
+            'key_goals',
+            'risk_mitigations',
+            'confidence',
+            'generated_by_model',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -663,13 +1046,29 @@ class WeeklyStrategySerializer(serializers.ModelSerializer):
 class ExplanationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Explanation
-        fields = ['id', 'explanation_type', 'target_id', 'title', 'explanation_text', 'reasoning_steps', 'supporting_data', 'confidence', 'created_at']
+        fields = [
+            'id',
+            'explanation_type',
+            'target_id',
+            'title',
+            'explanation_text',
+            'reasoning_steps',
+            'supporting_data',
+            'confidence',
+            'created_at']
         read_only_fields = ['id', 'created_at']
 
 
 class UserFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFeedback
-        fields = ['id', 'feedback_type', 'target_id', 'action', 'feedback_text', 'relevance_score', 'model_version', 'created_at']
+        fields = [
+            'id',
+            'feedback_type',
+            'target_id',
+            'action',
+            'feedback_text',
+            'relevance_score',
+            'model_version',
+            'created_at']
         read_only_fields = ['id', 'created_at']
-

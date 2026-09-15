@@ -1,9 +1,10 @@
 """Query optimization utilities and patterns."""
 
+from django.db import migrations
 from django.db import models, connection
-from django.db.models import Prefetch, Q, Count, Sum, Avg, Max, Min, F, Exists, OuterRef, Subquery
+from django.db.models import Count, Sum, Subquery
 from django.db.models.query import QuerySet
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any
 from functools import wraps
 
 
@@ -48,7 +49,11 @@ class QueryOptimizer:
         return queryset.annotate(**annotations)
 
     @staticmethod
-    def annotate_subquery(queryset: QuerySet, name: str, subquery: Subquery, output_field=None) -> QuerySet:
+    def annotate_subquery(
+            queryset: QuerySet,
+            name: str,
+            subquery: Subquery,
+            output_field=None) -> QuerySet:
         """Add subquery annotation efficiently."""
         kwargs = {name: subquery}
         if output_field:
@@ -80,12 +85,19 @@ class EfficientQuerySet(QuerySet):
         offset = (page - 1) * page_size
         return self[offset:offset + page_size]
 
-    def cursor_paginate(self, cursor_field: str, cursor_value: Any, page_size: int, direction: str = 'next') -> QuerySet:
+    def cursor_paginate(
+            self,
+            cursor_field: str,
+            cursor_value: Any,
+            page_size: int,
+            direction: str = 'next') -> QuerySet:
         """Cursor-based pagination for better performance on large datasets."""
         if direction == 'next':
-            return self.filter(**{f"{cursor_field}__gt": cursor_value}).order_by(cursor_field)[:page_size]
+            return self.filter(**{f"{cursor_field}__gt": cursor_value}
+                               ).order_by(cursor_field)[:page_size]
         else:
-            return self.filter(**{f"{cursor_field}__lt": cursor_value}).order_by(f"-{cursor_field}")[:page_size]
+            return self.filter(**{f"{cursor_field}__lt": cursor_value}
+                               ).order_by(f"-{cursor_field}")[:page_size]
 
 
 def explain_query(queryset: QuerySet) -> List[Dict]:
@@ -146,7 +158,11 @@ class QueryProfiler:
             print(f"Slowest: {stats['slowest']['time']}s - {stats['slowest']['sql'][:100]}")
 
 
-def optimize_bulk_create(model_class, objects: List, batch_size: int = 1000, ignore_conflicts: bool = False):
+def optimize_bulk_create(
+        model_class,
+        objects: List,
+        batch_size: int = 1000,
+        ignore_conflicts: bool = False):
     """Optimized bulk create with chunking."""
     created = []
     for i in range(0, len(objects), batch_size):
@@ -164,7 +180,11 @@ def optimize_bulk_update(model_class, objects: List, fields: List[str], batch_si
     return updated
 
 
-def optimize_update_or_create(model_class, lookup_field: str, objects_data: List[Dict], batch_size: int = 100):
+def optimize_update_or_create(
+        model_class,
+        lookup_field: str,
+        objects_data: List[Dict],
+        batch_size: int = 100):
     """Efficient upsert pattern for multiple objects."""
     from django.db import transaction
 
@@ -315,11 +335,13 @@ def generate_index_migrations():
             operations.append(
                 migrations.AddIndex(
                     model_name=model_name.lower(),
-                    index=models.Index(fields=fields, name=f"{model_name.lower()}_{'_'.join(fields)}_idx"),
-                )
-            )
+                    index=models.Index(
+                        fields=fields,
+                        name=f"{
+                            model_name.lower()}_{
+                            '_'.join(fields)}_idx"),
+                ))
     return operations
 
 
 # Add migrations import at the end to avoid circular imports
-from django.db import migrations

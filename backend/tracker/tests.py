@@ -7,10 +7,8 @@ from tracker.models import (
     Achievement,
     Expense,
     Goal,
-    PlannerBlock,
     Quote,
     QuoteSource,
-    QuoteTag,
 )
 
 User = get_user_model()
@@ -43,7 +41,8 @@ class ExpenseCRUDTests(APITestCase):
 
     def test_update_expense(self):
         expense = Expense.objects.create(user=self.user, **self.expense_data)
-        response = self.client.patch(f'/api/expenses/{expense.id}/', {'price': '4.00'}, format='json')
+        response = self.client.patch(
+            f'/api/expenses/{expense.id}/', {'price': '4.00'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expense.refresh_from_db()
         self.assertEqual(str(expense.price), '4.00')
@@ -82,7 +81,8 @@ class GoalCRUDTests(APITestCase):
 
     def test_update_goal(self):
         goal = Goal.objects.create(user=self.user, **self.goal_data)
-        response = self.client.patch(f'/api/goals/{goal.id}/', {'status': 'completed'}, format='json')
+        response = self.client.patch(
+            f'/api/goals/{goal.id}/', {'status': 'completed'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         goal.refresh_from_db()
         self.assertEqual(goal.status, 'completed')
@@ -176,14 +176,16 @@ class V1APIRegressionTests(APITestCase):
         self.assertEqual(response.data['data'][0]['type'], 'Book')
 
     def test_quote_source_detail_reports_quote_count(self):
-        source = QuoteSource.objects.create(id='source-1', user=self.user, title='Source', type='Book')
+        source = QuoteSource.objects.create(
+            id='source-1', user=self.user, title='Source', type='Book')
         Quote.objects.create(id='quote-1', source=source, text='Quote', author='Author')
         response = self.client.get(f'/api/v1/quotes/sources/{source.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data']['quote_count'], 1)
 
     def test_quote_search_returns_match_type_and_limit(self):
-        source = QuoteSource.objects.create(id='source-2', user=self.user, title='Source', type='Book')
+        source = QuoteSource.objects.create(
+            id='source-2', user=self.user, title='Source', type='Book')
         Quote.objects.create(id='quote-2', source=source, text='A useful quote', author='Ada')
         quote = Quote.objects.get(source=source)
         quote.tags.create(tag='wisdom')
@@ -193,7 +195,8 @@ class V1APIRegressionTests(APITestCase):
         self.assertEqual(response.data['data']['results'][0]['match_type'], 'author')
 
     def test_quote_tags_are_wrapped(self):
-        source = QuoteSource.objects.create(id='source-3', user=self.user, title='Source', type='Book')
+        source = QuoteSource.objects.create(
+            id='source-3', user=self.user, title='Source', type='Book')
         quote = Quote.objects.create(id='quote-3', source=source, text='Quote', author='Author')
         quote.tags.create(tag='tag-one')
         response = self.client.get('/api/v1/quotes/tags/')
@@ -209,9 +212,27 @@ class V1APIRegressionTests(APITestCase):
         self.assertEqual(response.headers.get('API-Version'), 'v1')
 
     def test_expense_list_uses_domain_summary(self):
-        Expense.objects.create(user=self.user, date='2025-01-05', item='Coffee', category='Food', quantity=2, price='3.50')
-        Expense.objects.create(user=self.user, date='2025-01-06', item='Lunch', category='Food', quantity=1, price='10.00')
-        Expense.objects.create(user=self.user, date='2025-01-07', item='Book', category='Education', quantity=1, price='15.00')
+        Expense.objects.create(
+            user=self.user,
+            date='2025-01-05',
+            item='Coffee',
+            category='Food',
+            quantity=2,
+            price='3.50')
+        Expense.objects.create(
+            user=self.user,
+            date='2025-01-06',
+            item='Lunch',
+            category='Food',
+            quantity=1,
+            price='10.00')
+        Expense.objects.create(
+            user=self.user,
+            date='2025-01-07',
+            item='Book',
+            category='Education',
+            quantity=1,
+            price='15.00')
         response = self.client.get('/api/v1/expenses/?year=2025&month=0&category=food')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)
@@ -220,8 +241,20 @@ class V1APIRegressionTests(APITestCase):
         self.assertEqual(len(response.data['data']['expenses']), 2)
 
     def test_expense_summary_filters_by_category(self):
-        Expense.objects.create(user=self.user, date='2025-01-05', item='Coffee', category='Food', quantity=2, price='3.50')
-        Expense.objects.create(user=self.user, date='2025-01-06', item='Book', category='Education', quantity=1, price='15.00')
+        Expense.objects.create(
+            user=self.user,
+            date='2025-01-05',
+            item='Coffee',
+            category='Food',
+            quantity=2,
+            price='3.50')
+        Expense.objects.create(
+            user=self.user,
+            date='2025-01-06',
+            item='Book',
+            category='Education',
+            quantity=1,
+            price='15.00')
         response = self.client.get('/api/v1/expenses/summary/?year=2025&month=0&category=food')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data']['summary']['total_expenses'], 1)
@@ -237,7 +270,13 @@ class V1APIRegressionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_cross_user_expense_detail_is_not_found(self):
-        expense = Expense.objects.create(user=self.other_user, date='2025-01-01', item='Secret', category='Food', quantity=1, price='1.00')
+        expense = Expense.objects.create(
+            user=self.other_user,
+            date='2025-01-01',
+            item='Secret',
+            category='Food',
+            quantity=1,
+            price='1.00')
         response = self.client.get(f'/api/v1/expenses/{expense.id}/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['error']['code'], 'NOT_FOUND')
@@ -280,7 +319,8 @@ class AchievementCRUDTests(APITestCase):
 
     def test_update_achievement(self):
         achievement = Achievement.objects.create(user=self.user, **self.achievement_data)
-        response = self.client.patch(f'/api/achievements/{achievement.id}/', {'description': 'Updated'}, format='json')
+        response = self.client.patch(
+            f'/api/achievements/{achievement.id}/', {'description': 'Updated'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         achievement.refresh_from_db()
         self.assertEqual(achievement.description, 'Updated')

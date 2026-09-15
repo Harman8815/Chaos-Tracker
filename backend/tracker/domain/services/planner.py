@@ -4,7 +4,6 @@ Owns PlannerBlock / PlannerTask / PlannerLink / PlannerSettings logic.
 Blocks are owned directly by a user; tasks are owned transitively
 through their block. Links must reference blocks owned by the user.
 """
-import uuid
 
 from django.db import transaction
 from django.db.models import Q
@@ -160,12 +159,13 @@ class PlannerService:
         if not block_id:
             raise ValidationError("id is required")
         block = PlannerBlock.objects.create(
-            id=block_id,
-            user=user,
-            title=validation.bounded_text(raw.get("title", "New Block"), max_length=255, field="title"),
-            x=float(raw.get("x", 0)),
-            y=float(raw.get("y", 0)),
-        )
+            id=block_id, user=user, title=validation.bounded_text(
+                raw.get(
+                    "title", "New Block"), max_length=255, field="title"), x=float(
+                raw.get(
+                    "x", 0)), y=float(
+                        raw.get(
+                            "y", 0)), )
         tasks = _require_list(raw.get("tasks", []), "tasks")
         for idx, task_raw in enumerate(tasks):
             self._create_task(block, task_raw, idx)
@@ -177,14 +177,14 @@ class PlannerService:
         if not block_id:
             raise ValidationError("id is required")
         block, created = PlannerBlock.objects.update_or_create(
-            id=block_id,
-            user=user,
-            defaults={
-                "title": validation.bounded_text(raw.get("title", "New Block"), max_length=255, field="title"),
-                "x": float(raw.get("x", 0)),
-                "y": float(raw.get("y", 0)),
-            },
-        )
+            id=block_id, user=user, defaults={
+                "title": validation.bounded_text(
+                    raw.get(
+                        "title", "New Block"), max_length=255, field="title"), "x": float(
+                    raw.get(
+                        "x", 0)), "y": float(
+                            raw.get(
+                                "y", 0)), }, )
         if "tasks" in raw:
             tasks = _require_list(raw["tasks"], "tasks")
             PlannerTask.objects.filter(block=block).delete()
@@ -240,7 +240,8 @@ class PlannerService:
         goal = self._resolve_goal(user, goal_id)
         task.goal = goal
         task.save()
-        logger.info("planner.set_task_goal user_id=%s task_id=%s goal_id=%s", user.id, task_id, goal.id if goal else None)
+        logger.info("planner.set_task_goal user_id=%s task_id=%s goal_id=%s",
+                    user.id, task_id, goal.id if goal else None)
         return task
 
     def complete_task(self, user, task_id, *, completed=True):
@@ -259,7 +260,11 @@ class PlannerService:
                 Goal.objects.filter(id=task.goal.id, user=user).update(
                     completed_tasks=F("completed_tasks") - 1,
                 )
-        logger.info("planner.complete_task user_id=%s task_id=%s completed=%s", user.id, task_id, completed)
+        logger.info(
+            "planner.complete_task user_id=%s task_id=%s completed=%s",
+            user.id,
+            task_id,
+            completed)
         return task
 
     def _create_link(self, user, raw):

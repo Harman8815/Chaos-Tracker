@@ -71,11 +71,22 @@ class AchievementEngine:
 
     @staticmethod
     def _default_rules():
-        return [
-            {"event_type": "planner_task_completed", "count": 7, "window_days": 30, "title": "Week Warrior", "description": "Completed 7 planner tasks in 30 days."},
-            {"event_type": "goal_completed", "count": 3, "window_days": 90, "title": "Goal Crusher", "description": "Completed 3 goals in 90 days."},
-            {"event_type": "habit_log", "count": 10, "window_days": 30, "title": "Habit Hero", "description": "Logged a habit 10 times in 30 days."},
-        ]
+        return [{"event_type": "planner_task_completed",
+                 "count": 7,
+                 "window_days": 30,
+                 "title": "Week Warrior",
+                 "description": "Completed 7 planner tasks in 30 days."},
+                {"event_type": "goal_completed",
+                 "count": 3,
+                 "window_days": 90,
+                 "title": "Goal Crusher",
+                 "description": "Completed 3 goals in 90 days."},
+                {"event_type": "habit_log",
+                 "count": 10,
+                 "window_days": 30,
+                 "title": "Habit Hero",
+                 "description": "Logged a habit 10 times in 30 days."},
+                ]
 
     def _evaluate_rule(self, user, rule):
         event_type = rule["event_type"]

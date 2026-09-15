@@ -2,7 +2,6 @@
 
 Owns Account CRUD plus analytics. All queries are scoped to the requesting user.
 """
-from decimal import Decimal
 
 from ...models import Account
 from .. import validation
@@ -27,11 +26,18 @@ class AccountService:
 
     def create(self, user, data):
         name = validation.bounded_text(data.get("name"), max_length=100, field="name")
-        account_type = validation.bounded_text(data.get("account_type"), max_length=20, field="account_type")
+        account_type = validation.bounded_text(
+            data.get("account_type"), max_length=20, field="account_type")
         if account_type not in dict(Account.ACCOUNT_TYPES):
-            raise ValidationError(f"Invalid account_type. Must be one of: {[k for k, _ in Account.ACCOUNT_TYPES]}")
+            raise ValidationError(
+                f"Invalid account_type. Must be one of: {[k for k, _ in Account.ACCOUNT_TYPES]}")
         balance = validation.bounded_decimal(data.get("balance", 0), field="balance")
-        currency = validation.bounded_text(data.get("currency", "USD"), max_length=3, field="currency")
+        currency = validation.bounded_text(
+            data.get(
+                "currency",
+                "USD"),
+            max_length=3,
+            field="currency")
         is_active = data.get("is_active", True)
         account = Account.objects.create(
             user=user,
@@ -51,14 +57,17 @@ class AccountService:
         if "name" in data:
             account.name = validation.bounded_text(data["name"], max_length=100, field="name")
         if "account_type" in data:
-            account_type = validation.bounded_text(data["account_type"], max_length=20, field="account_type")
+            account_type = validation.bounded_text(
+                data["account_type"], max_length=20, field="account_type")
             if account_type not in dict(Account.ACCOUNT_TYPES):
-                raise ValidationError(f"Invalid account_type. Must be one of: {[k for k, _ in Account.ACCOUNT_TYPES]}")
+                raise ValidationError(
+                    f"Invalid account_type. Must be one of: {[k for k, _ in Account.ACCOUNT_TYPES]}")
             account.account_type = account_type
         if "balance" in data:
             account.balance = validation.bounded_decimal(data["balance"], field="balance")
         if "currency" in data:
-            account.currency = validation.bounded_text(data["currency"], max_length=3, field="currency")
+            account.currency = validation.bounded_text(
+                data["currency"], max_length=3, field="currency")
         if "is_active" in data:
             account.is_active = data["is_active"]
         account.save()

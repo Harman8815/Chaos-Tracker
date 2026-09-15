@@ -19,7 +19,7 @@ from tracker.domain.services import (
     subscription_billing_job_service,
     scheduled_job_service,
 )
-from tracker.models import User, Goal, Habit, DailyHabitScore, Budget, Expense
+from tracker.models import User, Goal, Habit
 
 
 class Command(BaseCommand):
@@ -238,7 +238,8 @@ class Command(BaseCommand):
         for habit in habits:
             if self._is_due_today(habit, today):
                 # Check if already completed
-                if not DailyHabitScore.objects.filter(user=user, habit=habit, date=today, score__gt=0).exists():
+                if not DailyHabitScore.objects.filter(
+                        user=user, habit=habit, date=today, score__gt=0).exists():
                     count += 1
         return count
 
@@ -265,7 +266,8 @@ class Command(BaseCommand):
             if habit.streak > 0 and habit.streak % 7 == 0:
                 count += 1
             if habit.streak > 0 and habit.grace_period == 0:
-                if not DailyHabitScore.objects.filter(user=user, habit=habit, date=today, score__gt=0).exists():
+                if not DailyHabitScore.objects.filter(
+                        user=user, habit=habit, date=today, score__gt=0).exists():
                     count += 1
         return count
 

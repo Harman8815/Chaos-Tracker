@@ -2,19 +2,16 @@
 
 Handles processing of recurring expenses, income, and subscription billing.
 """
-from datetime import date, datetime, timedelta
-from decimal import Decimal
+from datetime import date, timedelta
 
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 
 from ...models import (
     RecurringExpense, Expense, RecurringIncome, Income,
-    Subscription, Account, Transfer, NotificationDeduplication,
+    Subscription,
 )
-from .notifications import notification_service, scheduled_job_service
-from ..exceptions import ValidationError
+from .notifications import notification_service
 from ..logging import get_logger
 
 logger = get_logger("tracker.domain.recurring_jobs")
@@ -63,19 +60,15 @@ class RecurringExpenseJobService:
 
             # Notify user
             notification_service.create_notification(
-                user=recurring.user,
-                notification_type='recurring_transaction',
-                title=f"Recurring expense created: {recurring.item}",
-                message=f"${recurring.total:.2f} for {recurring.item} ({recurring.category}) has been recorded.",
-                priority='low',
-                data={
-                    'expense_id': expense.id,
-                    'recurring_expense_id': recurring.id,
-                    'amount': float(recurring.total),
-                },
-                dedupe_key=f"recurring_expense_{recurring.id}_{recurring.next_occurrence}",
-                dedupe_window_hours=24,
-            )
+                user=recurring.user, notification_type='recurring_transaction', title=f"Recurring expense created: {
+                    recurring.item}", message=f"${
+                    recurring.total:.2f} for {
+                    recurring.item} ({
+                    recurring.category}) has been recorded.", priority='low', data={
+                        'expense_id': expense.id, 'recurring_expense_id': recurring.id, 'amount': float(
+                            recurring.total), }, dedupe_key=f"recurring_expense_{
+                                recurring.id}_{
+                                    recurring.next_occurrence}", dedupe_window_hours=24, )
 
         return expense
 
@@ -179,19 +172,14 @@ class RecurringIncomeJobService:
             )
 
             notification_service.create_notification(
-                user=recurring.user,
-                notification_type='recurring_transaction',
-                title=f"Recurring income received: {recurring.name}",
-                message=f"${recurring.amount:.2f} from {recurring.get_source_display()} has been recorded.",
-                priority='low',
-                data={
-                    'income_id': income.id,
-                    'recurring_income_id': recurring.id,
-                    'amount': float(recurring.amount),
-                },
-                dedupe_key=f"recurring_income_{recurring.id}_{recurring.next_occurrence}",
-                dedupe_window_hours=24,
-            )
+                user=recurring.user, notification_type='recurring_transaction', title=f"Recurring income received: {
+                    recurring.name}", message=f"${
+                    recurring.amount:.2f} from {
+                    recurring.get_source_display()} has been recorded.", priority='low', data={
+                    'income_id': income.id, 'recurring_income_id': recurring.id, 'amount': float(
+                        recurring.amount), }, dedupe_key=f"recurring_income_{
+                            recurring.id}_{
+                                recurring.next_occurrence}", dedupe_window_hours=24, )
 
         return income
 

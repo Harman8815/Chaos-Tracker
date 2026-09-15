@@ -9,7 +9,7 @@ Provides reusable validation functions for API inputs, including:
 """
 import re
 import html
-from typing import Any, Optional, List, Dict, Union
+from typing import Any, Optional, List, Dict
 from urllib.parse import urlparse
 
 from .exceptions import ValidationError
@@ -294,7 +294,8 @@ def validate_dict(
     return value
 
 
-def validate_url(value: Any, *, field: str = "value", allowed_schemes: Optional[List[str]] = None) -> str:
+def validate_url(value: Any, *, field: str = "value",
+                 allowed_schemes: Optional[List[str]] = None) -> str:
     """Validate URL format and scheme."""
     if not isinstance(value, str):
         raise ValidationError(f"{field} must be a string")

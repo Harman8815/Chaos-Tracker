@@ -64,7 +64,8 @@ class Command(BaseCommand):
 
         # Confirmation
         if not force:
-            confirm = input(f"This will REPLACE the current database with {backup_path}. Continue? [y/N]: ")
+            confirm = input(
+                f"This will REPLACE the current database with {backup_path}. Continue? [y/N]: ")
             if confirm.lower() != 'y':
                 self.stdout.write("Cancelled")
                 return

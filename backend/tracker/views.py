@@ -1,5 +1,16 @@
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.pagesizes import letter
+from django.http import HttpResponse
+import json
+import csv
+from difflib import SequenceMatcher
+import uuid
+import random
+from datetime import timedelta
+import datetime
+from .utils import success_response, error_response
 from rest_framework import views, status, generics
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -14,7 +25,6 @@ from .serializers import (
     QuoteSourceCreateUpdateSerializer,
     QuoteSerializer,
     QuoteCreateUpdateSerializer,
-    SearchResultSerializer,
     AchievementSerializer,
     ExpenseSerializer,
     GoalSerializer,
@@ -26,20 +36,6 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
-from .utils import success_response, error_response
-import datetime
-from datetime import timedelta
-import random
-import uuid
-from difflib import SequenceMatcher
-import urllib.request
-import csv
-import json
-from django.http import HttpResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
 
 
 class SyncView(views.APIView):
@@ -48,28 +44,28 @@ class SyncView(views.APIView):
     GET /api/sync/
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         """
         Return all application data for the authenticated user
         """
         # Fetch all journal entries for the user
         journal_entries = JournalEntry.objects.filter(user=request.user)
-        
+
         # Fetch all habits
         habits = Habit.objects.filter(user=request.user)
         habits_serializer = HabitSerializer(habits, many=True)
-        
+
         # Fetch all scoring rules
         rules = ScoringRule.objects.filter(user=request.user)
         rules_serializer = ScoringRuleSerializer(rules, many=True)
-        
+
         # Fetch all daily scores
         daily_scores = DailyHabitScore.objects.filter(user=request.user)
-        
+
         # Build the data dictionary
         data = {}
-        
+
         # Helper to ensure date entry exists
         def get_date_entry(date_str):
             if date_str not in data:
@@ -79,36 +75,36 @@ class SyncView(views.APIView):
                     'habitScores': {}
                 }
             return data[date_str]
-            
+
         # Process journal entries
         for entry in journal_entries:
             date_str = entry.date.strftime('%Y-%m-%d')
             entry_data = get_date_entry(date_str)
             entry_data['journal'] = entry.content
-            
+
         # Process daily scores
         for score in daily_scores:
             date_str = score.date.strftime('%Y-%m-%d')
             entry_data = get_date_entry(date_str)
             entry_data['habitScores'][score.habit.id] = score.score
-            
+
         # Calculate daily points
         habit_count = habits.count()
         if habit_count > 0:
             for date_str, entry_data in data.items():
                 total_score = sum(entry_data['habitScores'].values())
                 entry_data['points'] = round(total_score / habit_count)
-        
+
         # Fetch quote sources with quotes
         quote_sources = QuoteSource.objects.filter(user=request.user).prefetch_related(
             Prefetch('quotes', queryset=Quote.objects.prefetch_related('tags'))
         )
         quotes_serializer = QuoteSourceSerializer(quote_sources, many=True)
-        
+
         # Fetch planner data
         planner_blocks = PlannerBlock.objects.filter(user=request.user).prefetch_related('tasks')
         blocks_data = []
-        
+
         for block in planner_blocks:
             tasks_data = [
                 {
@@ -118,7 +114,7 @@ class SyncView(views.APIView):
                 }
                 for task in block.tasks.all()
             ]
-            
+
             blocks_data.append({
                 'id': block.id,
                 'title': block.title,
@@ -126,7 +122,7 @@ class SyncView(views.APIView):
                 'y': block.y,
                 'tasks': tasks_data
             })
-        
+
         # Get planner links
         planner_links = PlannerLink.objects.filter(user=request.user)
         links_data = [
@@ -137,13 +133,13 @@ class SyncView(views.APIView):
             }
             for link in planner_links
         ]
-        
+
         # Get planner transform settings
         planner_settings, _ = PlannerSettings.objects.get_or_create(
             user=request.user,
             defaults={'transform': {'scale': 1, 'panX': 0, 'panY': 0}}
         )
-        
+
         return success_response(data={
             'data': data,
             'habits': habits_serializer.data,
@@ -162,8 +158,6 @@ class SyncView(views.APIView):
                 'joinDate': request.user.date_joined.isoformat() if request.user.date_joined else None
             }
         })
-
-
 
 
 # ==================== JOURNAL VIEWS ====================
@@ -232,10 +226,10 @@ class JournalEntryDetailView(views.APIView):
             )
 
         entry = self.get_object(date)
-        
+
         data = request.data.copy()
         data['date'] = date
-        
+
         if entry:
             serializer = JournalEntrySerializer(entry, data=data)
         else:
@@ -279,39 +273,43 @@ class QuoteSourceListCreateView(views.APIView):
         ).prefetch_related(
             Prefetch('quotes', queryset=Quote.objects.prefetch_related('tags'))
         )
-        
+
         # Optional filtering by type
         source_type = request.request.query_params.get('type')
         if source_type:
             sources = sources.filter(type=source_type)
-        
+
         # Determine serializer based on query param
-        include_quotes = request.request.query_params.get('include_quotes', 'true').lower() == 'true'
-        
+        include_quotes = request.request.query_params.get(
+            'include_quotes', 'true').lower() == 'true'
+
         if include_quotes:
             serializer = QuoteSourceSerializer(sources, many=True)
         else:
             serializer = QuoteSourceListSerializer(sources, many=True)
-        
+
         return success_response(data=serializer.data, count=sources.count())
 
     def post(self, request):
         """Create a new quote source"""
         serializer = QuoteSourceCreateUpdateSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             serializer.save(user=request.user)
-            
+
             # Return full source with quotes
             source = QuoteSource.objects.filter(
                 id=serializer.data['id']
             ).prefetch_related(
                 Prefetch('quotes', queryset=Quote.objects.prefetch_related('tags'))
             ).first()
-            
+
             response_serializer = QuoteSourceSerializer(source)
-            return success_response(data={'source': response_serializer.data}, status_code=status.HTTP_201_CREATED)
-        
+            return success_response(
+                data={
+                    'source': response_serializer.data},
+                status_code=status.HTTP_201_CREATED)
+
         return error_response(
             message='Validation failed',
             code='VALIDATION_ERROR',
@@ -347,15 +345,15 @@ class QuoteSourceDetailView(views.APIView):
         """Update a quote source"""
         source = self.get_object(source_id)
         serializer = QuoteSourceCreateUpdateSerializer(source, data=request.data, partial=True)
-        
+
         if serializer.is_valid():
             serializer.save()
-            
+
             # Return updated source
             updated_source = self.get_object(source_id)
             response_serializer = QuoteSourceSerializer(updated_source)
             return success_response(data={'source': response_serializer.data})
-        
+
         return error_response(
             message='Validation failed',
             code='VALIDATION_ERROR',
@@ -367,7 +365,9 @@ class QuoteSourceDetailView(views.APIView):
         """Delete a quote source and all its quotes"""
         source = self.get_object(source_id)
         source.delete()
-        return success_response(message='Quote source deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Quote source deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== QUOTE VIEWS ====================
@@ -386,12 +386,12 @@ class QuoteListCreateView(views.APIView):
         """List all quotes for a source"""
         source = self.get_source(source_id)
         quotes = Quote.objects.filter(source=source).prefetch_related('tags')
-        
+
         # Optional filtering by tag
         tag = request.query_params.get('tag')
         if tag:
             quotes = quotes.filter(tags__tag__icontains=tag).distinct()
-        
+
         serializer = QuoteSerializer(quotes, many=True)
         return success_response(data=serializer.data, count=quotes.count())
 
@@ -399,18 +399,21 @@ class QuoteListCreateView(views.APIView):
         """Create a new quote for a source"""
         source = self.get_source(source_id)
         serializer = QuoteCreateUpdateSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             serializer.save(source=source)
-            
+
             # Return full quote with tags
             quote = Quote.objects.filter(
                 id=serializer.data['id']
             ).prefetch_related('tags').first()
-            
+
             response_serializer = QuoteSerializer(quote)
-            return success_response(data={'quote': response_serializer.data}, status_code=status.HTTP_201_CREATED)
-        
+            return success_response(
+                data={
+                    'quote': response_serializer.data},
+                status_code=status.HTTP_201_CREATED)
+
         return error_response(
             message='Validation failed',
             code='VALIDATION_ERROR',
@@ -446,7 +449,7 @@ class QuoteDetailView(views.APIView):
                 code='NOT_FOUND',
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
+
         serializer = QuoteSerializer(quote)
         return success_response(data={'quote': serializer.data})
 
@@ -459,17 +462,17 @@ class QuoteDetailView(views.APIView):
                 code='NOT_FOUND',
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
+
         serializer = QuoteCreateUpdateSerializer(quote, data=request.data, partial=True)
-        
+
         if serializer.is_valid():
             serializer.save()
-            
+
             # Return updated quote
             updated_quote = self.get_object(quote_id)
             response_serializer = QuoteSerializer(updated_quote)
             return success_response(data={'quote': response_serializer.data})
-        
+
         return error_response(
             message='Validation failed',
             code='VALIDATION_ERROR',
@@ -486,9 +489,11 @@ class QuoteDetailView(views.APIView):
                 code='NOT_FOUND',
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
+
         quote.delete()
-        return success_response(message='Quote deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Quote deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== FUZZY SEARCH VIEW ====================
@@ -501,7 +506,7 @@ def calculate_similarity(str1, str2):
 class QuoteFuzzySearchView(views.APIView):
     """
     GET /api/quotes/search/?q=<query> - Fuzzy search across all quote sources and quotes
-    
+
     Search algorithm:
     - Searches in source titles, quote text, authors, and tags
     - Uses fuzzy matching with similarity scoring
@@ -511,45 +516,45 @@ class QuoteFuzzySearchView(views.APIView):
 
     def get(self, request):
         query = request.query_params.get('q', '').strip()
-        
+
         if not query:
             return error_response(
                 message='Search query is required',
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if len(query) < 2:
             return error_response(
                 message='Search query must be at least 2 characters',
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Get all sources for the user
         sources = QuoteSource.objects.filter(user=request.user).prefetch_related(
             Prefetch('quotes', queryset=Quote.objects.prefetch_related('tags'))
         )
-        
+
         results = []
         query_lower = query.lower()
-        
+
         for source in sources:
             matched_quotes = []
             relevance_score = 0
             match_types = []
-            
+
             # Check title match (highest priority)
             title_similarity = calculate_similarity(query, source.title)
             if title_similarity > 0.3 or query_lower in source.title.lower():
                 relevance_score += title_similarity * 10
                 match_types.append('title')
-            
+
             # Check quotes
             for quote in source.quotes.all():
                 quote_matched = False
                 quote_score = 0
-                
+
                 # Check quote text
                 text_similarity = calculate_similarity(query, quote.text)
                 if text_similarity > 0.3 or query_lower in quote.text.lower():
@@ -557,7 +562,7 @@ class QuoteFuzzySearchView(views.APIView):
                     quote_matched = True
                     if 'text' not in match_types:
                         match_types.append('text')
-                
+
                 # Check author
                 author_similarity = calculate_similarity(query, quote.author)
                 if author_similarity > 0.4 or query_lower in quote.author.lower():
@@ -565,7 +570,7 @@ class QuoteFuzzySearchView(views.APIView):
                     quote_matched = True
                     if 'author' not in match_types:
                         match_types.append('author')
-                
+
                 # Check tags
                 for tag_obj in quote.tags.all():
                     tag_similarity = calculate_similarity(query, tag_obj.tag)
@@ -574,11 +579,11 @@ class QuoteFuzzySearchView(views.APIView):
                         quote_matched = True
                         if 'tag' not in match_types:
                             match_types.append('tag')
-                
+
                 if quote_matched:
                     matched_quotes.append(quote)
                     relevance_score += quote_score
-            
+
             # Add to results if there's any match
             if relevance_score > 0:
                 results.append({
@@ -587,27 +592,27 @@ class QuoteFuzzySearchView(views.APIView):
                     'relevance_score': relevance_score,
                     'match_type': ', '.join(match_types) if match_types else 'general'
                 })
-        
+
         # Sort by relevance score (descending)
         results.sort(key=lambda x: x['relevance_score'], reverse=True)
-        
+
         # Limit results
         max_results = int(request.query_params.get('limit', 20))
         results = results[:max_results]
-        
+
         # Serialize results
         serialized_results = []
         for result in results:
             source_serializer = QuoteSourceListSerializer(result['source'])
             quotes_serializer = QuoteSerializer(result['matched_quotes'], many=True)
-            
+
             serialized_results.append({
                 'source': source_serializer.data,
                 'matched_quotes': quotes_serializer.data,
                 'relevance_score': round(result['relevance_score'], 2),
                 'match_type': result['match_type']
             })
-        
+
         return success_response(
             data={
                 'query': query,
@@ -630,7 +635,7 @@ class QuoteTagsView(views.APIView):
         tags = QuoteTag.objects.filter(
             quote__source__user=request.user
         ).values_list('tag', flat=True).distinct().order_by('tag')
-        
+
         return success_response(
             data={
                 'count': len(tags),
@@ -688,7 +693,9 @@ class HabitDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Habit deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Habit deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 class ScoringRuleListCreateView(generics.ListCreateAPIView):
@@ -738,7 +745,9 @@ class ScoringRuleDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Scoring rule deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Scoring rule deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 class DailyHabitScoreView(views.APIView):
@@ -751,14 +760,14 @@ class DailyHabitScoreView(views.APIView):
     def get(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
-        
+
         queryset = DailyHabitScore.objects.filter(user=self.request.user)
-        
+
         if start_date:
             queryset = queryset.filter(date__gte=start_date)
         if end_date:
             queryset = queryset.filter(date__lte=end_date)
-            
+
         serializer = DailyHabitScoreSerializer(queryset, many=True)
         return success_response(data=serializer.data, count=queryset.count())
 
@@ -766,25 +775,27 @@ class DailyHabitScoreView(views.APIView):
         date = request.data.get('date')
         habit_id = request.data.get('habit_id')
         score = request.data.get('score')
-        
+
         if not all([date, habit_id, score is not None]):
             return error_response(
                 message='Missing required fields',
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-            
+
         habit = get_object_or_404(Habit, id=habit_id, user=self.request.user)
-        
+
         score_obj, created = DailyHabitScore.objects.update_or_create(
             user=self.request.user,
             date=date,
             habit=habit,
             defaults={'score': score}
         )
-        
+
         serializer = DailyHabitScoreSerializer(score_obj)
-        return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return success_response(
+            data=serializer.data,
+            status_code=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class PointsDataView(views.APIView):
@@ -801,13 +812,13 @@ class PointsDataView(views.APIView):
         # Fetch habits and rules
         habits = Habit.objects.filter(user=self.request.user)
         rules = ScoringRule.objects.filter(user=self.request.user)
-        
+
         # Fetch daily scores
         daily_scores = DailyHabitScore.objects.filter(user=self.request.user)
-        
+
         # Build the daily data dictionary
         daily_data = {}
-        
+
         for score in daily_scores:
             date_str = score.date.strftime('%Y-%m-%d')
             if date_str not in daily_data:
@@ -844,7 +855,8 @@ class PointsAnalyticsStreaksView(views.APIView):
 
         for habit in habits:
             # Get all scores for this habit ordered by date
-            scores = DailyHabitScore.objects.filter(user=self.request.user, habit=habit).order_by('date')
+            scores = DailyHabitScore.objects.filter(
+                user=self.request.user, habit=habit).order_by('date')
 
             # Compute best streak and current streak
             best = 0
@@ -872,7 +884,8 @@ class PointsAnalyticsStreaksView(views.APIView):
             today = datetime.date.today()
             day_cursor = today
             while True:
-                score_obj = DailyHabitScore.objects.filter(user=self.request.user, habit=habit, date=day_cursor).first()
+                score_obj = DailyHabitScore.objects.filter(
+                    user=self.request.user, habit=habit, date=day_cursor).first()
                 if score_obj and (score_obj.score or 0) > 0:
                     current += 1
                     day_cursor = day_cursor - timedelta(days=1)
@@ -904,7 +917,8 @@ class PointsAnalyticsTodayDistributionView(views.APIView):
         total_score = 0
 
         for habit in habits:
-            score_obj = DailyHabitScore.objects.filter(user=self.request.user, habit=habit, date=today).first()
+            score_obj = DailyHabitScore.objects.filter(
+                user=self.request.user, habit=habit, date=today).first()
             score_val = int(score_obj.score) if score_obj and score_obj.score is not None else 0
             habit_list.append({
                 'habit_id': habit.id,
@@ -944,7 +958,9 @@ class PointsAnalyticsHabitPerformance7View(views.APIView):
         date_list = [(start_date + timedelta(days=i)).isoformat() for i in range(7)]
 
         for habit in habits_qs:
-            scores = DailyHabitScore.objects.filter(user=request.user, habit=habit, date__range=(start_date, end_date))
+            scores = DailyHabitScore.objects.filter(
+                user=request.user, habit=habit, date__range=(
+                    start_date, end_date))
             score_map = {s.date.isoformat(): s.score for s in scores}
             series = []
             for d in date_list:
@@ -984,8 +1000,11 @@ class PointsAnalyticsHabitTrend30View(views.APIView):
         start_date_param = request.query_params.get('start_date')
         end_date_param = request.query_params.get('end_date')
 
-        end_date = datetime.date.today() if not end_date_param else datetime.datetime.strptime(end_date_param, '%Y-%m-%d').date()
-        start_date = end_date - timedelta(days=29) if not start_date_param else datetime.datetime.strptime(start_date_param, '%Y-%m-%d').date()
+        end_date = datetime.date.today() if not end_date_param else datetime.datetime.strptime(
+            end_date_param, '%Y-%m-%d').date()
+        start_date = end_date - timedelta(
+            days=29) if not start_date_param else datetime.datetime.strptime(
+            start_date_param, '%Y-%m-%d').date()
 
         try:
             min_score_val = int(min_score) if min_score is not None else None
@@ -1004,7 +1023,9 @@ class PointsAnalyticsHabitTrend30View(views.APIView):
         results = []
 
         for habit in habits_qs:
-            scores = DailyHabitScore.objects.filter(user=request.user, habit=habit, date__range=(start_date, end_date))
+            scores = DailyHabitScore.objects.filter(
+                user=request.user, habit=habit, date__range=(
+                    start_date, end_date))
             if min_score_val is not None:
                 scores = scores.filter(score__gte=min_score_val)
             score_map = {s.date.isoformat(): s.score for s in scores}
@@ -1053,7 +1074,7 @@ class PopulateDataView(views.APIView):
             {'name': 'Coding', 'target': 4, 'range_max': 8},
             {'name': 'Water Intake', 'target': 8, 'range_max': 12},
         ]
-        
+
         created_habits = []
         for h_data in habits_data:
             habit, _ = Habit.objects.get_or_create(
@@ -1073,7 +1094,7 @@ class PopulateDataView(views.APIView):
             {'activity': 'Reading', 'max_points': 5, 'scoring_logic': '1 point per 10 pages'},
             {'activity': 'Coding', 'max_points': 15, 'scoring_logic': '2 points per hour'},
         ]
-        
+
         for r_data in rules_data:
             ScoringRule.objects.get_or_create(
                 user=user,
@@ -1087,7 +1108,7 @@ class PopulateDataView(views.APIView):
 
         # --- Populate Daily Scores ---
         today = datetime.date.today()
-        for i in range(30): # Last 30 days
+        for i in range(30):  # Last 30 days
             date = today - timedelta(days=i)
             for habit in created_habits:
                 # Random score between 0 and range_max
@@ -1101,7 +1122,7 @@ class PopulateDataView(views.APIView):
 
         # --- Populate Journal ---
         journal_count = 0
-        
+
         # Moods and dummy content
         # moods = ['Happy', 'Sad', 'Neutral', 'Excited', 'Tired', 'Grateful']
         journal_templates = [
@@ -1117,7 +1138,7 @@ class PopulateDataView(views.APIView):
         topics = ['API design', 'database migration', 'frontend state', 'deployment']
         adverbs = ['well', 'poorly', 'surprisingly well', 'as expected']
 
-        for i in range(365): # Last 365 days
+        for i in range(365):  # Last 365 days
             date = today - timedelta(days=i)
             # 70% chance to have an entry
             if random.random() < 0.7:
@@ -1146,7 +1167,7 @@ class PopulateDataView(views.APIView):
             {'title': 'Dune', 'type': 'Book', 'cover_image': 'https://placehold.co/400x600/f59e0b/ffffff/png?text=Dune'},
             {'title': 'Silicon Valley', 'type': 'Web Series', 'cover_image': 'https://placehold.co/400x600/3b82f6/ffffff/png?text=Silicon+Valley'},
         ]
-        
+
         quotes_data = [
             "The only way to do great work is to love what you do.",
             "I'm going to make him an offer he can't refuse.",
@@ -1159,7 +1180,7 @@ class PopulateDataView(views.APIView):
             "I feel the need... the need for speed.",
             "Carpe diem. Seize the day, boys. Make your lives extraordinary.",
         ]
-        
+
         source_count = 0
         quote_count = 0
 
@@ -1175,7 +1196,7 @@ class PopulateDataView(views.APIView):
             )
             if created:
                 source_count += 1
-            
+
             # Add 3-5 quotes for this source
             for _ in range(random.randint(3, 5)):
                 text = random.choice(quotes_data)
@@ -1185,11 +1206,12 @@ class PopulateDataView(views.APIView):
                         id=str(uuid.uuid4()),
                         source=source,
                         text=text,
-                        author="Unknown", # Simplified
+                        author="Unknown",  # Simplified
                         image=""
                     )
                     # Add tags
-                    tags = random.sample(['Inspirational', 'Funny', 'Life', 'Tech', 'Wisdom'], k=random.randint(1, 3))
+                    tags = random.sample(['Inspirational', 'Funny', 'Life',
+                                         'Tech', 'Wisdom'], k=random.randint(1, 3))
                     for tag in tags:
                         QuoteTag.objects.create(quote=quote, tag=tag)
                     quote_count += 1
@@ -1202,10 +1224,10 @@ class PopulateDataView(views.APIView):
             "https://placehold.co/600x400/3b82f6/ffffff/png?text=3D+Donut",
         ]
         achievement_titles = [
-            "First 10k Revenue", "Marathon Completed", "Read 50 Books", 
+            "First 10k Revenue", "Marathon Completed", "Read 50 Books",
             "New Car", "Dream Vacation", "Project Launch", "Weight Loss Goal"
         ]
-        
+
         achievements_count = 0
         # Create 50 achievements spanning 2020-2025
         start_date = datetime.date(2020, 1, 1)
@@ -1217,10 +1239,10 @@ class PopulateDataView(views.APIView):
                 # Random date between 2020 and 2025
                 random_days = random.randint(0, days_range)
                 ach_date = start_date + timedelta(days=random_days)
-                
+
                 title = random.choice(achievement_titles)
                 img_url = random.choice(achievement_images)
-                
+
                 Achievement.objects.create(
                     user=user,
                     title=title,
@@ -1268,33 +1290,33 @@ class PopulateDataView(views.APIView):
                 'price_range': (10, 150)
             }
         }
-        
+
         expenses_count = 0
         # Generate expenses for last 12 months with random intervals
         expense_start_date = today - timedelta(days=365)
-        
+
         # Generate 200-300 expenses over 12 months (random intervals)
         num_expenses = random.randint(200, 300)
-        
+
         for _ in range(num_expenses):
             # Random date in the last 12 months
             random_days = random.randint(0, 365)
             expense_date = expense_start_date + timedelta(days=random_days)
-            
+
             # Random category
             category = random.choice(list(expense_categories.keys()))
             category_data = expense_categories[category]
-            
+
             # Random item from category
             item = random.choice(category_data['items'])
-            
+
             # Random quantity (mostly 1, occasionally more)
             quantity = random.choices([1, 2, 3, 4, 5], weights=[70, 15, 8, 5, 2])[0]
-            
+
             # Random price within category range
             min_price, max_price = category_data['price_range']
             price = round(random.uniform(min_price, max_price), 2)
-            
+
             try:
                 Expense.objects.create(
                     user=user,
@@ -1312,43 +1334,43 @@ class PopulateDataView(views.APIView):
         # --- Populate Goals ---
         goal_templates = {
             'daily': [
-                'Drink 8 glasses of water', 'Read 30 minutes', 'Exercise for 45 mins', 
-                'Meditate for 10 mins', 'No sugar', 'Walk 10,000 steps', 
+                'Drink 8 glasses of water', 'Read 30 minutes', 'Exercise for 45 mins',
+                'Meditate for 10 mins', 'No sugar', 'Walk 10,000 steps',
                 'Write in journal', 'Learn 5 new words'
             ],
             'monthly': [
-                'Read 2 books', 'Save $500', 'Lose 2kg', 'Complete online course', 
-                'Visit a new place', 'Declutter house', 'Try a new recipe', 
+                'Read 2 books', 'Save $500', 'Lose 2kg', 'Complete online course',
+                'Visit a new place', 'Declutter house', 'Try a new recipe',
                 'Call parents every week'
             ],
             'future': [
-                'Buy a house', 'Travel to Japan', 'Learn to play piano', 
-                'Run a marathon', 'Start a business', 'Retire early', 
+                'Buy a house', 'Travel to Japan', 'Learn to play piano',
+                'Run a marathon', 'Start a business', 'Retire early',
                 'Learn Spanish', 'Write a book'
             ]
         }
-        
+
         goal_tags = ['health', 'finance', 'learning', 'personal', 'career', 'travel', 'mindfulness']
         goals_count = 0
-        
+
         for category, templates in goal_templates.items():
             # Create 5-10 goals per category
             num_goals = random.randint(5, 10)
             selected_goals = random.sample(templates, min(num_goals, len(templates)))
-            
+
             for text in selected_goals:
                 status_choice = random.choices(
-                    ['active', 'completed', 'blocked', 'trashed'], 
+                    ['active', 'completed', 'blocked', 'trashed'],
                     weights=[50, 30, 10, 10]
                 )[0]
-                
+
                 # Random tags (1-3 tags)
                 num_tags = random.randint(1, 3)
                 tags = random.sample(goal_tags, num_tags)
-                
+
                 created_at = today - timedelta(days=random.randint(1, 90))
                 completed_at = None
-                
+
                 if status_choice == 'completed':
                     # Completed after created_at
                     days_to_complete = random.randint(1, 30)
@@ -1356,7 +1378,6 @@ class PopulateDataView(views.APIView):
                     if completed_at > datetime.date.today():
                         completed_at = datetime.date.today()
 
-                
                 try:
                     Goal.objects.create(
                         user=user,
@@ -1432,7 +1453,9 @@ class MoodDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Mood deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Mood deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 class WaterListCreateView(generics.ListCreateAPIView):
@@ -1482,8 +1505,9 @@ class WaterDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Water intake deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
-
+        return success_response(
+            message='Water intake deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== ACHIEVEMENT VIEWS ====================
@@ -1535,7 +1559,9 @@ class AchievementDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Achievement deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Achievement deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== EXPENSE VIEWS ====================
@@ -1544,7 +1570,7 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
     """
     GET /api/expenses/ - List all expenses for user (with optional filtering)
     POST /api/expenses/ - Create a new expense
-    
+
     Query Parameters:
     - year: Filter by year (YYYY)
     - month: Filter by month (0-11, where 0 is January)
@@ -1558,11 +1584,11 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Expense.objects.filter(user=self.request.user)
-        
+
         # Filter by year and month
         year = self.request.query_params.get('year')
         month = self.request.query_params.get('month')
-        
+
         if year and month is not None:
             try:
                 year = int(year)
@@ -1574,50 +1600,50 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
                 )
             except (ValueError, TypeError):
                 pass
-        
+
         # Filter by category
         category = self.request.query_params.get('category')
         if category:
             queryset = queryset.filter(category__iexact=category)
-        
+
         # Filter by date range
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
-        
+
         if start_date:
             try:
                 start_date_obj = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
                 queryset = queryset.filter(date__gte=start_date_obj)
             except ValueError:
                 pass
-        
+
         if end_date:
             try:
                 end_date_obj = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
                 queryset = queryset.filter(date__lte=end_date_obj)
             except ValueError:
                 pass
-        
+
         return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        
+
         # Calculate summary statistics
         total_expenses = queryset.count()
         total_amount = sum(expense.total for expense in queryset)
-        
+
         # Category breakdown
         categories = {}
         for expense in queryset:
             if expense.category not in categories:
                 categories[expense.category] = 0
             categories[expense.category] += float(expense.total)
-        
+
         return success_response(
             data={
                 'count': total_expenses,
@@ -1640,34 +1666,36 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
-    
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return success_response(data={'expense': serializer.data})
-    
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        
+
         return success_response(
             data={'expense': serializer.data},
             message='Expense updated successfully'
         )
-    
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Expense deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Expense deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 class ExpenseSummaryView(views.APIView):
     """
     GET /api/expenses/summary/ - Get expense summary with totals and statistics
-    
+
     Query Parameters:
     - year: Filter by year (YYYY)
     - month: Filter by month (0-11)
@@ -1675,16 +1703,16 @@ class ExpenseSummaryView(views.APIView):
     - end_date: End date (YYYY-MM-DD)
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         queryset = Expense.objects.filter(user=request.user)
-        
+
         # Apply filters
         year = request.query_params.get('year')
         month = request.query_params.get('month')
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
-        
+
         if year and month is not None:
             try:
                 queryset = queryset.filter(
@@ -1693,29 +1721,33 @@ class ExpenseSummaryView(views.APIView):
                 )
             except (ValueError, TypeError):
                 pass
-        
+
         if start_date:
             try:
-                queryset = queryset.filter(date__gte=datetime.datetime.strptime(start_date, '%Y-%m-%d').date())
+                queryset = queryset.filter(
+                    date__gte=datetime.datetime.strptime(
+                        start_date, '%Y-%m-%d').date())
             except ValueError:
                 pass
-        
+
         if end_date:
             try:
-                queryset = queryset.filter(date__lte=datetime.datetime.strptime(end_date, '%Y-%m-%d').date())
+                queryset = queryset.filter(
+                    date__lte=datetime.datetime.strptime(
+                        end_date, '%Y-%m-%d').date())
             except ValueError:
                 pass
-        
+
         # Calculate statistics
         total_expenses = queryset.count()
         total_amount = sum(expense.total for expense in queryset)
-        
+
         # Average per expense
         avg_per_expense = total_amount / total_expenses if total_expenses > 0 else 0
-        
+
         # Get unique categories count
         categories = set(expense.category for expense in queryset)
-        
+
         return success_response(data={
             'summary': {
                 'total_expenses': total_expenses,
@@ -1730,20 +1762,20 @@ class ExpenseSummaryView(views.APIView):
 class ExpenseCategoriesView(views.APIView):
     """
     GET /api/expenses/categories/ - Get all expense categories with totals
-    
+
     Query Parameters:
     - year: Filter by year (YYYY)
     - month: Filter by month (0-11)
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         queryset = Expense.objects.filter(user=request.user)
-        
+
         # Apply filters
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        
+
         if year and month is not None:
             try:
                 queryset = queryset.filter(
@@ -1752,7 +1784,7 @@ class ExpenseCategoriesView(views.APIView):
                 )
             except (ValueError, TypeError):
                 pass
-        
+
         # Group by category
         categories = {}
         for expense in queryset:
@@ -1764,33 +1796,33 @@ class ExpenseCategoriesView(views.APIView):
                 }
             categories[expense.category]['count'] += 1
             categories[expense.category]['total'] += float(expense.total)
-        
+
         # Sort by total (descending)
         sorted_categories = sorted(
             categories.values(),
             key=lambda x: x['total'],
             reverse=True
         )
-        
+
         return success_response(data=sorted_categories, count=len(sorted_categories))
 
 
 class ExpenseAnalyticsView(views.APIView):
     """
     GET /api/expenses/analytics/ - Get detailed analytics for expenses
-    
+
     Query Parameters:
     - year: Filter by year (YYYY)
     - month: Filter by month (0-11)
-    
+
     Returns daily breakdown, category breakdown, and trends
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         year = request.query_params.get('year')
         month = request.query_params.get('month')
-        
+
         if not year or month is None:
             # Default to current month
             today = datetime.date.today()
@@ -1806,34 +1838,34 @@ class ExpenseAnalyticsView(views.APIView):
                     code='VALIDATION_ERROR',
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
-        
+
         # Get expenses for the month
         queryset = Expense.objects.filter(
             user=request.user,
             date__year=year,
             date__month=month + 1
         )
-        
+
         # Daily breakdown
         daily_totals = {}
         category_totals = {}
-        
+
         for expense in queryset:
             day = expense.date.day
             if day not in daily_totals:
                 daily_totals[day] = 0
             daily_totals[day] += float(expense.total)
-            
+
             if expense.category not in category_totals:
                 category_totals[expense.category] = 0
             category_totals[expense.category] += float(expense.total)
-        
+
         # Convert to list format
         daily_data = [
             {'day': day, 'total': total}
             for day, total in sorted(daily_totals.items())
         ]
-        
+
         category_data = [
             {'name': category, 'value': total}
             for category, total in sorted(
@@ -1842,14 +1874,14 @@ class ExpenseAnalyticsView(views.APIView):
                 reverse=True
             )
         ]
-        
+
         # Total for the month
         total_month = sum(daily_totals.values())
-        
+
         # Days in month
         import calendar
         days_in_month = calendar.monthrange(year, month + 1)[1]
-        
+
         return success_response(
             data={
                 'analytics': {
@@ -1868,17 +1900,17 @@ class ExpenseAnalyticsView(views.APIView):
 class ExpenseMonthlyStatsView(views.APIView):
     """
     GET /api/expenses/monthly-stats/ - Get monthly statistics for expenses
-    
+
     Query Parameters:
     - year: Year to get stats for (YYYY), defaults to current year
-    
+
     Returns monthly totals for the entire year
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         year = request.query_params.get('year')
-        
+
         if not year:
             year = datetime.date.today().year
         else:
@@ -1890,13 +1922,13 @@ class ExpenseMonthlyStatsView(views.APIView):
                     code='VALIDATION_ERROR',
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
-        
+
         # Get all expenses for the year
         queryset = Expense.objects.filter(
             user=request.user,
             date__year=year
         )
-        
+
         # Group by month
         monthly_data = {}
         for month in range(1, 13):
@@ -1906,18 +1938,18 @@ class ExpenseMonthlyStatsView(views.APIView):
                 'count': 0,
                 'total': 0
             }
-        
+
         for expense in queryset:
             month = expense.date.month
             monthly_data[month]['count'] += 1
             monthly_data[month]['total'] += float(expense.total)
-        
+
         # Convert to list
         monthly_list = list(monthly_data.values())
-        
+
         # Calculate year total
         year_total = sum(month['total'] for month in monthly_list)
-        
+
         return success_response(data={
             'year': year,
             'total_amount': year_total,
@@ -1928,27 +1960,27 @@ class ExpenseMonthlyStatsView(views.APIView):
 class ExpenseTopItemsView(views.APIView):
     """
     GET /api/expenses/top-items/ - Get top expenses by amount
-    
+
     Query Parameters:
     - limit: Number of items to return (default: 10)
     - year: Filter by year (YYYY)
     - month: Filter by month (0-11)
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         queryset = Expense.objects.filter(user=request.user)
-        
+
         # Apply filters
         year = request.query_params.get('year')
         month = request.query_params.get('month')
         limit = request.query_params.get('limit', 10)
-        
+
         try:
             limit = int(limit)
         except (ValueError, TypeError):
             limit = 10
-        
+
         if year and month is not None:
             try:
                 queryset = queryset.filter(
@@ -1957,7 +1989,7 @@ class ExpenseTopItemsView(views.APIView):
                 )
             except (ValueError, TypeError):
                 pass
-        
+
         # Get expenses and sort by total
         expenses = list(queryset)
         expenses_with_total = [
@@ -1972,14 +2004,14 @@ class ExpenseTopItemsView(views.APIView):
             }
             for expense in expenses
         ]
-        
+
         # Sort by total (descending)
         sorted_expenses = sorted(
             expenses_with_total,
             key=lambda x: x['total'],
             reverse=True
         )[:limit]
-        
+
         return success_response(data=sorted_expenses, count=len(sorted_expenses))
 
 
@@ -1989,7 +2021,7 @@ class GoalListCreateView(generics.ListCreateAPIView):
     """
     GET /api/goals/ - List all goals for user
     POST /api/goals/ - Create a new goal
-    
+
     Query Parameters:
     - category: Filter by category (daily, monthly, future)
     - status: Filter by status (active, completed, blocked, trashed)
@@ -2000,26 +2032,26 @@ class GoalListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Goal.objects.filter(user=self.request.user)
-        
+
         # Filter by category
         category = self.request.query_params.get('category')
         if category:
             queryset = queryset.filter(category=category)
-            
+
         # Filter by status
         status_param = self.request.query_params.get('status')
         if status_param:
             queryset = queryset.filter(status=status_param)
-            
+
         return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        
+
         return success_response(data=serializer.data, count=queryset.count())
 
     def create(self, request, *args, **kwargs):
@@ -2042,7 +2074,7 @@ class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Goal.objects.filter(user=self.request.user)
-        
+
     def perform_update(self, serializer):
         # If status is changing to 'completed', set completed_at
         if 'status' in serializer.validated_data and serializer.validated_data['status'] == 'completed':
@@ -2064,13 +2096,15 @@ class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        
+
         return success_response(data=serializer.data, message='Goal updated successfully')
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success_response(message='Goal deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+        return success_response(
+            message='Goal deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ==================== PLANNER VIEWS ====================
@@ -2088,11 +2122,11 @@ class PlannerDataView(views.APIView):
         Retrieve all planner data for the authenticated user
         """
         user = request.user
-        
+
         # Get all blocks with their tasks
         blocks = PlannerBlock.objects.filter(user=user).prefetch_related('tasks')
         blocks_data = []
-        
+
         for block in blocks:
             tasks_data = [
                 {
@@ -2102,7 +2136,7 @@ class PlannerDataView(views.APIView):
                 }
                 for task in block.tasks.all()
             ]
-            
+
             blocks_data.append({
                 'id': block.id,
                 'title': block.title,
@@ -2110,7 +2144,7 @@ class PlannerDataView(views.APIView):
                 'y': block.y,
                 'tasks': tasks_data
             })
-        
+
         # Get all links
         links = PlannerLink.objects.filter(user=user)
         links_data = [
@@ -2121,13 +2155,13 @@ class PlannerDataView(views.APIView):
             }
             for link in links
         ]
-        
+
         # Get transform settings
         settings, _ = PlannerSettings.objects.get_or_create(
             user=user,
             defaults={'transform': {'scale': 1, 'panX': 0, 'panY': 0}}
         )
-        
+
         return success_response(data={
             'planner': {
                 'blocks': blocks_data,
@@ -2142,11 +2176,11 @@ class PlannerDataView(views.APIView):
         """
         user = request.user
         data = request.data
-        
+
         # Delete existing data
         PlannerBlock.objects.filter(user=user).delete()
         PlannerLink.objects.filter(user=user).delete()
-        
+
         # Create new blocks
         blocks_data = data.get('blocks', [])
         for block_data in blocks_data:
@@ -2157,7 +2191,7 @@ class PlannerDataView(views.APIView):
                 x=block_data.get('x', 0),
                 y=block_data.get('y', 0)
             )
-            
+
             # Create tasks for this block
             tasks_data = block_data.get('tasks', [])
             for idx, task_data in enumerate(tasks_data):
@@ -2168,7 +2202,7 @@ class PlannerDataView(views.APIView):
                     completed=task_data.get('completed', False),
                     order=idx
                 )
-        
+
         # Create new links
         links_data = data.get('links', [])
         for link_data in links_data:
@@ -2178,14 +2212,14 @@ class PlannerDataView(views.APIView):
                 from_block_id=link_data['from'],
                 to_block_id=link_data['to']
             )
-        
+
         # Update transform
         transform_data = data.get('transform', {'scale': 1, 'panX': 0, 'panY': 0})
         settings, _ = PlannerSettings.objects.update_or_create(
             user=user,
             defaults={'transform': transform_data}
         )
-        
+
         return success_response(message='Planner data updated successfully')
 
     def patch(self, request):
@@ -2194,13 +2228,13 @@ class PlannerDataView(views.APIView):
         """
         user = request.user
         data = request.data
-        
+
         # Update blocks if provided
         if 'blocks' in data:
             blocks_data = data['blocks']
             for block_data in blocks_data:
                 block_id = block_data['id']
-                
+
                 # Update or create block
                 block, created = PlannerBlock.objects.update_or_create(
                     id=block_id,
@@ -2211,12 +2245,12 @@ class PlannerDataView(views.APIView):
                         'y': block_data.get('y', 0)
                     }
                 )
-                
+
                 # Update tasks if provided
                 if 'tasks' in block_data:
                     # Delete existing tasks for this block
                     PlannerTask.objects.filter(block=block).delete()
-                    
+
                     # Create new tasks
                     tasks_data = block_data['tasks']
                     for idx, task_data in enumerate(tasks_data):
@@ -2227,12 +2261,12 @@ class PlannerDataView(views.APIView):
                             completed=task_data.get('completed', False),
                             order=idx
                         )
-        
+
         # Update links if provided
         if 'links' in data:
             # Delete existing links
             PlannerLink.objects.filter(user=user).delete()
-            
+
             # Create new links
             links_data = data['links']
             for link_data in links_data:
@@ -2242,14 +2276,14 @@ class PlannerDataView(views.APIView):
                     from_block_id=link_data['from'],
                     to_block_id=link_data['to']
                 )
-        
+
         # Update transform if provided
         if 'transform' in data:
             settings, _ = PlannerSettings.objects.update_or_create(
                 user=user,
                 defaults={'transform': data['transform']}
             )
-        
+
         return success_response(message='Planner data updated successfully')
 
 
@@ -2271,7 +2305,7 @@ class PlannerBlockDetailView(views.APIView):
     def get(self, request, block_id):
         """Get a specific block with its tasks"""
         block = self.get_object(block_id)
-        
+
         tasks_data = [
             {
                 'id': task.id,
@@ -2280,7 +2314,7 @@ class PlannerBlockDetailView(views.APIView):
             }
             for task in block.tasks.all()
         ]
-        
+
         return success_response(data={
             'block': {
                 'id': block.id,
@@ -2295,18 +2329,18 @@ class PlannerBlockDetailView(views.APIView):
         """Update a specific block"""
         block = self.get_object(block_id)
         data = request.data
-        
+
         # Update block fields
         block.title = data.get('title', block.title)
         block.x = data.get('x', block.x)
         block.y = data.get('y', block.y)
         block.save()
-        
+
         # Update tasks if provided
         if 'tasks' in data:
             # Delete existing tasks
             PlannerTask.objects.filter(block=block).delete()
-            
+
             # Create new tasks
             tasks_data = data['tasks']
             for idx, task_data in enumerate(tasks_data):
@@ -2317,23 +2351,25 @@ class PlannerBlockDetailView(views.APIView):
                     completed=task_data.get('completed', False),
                     order=idx
                 )
-        
+
         return success_response(message='Block updated successfully')
 
     def delete(self, request, block_id):
         """Delete a specific block and its associated links"""
         block = self.get_object(block_id)
-        
+
         # Delete associated links
         PlannerLink.objects.filter(
             Q(from_block=block) | Q(to_block=block),
             user=request.user
         ).delete()
-        
+
         # Delete the block (tasks will be cascade deleted)
         block.delete()
-        
-        return success_response(message='Block deleted successfully', status_code=status.HTTP_204_NO_CONTENT)
+
+        return success_response(
+            message='Block deleted successfully',
+            status_code=status.HTTP_204_NO_CONTENT)
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
@@ -2345,7 +2381,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
         # Get or create user profile
         profile, created = UserProfile.objects.get_or_create(
@@ -2378,12 +2414,12 @@ class ExportDataView(views.APIView):
     GET /export/pdf/ - Export as PDF
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, format_type):
         try:
             # Gather all user data
             data = self._gather_user_data(request.user)
-            
+
             if format_type == 'json':
                 return self._export_json(data)
             elif format_type == 'csv':
@@ -2402,7 +2438,7 @@ class ExportDataView(views.APIView):
                 code='SERVER_ERROR',
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
+
     def _gather_user_data(self, user):
         """Gather all user data for export"""
         # Journal entries
@@ -2416,7 +2452,7 @@ class ExportDataView(views.APIView):
             }
             for entry in journal_entries
         ]
-        
+
         # Habits and scores
         habits = Habit.objects.filter(user=user)
         habit_data = []
@@ -2437,7 +2473,7 @@ class ExportDataView(views.APIView):
                     for score in scores
                 ]
             })
-        
+
         # Expenses
         expenses = Expense.objects.filter(user=user)
         expense_data = [
@@ -2451,7 +2487,7 @@ class ExportDataView(views.APIView):
             }
             for expense in expenses
         ]
-        
+
         # Goals
         goals = Goal.objects.filter(user=user)
         goal_data = [
@@ -2468,7 +2504,7 @@ class ExportDataView(views.APIView):
             }
             for goal in goals
         ]
-        
+
         # Quotes
         quote_sources = QuoteSource.objects.filter(user=user).prefetch_related('quotes')
         quotes_data = []
@@ -2490,7 +2526,7 @@ class ExportDataView(views.APIView):
                 'cover_image': source.cover_image,
                 'quotes': quotes
             })
-        
+
         return {
             'user': {
                 'username': user.username,
@@ -2505,24 +2541,25 @@ class ExportDataView(views.APIView):
             'goals': goal_data,
             'quotes': quotes_data
         }
-    
+
     def _export_json(self, data):
         """Export data as JSON"""
         response = HttpResponse(
             json.dumps(data, indent=2, ensure_ascii=False),
             content_type='application/json'
         )
-        response['Content-Disposition'] = f'attachment; filename="tracker_data_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+        response['Content-Disposition'] = f'attachment; filename="tracker_data_{
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
         return response
-    
+
     def _export_csv(self, data):
         """Export data as CSV (multiple files in a zip)"""
         import zipfile
         import io
-        
+
         # Create a zip file in memory
         zip_buffer = io.BytesIO()
-        
+
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             # Journal entries CSV
             if data['journal_entries']:
@@ -2530,52 +2567,69 @@ class ExportDataView(views.APIView):
                 writer = csv.writer(journal_csv)
                 writer.writerow(['date', 'content', 'created_at', 'updated_at'])
                 for entry in data['journal_entries']:
-                    writer.writerow([entry['date'], entry['content'], entry['created_at'], entry['updated_at']])
+                    writer.writerow([entry['date'], entry['content'],
+                                    entry['created_at'], entry['updated_at']])
                 zip_file.writestr('journal_entries.csv', journal_csv.getvalue())
-            
+
             # Expenses CSV
             if data['expenses']:
                 expense_csv = io.StringIO()
                 writer = csv.writer(expense_csv)
                 writer.writerow(['id', 'amount', 'category', 'description', 'date', 'created_at'])
                 for expense in data['expenses']:
-                    writer.writerow([expense['id'], expense['amount'], expense['category'], expense['description'], expense['date'], expense['created_at']])
+                    writer.writerow([expense['id'],
+                                     expense['amount'],
+                                     expense['category'],
+                                     expense['description'],
+                                     expense['date'],
+                                     expense['created_at']])
                 zip_file.writestr('expenses.csv', expense_csv.getvalue())
-            
+
             # Goals CSV
             if data['goals']:
                 goals_csv = io.StringIO()
                 writer = csv.writer(goals_csv)
-                writer.writerow(['id', 'title', 'description', 'target_value', 'current_value', 'unit', 'deadline', 'status', 'created_at'])
+                writer.writerow(['id', 'title', 'description', 'target_value',
+                                'current_value', 'unit', 'deadline', 'status', 'created_at'])
                 for goal in data['goals']:
-                    writer.writerow([goal['id'], goal['title'], goal['description'], goal['target_value'], goal['current_value'], goal['unit'], goal['deadline'], goal['status'], goal['created_at']])
+                    writer.writerow([goal['id'],
+                                     goal['title'],
+                                     goal['description'],
+                                     goal['target_value'],
+                                     goal['current_value'],
+                                     goal['unit'],
+                                     goal['deadline'],
+                                     goal['status'],
+                                     goal['created_at']])
                 zip_file.writestr('goals.csv', goals_csv.getvalue())
-        
+
         zip_buffer.seek(0)
         response = HttpResponse(zip_buffer, content_type='application/zip')
-        response['Content-Disposition'] = f'attachment; filename="tracker_data_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.zip"'
+        response['Content-Disposition'] = f'attachment; filename="tracker_data_{
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.zip"'
         return response
-    
+
     def _export_pdf(self, data):
         """Export data as PDF report"""
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="tracker_report_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
-        
+        response['Content-Disposition'] = f'attachment; filename="tracker_report_{
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+
         # Create PDF document
         doc = SimpleDocTemplate(response, pagesize=letter)
         styles = getSampleStyleSheet()
         story = []
-        
+
         # Title
         title_style = styles['Heading1']
         story.append(Paragraph(f"Tracker Data Report - {data['user']['username']}", title_style))
         story.append(Spacer(1, 12))
-        
+
         # Export date
         normal_style = styles['Normal']
         story.append(Paragraph(f"Export Date: {data['export_date']}", normal_style))
         story.append(Spacer(1, 12))
-        
+
         # Summary section
         story.append(Paragraph("Summary", styles['Heading2']))
         story.append(Paragraph(f"Journal Entries: {len(data['journal_entries'])}", normal_style))
@@ -2584,35 +2638,44 @@ class ExportDataView(views.APIView):
         story.append(Paragraph(f"Goals: {len(data['goals'])}", normal_style))
         story.append(Paragraph(f"Quote Sources: {len(data['quotes'])}", normal_style))
         story.append(Spacer(1, 12))
-        
+
         # Recent journal entries
         if data['journal_entries']:
             story.append(Paragraph("Recent Journal Entries", styles['Heading2']))
             for entry in data['journal_entries'][:5]:  # Show last 5 entries
                 story.append(Paragraph(f"<b>{entry['date']}</b>", normal_style))
-                story.append(Paragraph(entry['content'][:200] + "..." if len(entry['content']) > 200 else entry['content'], normal_style))
+                story.append(Paragraph(
+                    entry['content'][:200] + "..." if len(entry['content']) > 200 else entry['content'], normal_style))
                 story.append(Spacer(1, 6))
-        
+
         # Recent expenses
         if data['expenses']:
             story.append(Paragraph("Recent Expenses", styles['Heading2']))
             for expense in data['expenses'][:5]:  # Show last 5 expenses
-                story.append(Paragraph(f"<b>{expense['date']}</b> - {expense['category']} - ${expense['amount']:.2f}", normal_style))
+                story.append(Paragraph(
+                    f"<b>{expense['date']}</b> - {expense['category']} - ${expense['amount']:.2f}", normal_style))
                 if expense['description']:
                     story.append(Paragraph(expense['description'], normal_style))
                 story.append(Spacer(1, 6))
-        
+
         # Goals
         if data['goals']:
             story.append(Paragraph("Goals", styles['Heading2']))
             for goal in data['goals']:
                 status_color = "green" if goal['status'] == 'completed' else "orange" if goal['status'] == 'in_progress' else "red"
-                story.append(Paragraph(f"<b>{goal['title']}</b> - <font color='{status_color}'>{goal['status']}</font>", normal_style))
-                story.append(Paragraph(f"Progress: {goal['current_value']}/{goal['target_value']} {goal['unit']}", normal_style))
+                story.append(Paragraph(
+                    f"<b>{goal['title']}</b> - <font color='{status_color}'>{goal['status']}</font>", normal_style))
+                story.append(
+                    Paragraph(
+                        f"Progress: {
+                            goal['current_value']}/{
+                            goal['target_value']} {
+                            goal['unit']}",
+                        normal_style))
                 if goal['deadline']:
                     story.append(Paragraph(f"Deadline: {goal['deadline']}", normal_style))
                 story.append(Spacer(1, 6))
-        
+
         doc.build(story)
         return response
 
@@ -2624,7 +2687,7 @@ class ImportDataView(views.APIView):
     POST /import/csv/ - Import from CSV (zip file)
     """
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request, format_type):
         try:
             if format_type == 'json':
@@ -2643,7 +2706,7 @@ class ImportDataView(views.APIView):
                 code='SERVER_ERROR',
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
+
     def _import_json(self, request):
         """Import data from JSON file"""
         if 'file' not in request.FILES:
@@ -2652,7 +2715,7 @@ class ImportDataView(views.APIView):
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         file = request.FILES['file']
         if not file.name.endswith('.json'):
             return error_response(
@@ -2660,11 +2723,11 @@ class ImportDataView(views.APIView):
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         try:
             content = json.loads(file.read().decode('utf-8'))
             results = self._process_import_data(request.user, content)
-            
+
             return success_response(data={
                 'message': 'Data imported successfully',
                 'results': results
@@ -2675,7 +2738,7 @@ class ImportDataView(views.APIView):
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-    
+
     def _import_csv(self, request):
         """Import data from CSV zip file"""
         if 'file' not in request.FILES:
@@ -2684,7 +2747,7 @@ class ImportDataView(views.APIView):
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         file = request.FILES['file']
         if not file.name.endswith('.zip'):
             return error_response(
@@ -2692,35 +2755,36 @@ class ImportDataView(views.APIView):
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
+
         import zipfile
         import io
-        
+
         try:
             zip_file = zipfile.ZipFile(file)
             results = {}
-            
+
             # Process journal entries
             if 'journal_entries.csv' in zip_file.namelist():
                 with zip_file.open('journal_entries.csv') as csv_file:
                     content = csv_file.read().decode('utf-8')
                     reader = csv.DictReader(io.StringIO(content))
-                    results['journal_entries'] = self._import_journal_entries(request.user, list(reader))
-            
+                    results['journal_entries'] = self._import_journal_entries(
+                        request.user, list(reader))
+
             # Process expenses
             if 'expenses.csv' in zip_file.namelist():
                 with zip_file.open('expenses.csv') as csv_file:
                     content = csv_file.read().decode('utf-8')
                     reader = csv.DictReader(io.StringIO(content))
                     results['expenses'] = self._import_expenses(request.user, list(reader))
-            
+
             # Process goals
             if 'goals.csv' in zip_file.namelist():
                 with zip_file.open('goals.csv') as csv_file:
                     content = csv_file.read().decode('utf-8')
                     reader = csv.DictReader(io.StringIO(content))
                     results['goals'] = self._import_goals(request.user, list(reader))
-            
+
             return success_response(data={
                 'message': 'Data imported successfully',
                 'results': results
@@ -2731,43 +2795,43 @@ class ImportDataView(views.APIView):
                 code='VALIDATION_ERROR',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-    
+
     def _process_import_data(self, user, data):
         """Process imported JSON data"""
         results = {}
-        
+
         # Import journal entries
         if 'journal_entries' in data:
             results['journal_entries'] = self._import_journal_entries(user, data['journal_entries'])
-        
+
         # Import expenses
         if 'expenses' in data:
             results['expenses'] = self._import_expenses(user, data['expenses'])
-        
+
         # Import goals
         if 'goals' in data:
             results['goals'] = self._import_goals(user, data['goals'])
-        
+
         # Import habits
         if 'habits' in data:
             results['habits'] = self._import_habits(user, data['habits'])
-        
+
         return results
-    
+
     def _import_journal_entries(self, user, entries):
         """Import journal entries"""
         imported = 0
         errors = []
-        
+
         for entry_data in entries:
             try:
                 date_str = entry_data.get('date')
                 if not date_str:
                     errors.append('Missing date for journal entry')
                     continue
-                
+
                 date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-                
+
                 JournalEntry.objects.update_or_create(
                     user=user,
                     date=date,
@@ -2778,23 +2842,23 @@ class ImportDataView(views.APIView):
                 imported += 1
             except Exception as e:
                 errors.append(f'Error importing journal entry: {str(e)}')
-        
+
         return {'imported': imported, 'errors': errors}
-    
+
     def _import_expenses(self, user, expenses):
         """Import expenses"""
         imported = 0
         errors = []
-        
+
         for expense_data in expenses:
             try:
                 date_str = expense_data.get('date')
                 if not date_str:
                     errors.append('Missing date for expense')
                     continue
-                
+
                 date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-                
+
                 Expense.objects.create(
                     user=user,
                     amount=expense_data.get('amount', 0),
@@ -2805,20 +2869,20 @@ class ImportDataView(views.APIView):
                 imported += 1
             except Exception as e:
                 errors.append(f'Error importing expense: {str(e)}')
-        
+
         return {'imported': imported, 'errors': errors}
-    
+
     def _import_goals(self, user, goals):
         """Import goals"""
         imported = 0
         errors = []
-        
+
         for goal_data in goals:
             try:
                 deadline = None
                 if goal_data.get('deadline'):
                     deadline = datetime.datetime.strptime(goal_data['deadline'], '%Y-%m-%d').date()
-                
+
                 Goal.objects.create(
                     user=user,
                     title=goal_data.get('title', ''),
@@ -2832,14 +2896,14 @@ class ImportDataView(views.APIView):
                 imported += 1
             except Exception as e:
                 errors.append(f'Error importing goal: {str(e)}')
-        
+
         return {'imported': imported, 'errors': errors}
-    
+
     def _import_habits(self, user, habits):
         """Import habits"""
         imported = 0
         errors = []
-        
+
         for habit_data in habits:
             try:
                 habit = Habit.objects.create(
@@ -2850,7 +2914,7 @@ class ImportDataView(views.APIView):
                     unit=habit_data.get('unit', ''),
                 )
                 imported += 1
-                
+
                 # Import scores if available
                 if 'scores' in habit_data:
                     for score_data in habit_data['scores']:
@@ -2870,7 +2934,7 @@ class ImportDataView(views.APIView):
                             errors.append(f'Error importing habit score: {str(e)}')
             except Exception as e:
                 errors.append(f'Error importing habit: {str(e)}')
-        
+
         return {'imported': imported, 'errors': errors}
 
 
@@ -2881,7 +2945,7 @@ class AnalyticsView(views.APIView):
     GET /analytics/yearly/ - Get yearly summary
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, period):
         try:
             if period == 'monthly':
@@ -2900,44 +2964,45 @@ class AnalyticsView(views.APIView):
                 code='SERVER_ERROR',
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
+
     def _get_monthly_analytics(self, user):
         """Get monthly analytics for current month"""
         now = datetime.datetime.now()
         current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+
         # Journal entries this month
         journal_entries = JournalEntry.objects.filter(
             user=user,
             date__gte=current_month_start.date(),
             date__lte=now.date()
         )
-        
+
         # Expenses this month
         expenses = Expense.objects.filter(
             user=user,
             date__gte=current_month_start.date(),
             date__lte=now.date()
         )
-        
+
         # Goals progress
         goals = Goal.objects.filter(user=user)
         active_goals = goals.filter(status='active')
         completed_goals = goals.filter(status='completed')
-        
+
         # Habit scores this month
         habit_scores = DailyHabitScore.objects.filter(
             user=user,
             date__gte=current_month_start.date(),
             date__lte=now.date()
         )
-        
+
         # Calculate metrics
         total_expenses = sum(expense.total for expense in expenses)
         expense_by_category = {}
         for expense in expenses:
-            expense_by_category[expense.category] = expense_by_category.get(expense.category, 0) + float(expense.total)
-        
+            expense_by_category[expense.category] = expense_by_category.get(
+                expense.category, 0) + float(expense.total)
+
         habit_performance = {}
         for score in habit_scores:
             habit_name = score.habit.name
@@ -2949,11 +3014,12 @@ class AnalyticsView(views.APIView):
                 }
             habit_performance[habit_name]['total_score'] += score.score
             habit_performance[habit_name]['days_tracked'] += 1
-        
+
         for habit in habit_performance:
             if habit_performance[habit]['days_tracked'] > 0:
-                habit_performance[habit]['average_score'] = habit_performance[habit]['total_score'] / habit_performance[habit]['days_tracked']
-        
+                habit_performance[habit]['average_score'] = habit_performance[habit]['total_score'] / \
+                    habit_performance[habit]['days_tracked']
+
         return success_response(data={
             'period': 'monthly',
             'month': now.strftime('%B %Y'),
@@ -2971,15 +3037,15 @@ class AnalyticsView(views.APIView):
                 'total_amount': float(total_expenses),
                 'transaction_count': expenses.count(),
                 'by_category': expense_by_category,
-                    'recent_expenses': [
+                'recent_expenses': [
                         {
                             'date': expense.date.strftime('%Y-%m-%d'),
                             'amount': float(expense.total),
                             'category': expense.category,
                             'description': expense.description
                         }
-                        for expense in expenses.order_by('-date')[:5]
-                    ]
+                    for expense in expenses.order_by('-date')[:5]
+                ]
             },
             'goals': {
                 'total_goals': goals.count(),
@@ -2992,28 +3058,35 @@ class AnalyticsView(views.APIView):
                 'total_days_tracked': habit_scores.values('date').distinct().count()
             }
         })
-    
+
     def _get_yearly_analytics(self, user):
         """Get yearly analytics for current year"""
         now = datetime.datetime.now()
         current_year_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+
         # Monthly data aggregation
         monthly_data = []
         for month in range(1, now.month + 1):
             month_start = now.replace(month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
             if month == 12:
-                month_end = now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+                month_end = now.replace(
+                    month=12,
+                    day=31,
+                    hour=23,
+                    minute=59,
+                    second=59,
+                    microsecond=999999)
             else:
-                month_end = now.replace(month=month + 1, day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
-            
+                month_end = now.replace(month=month + 1, day=1, hour=0, minute=0,
+                                        second=0, microsecond=0) - datetime.timedelta(days=1)
+
             # Journal entries for this month
             journal_count = JournalEntry.objects.filter(
                 user=user,
                 date__gte=month_start.date(),
                 date__lte=month_end.date()
             ).count()
-            
+
             # Expenses for this month
             month_expenses = Expense.objects.filter(
                 user=user,
@@ -3021,14 +3094,14 @@ class AnalyticsView(views.APIView):
                 date__lte=month_end.date()
             )
             month_total = sum(expense.total for expense in month_expenses)
-            
+
             monthly_data.append({
                 'month': month_start.strftime('%B'),
                 'journal_entries': journal_count,
                 'expenses_total': float(month_total),
                 'expenses_count': month_expenses.count()
             })
-        
+
         # Yearly totals
         yearly_expenses = Expense.objects.filter(
             user=user,
@@ -3036,26 +3109,27 @@ class AnalyticsView(views.APIView):
             date__lte=now.date()
         )
         total_expenses = sum(expense.total for expense in yearly_expenses)
-        
+
         yearly_journal = JournalEntry.objects.filter(
             user=user,
             date__gte=current_year_start.date(),
             date__lte=now.date()
         )
-        
+
         # Goals completed this year
         yearly_goals = Goal.objects.filter(
             user=user,
             created_at__gte=current_year_start
         )
-        
+
         # Top expense categories for the year
         expense_categories = {}
         for expense in yearly_expenses:
-            expense_categories[expense.category] = expense_categories.get(expense.category, 0) + float(expense.total)
-        
+            expense_categories[expense.category] = expense_categories.get(
+                expense.category, 0) + float(expense.total)
+
         top_categories = sorted(expense_categories.items(), key=lambda x: x[1], reverse=True)[:5]
-        
+
         return success_response(data={
             'period': 'yearly',
             'year': now.year,
@@ -3079,7 +3153,7 @@ class TempDataView(views.APIView):
     POST /api/temp-data/
     """
     permission_classes = []
-    
+
     def post(self, request):
         """
         Insert temporary data with current date timestamp for past 12 months
@@ -3088,7 +3162,7 @@ class TempDataView(views.APIView):
         import uuid
         from datetime import timedelta
         from django.contrib.auth.models import User
-        
+
         # Get or create a default user for temp data
         user, created = User.objects.get_or_create(
             username='temp_user',
@@ -3098,24 +3172,31 @@ class TempDataView(views.APIView):
                 'last_name': 'User'
             }
         )
-        
+
         current_datetime = timezone.now()
         current_date = current_datetime.date()
-        
+
         # Create data for past 12 months
         expenses_created = 0
         goals_created = 0
         habits_created = 0
         journal_entries_created = 0
-        
-        expense_categories = ['Food', 'Transport', 'Entertainment', 'Shopping', 'Healthcare', 'Education', 'Utilities']
+
+        expense_categories = [
+            'Food',
+            'Transport',
+            'Entertainment',
+            'Shopping',
+            'Healthcare',
+            'Education',
+            'Utilities']
         goal_categories = ['daily', 'monthly', 'future']
         goal_statuses = ['active', 'completed', 'blocked']
-        
+
         # Generate data for each of the past 12 months
         for months_ago in range(12):
             target_date = current_date - timedelta(days=months_ago * 30)  # Approximate months
-            
+
             # Create 5-15 expenses per month
             num_expenses = random.randint(5, 15)
             for _ in range(num_expenses):
@@ -3129,7 +3210,7 @@ class TempDataView(views.APIView):
                     price=round(random.uniform(5.0, 200.0), 2)
                 )
                 expenses_created += 1
-            
+
             # Create 2-5 goals per month
             num_goals = random.randint(2, 5)
             for _ in range(num_goals):
@@ -3141,7 +3222,7 @@ class TempDataView(views.APIView):
                     tags=[random.choice(['health', 'learning', 'finance', 'personal', 'career'])]
                 )
                 goals_created += 1
-            
+
             # Create 1-3 journal entries per month
             num_entries = random.randint(1, 3)
             for _ in range(num_entries):
@@ -3149,12 +3230,10 @@ class TempDataView(views.APIView):
                 # Check if journal entry already exists for this date
                 if not JournalEntry.objects.filter(user=user, date=entry_date).exists():
                     journal_entry = JournalEntry.objects.create(
-                        user=user,
-                        date=entry_date,
-                        content=f"Journal entry from {entry_date.strftime('%B %d, %Y')}. Today was a productive day with various activities and accomplishments."
-                    )
+                        user=user, date=entry_date, content=f"Journal entry from {
+                            entry_date.strftime('%B %d, %Y')}. Today was a productive day with various activities and accomplishments.")
                     journal_entries_created += 1
-        
+
         # Create habits (only once)
         habit_names = ['Water Intake', 'Exercise', 'Reading', 'Meditation', 'Sleep']
         for habit_name in habit_names:
@@ -3166,21 +3245,26 @@ class TempDataView(views.APIView):
                 range_max=random.randint(10, 15)
             )
             habits_created += 1
-            
+
             # Create habit scores for past 30 days
             for days_ago in range(30):
                 score_date = current_date - timedelta(days=days_ago)
                 # Check if habit score already exists for this date and habit
-                if not DailyHabitScore.objects.filter(user=user, date=score_date, habit=habit).exists():
+                if not DailyHabitScore.objects.filter(
+                        user=user, date=score_date, habit=habit).exists():
                     DailyHabitScore.objects.create(
                         user=user,
                         date=score_date,
                         habit=habit,
                         score=random.randint(0, habit.target)
                     )
-        
+
         # Create some achievements
-        achievement_titles = ['First Goal Completed', '30-Day Streak', 'Savings Target', 'Fitness Milestone']
+        achievement_titles = [
+            'First Goal Completed',
+            '30-Day Streak',
+            'Savings Target',
+            'Fitness Milestone']
         for title in achievement_titles:
             achievement_date = current_date - timedelta(days=random.randint(1, 365))
             Achievement.objects.create(
@@ -3189,7 +3273,7 @@ class TempDataView(views.APIView):
                 description=f"Achievement unlocked: {title}",
                 date=achievement_date
             )
-        
+
         return success_response(data={
             'message': '12 months of historical data inserted successfully',
             'timestamp': current_datetime.isoformat(),
@@ -3203,4 +3287,3 @@ class TempDataView(views.APIView):
                 'achievements_created': len(achievement_titles)
             }
         }, status_code=status.HTTP_201_CREATED)
-

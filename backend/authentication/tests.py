@@ -39,7 +39,9 @@ class AuthTests(APITestCase):
 
     def test_current_user_requires_auth(self):
         response = self.client.get('/api/auth/me/')
-        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+        self.assertIn(
+            response.status_code, [
+                status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
 
 
 class ExpenseCRUDTests(APITestCase):
@@ -69,7 +71,8 @@ class ExpenseCRUDTests(APITestCase):
 
     def test_update_expense(self):
         expense = Expense.objects.create(user=self.user, **self.expense_data)
-        response = self.client.patch(f'/api/expenses/{expense.id}/', {'price': '4.00'}, format='json')
+        response = self.client.patch(
+            f'/api/expenses/{expense.id}/', {'price': '4.00'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expense.refresh_from_db()
         self.assertEqual(str(expense.price), '4.00')
@@ -108,7 +111,8 @@ class GoalCRUDTests(APITestCase):
 
     def test_update_goal(self):
         goal = Goal.objects.create(user=self.user, **self.goal_data)
-        response = self.client.patch(f'/api/goals/{goal.id}/', {'status': 'completed'}, format='json')
+        response = self.client.patch(
+            f'/api/goals/{goal.id}/', {'status': 'completed'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         goal.refresh_from_db()
         self.assertEqual(goal.status, 'completed')
@@ -145,7 +149,8 @@ class AchievementCRUDTests(APITestCase):
 
     def test_update_achievement(self):
         achievement = Achievement.objects.create(user=self.user, **self.achievement_data)
-        response = self.client.patch(f'/api/achievements/{achievement.id}/', {'description': 'Updated'}, format='json')
+        response = self.client.patch(
+            f'/api/achievements/{achievement.id}/', {'description': 'Updated'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         achievement.refresh_from_db()
         self.assertEqual(achievement.description, 'Updated')

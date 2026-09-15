@@ -73,7 +73,15 @@ class ExpenseService:
         )
         return list(qs)
 
-    def list_with_summary(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
+    def list_with_summary(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            category=None,
+            start_date=None,
+            end_date=None):
         expenses = self.list(
             user,
             year=year,
@@ -85,7 +93,8 @@ class ExpenseService:
         total_amount = sum(float(expense.total) for expense in expenses)
         category_breakdown = {}
         for expense in expenses:
-            category_breakdown[expense.category] = category_breakdown.get(expense.category, 0.0) + float(expense.total)
+            category_breakdown[expense.category] = category_breakdown.get(
+                expense.category, 0.0) + float(expense.total)
         return {
             "count": len(expenses),
             "total_amount": round(total_amount, 2),
@@ -125,9 +134,11 @@ class ExpenseService:
         if "item" in data:
             expense.item = validation.bounded_text(data["item"], max_length=255, field="item")
         if "category" in data:
-            expense.category = validation.bounded_text(data["category"], max_length=100, field="category")
+            expense.category = validation.bounded_text(
+                data["category"], max_length=100, field="category")
         if "quantity" in data:
-            expense.quantity = validation.positive_int(data["quantity"], field="quantity", minimum=1)
+            expense.quantity = validation.positive_int(
+                data["quantity"], field="quantity", minimum=1)
         if "price" in data:
             price = validation.bounded_decimal(data["price"], field="price")
             if price < 0:
@@ -149,7 +160,15 @@ class ExpenseService:
 
     # --- analytics ---
 
-    def summary(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
+    def summary(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            category=None,
+            start_date=None,
+            end_date=None):
         qs = _apply_filters(
             Expense.objects.filter(user=user),
             year=year,
@@ -171,7 +190,15 @@ class ExpenseService:
             "unique_categories": categories,
         }
 
-    def categories(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
+    def categories(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            category=None,
+            start_date=None,
+            end_date=None):
         qs = _apply_filters(
             Expense.objects.filter(user=user),
             year=year,
@@ -189,7 +216,15 @@ class ExpenseService:
             entry["total"] += float(e.total)
         return sorted(totals.values(), key=lambda x: x["total"], reverse=True)
 
-    def analytics(self, user, *, year=None, month=None, category=None, start_date=None, end_date=None):
+    def analytics(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            category=None,
+            start_date=None,
+            end_date=None):
         y, m = _normalize_period(year, month)
         if m is None:
             m = date.today().month
@@ -257,7 +292,16 @@ class ExpenseService:
             "monthly_stats": monthly_list,
         }
 
-    def top_items(self, user, *, limit=10, year=None, month=None, category=None, start_date=None, end_date=None):
+    def top_items(
+            self,
+            user,
+            *,
+            limit=10,
+            year=None,
+            month=None,
+            category=None,
+            start_date=None,
+            end_date=None):
         try:
             limit = int(limit)
         except (TypeError, ValueError):

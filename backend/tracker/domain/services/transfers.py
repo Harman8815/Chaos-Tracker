@@ -13,7 +13,15 @@ logger = get_logger("tracker.domain.transfers")
 
 
 class TransferService:
-    def list(self, user, *, year=None, month=None, transfer_type=None, start_date=None, end_date=None):
+    def list(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            transfer_type=None,
+            start_date=None,
+            end_date=None):
         qs = Transfer.objects.filter(user=user)
         if year is not None or month is not None:
             qs = self._apply_period_filters(qs, year=year, month=month)
@@ -40,7 +48,15 @@ class TransferService:
             return qs.filter(date__year=y)
         return qs.filter(date__year=y, date__month=m)
 
-    def list_with_summary(self, user, *, year=None, month=None, transfer_type=None, start_date=None, end_date=None):
+    def list_with_summary(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            transfer_type=None,
+            start_date=None,
+            end_date=None):
         transfers = self.list(
             user,
             year=year,
@@ -52,7 +68,8 @@ class TransferService:
         total_amount = sum(float(t.amount) for t in transfers)
         type_breakdown = {}
         for t in transfers:
-            type_breakdown[t.transfer_type] = type_breakdown.get(t.transfer_type, 0.0) + float(t.amount)
+            type_breakdown[t.transfer_type] = type_breakdown.get(
+                t.transfer_type, 0.0) + float(t.amount)
         return {
             "count": len(transfers),
             "total_amount": round(total_amount, 2),
@@ -70,15 +87,27 @@ class TransferService:
         amount = validation.bounded_decimal(data.get("amount"), field="amount")
         if amount <= 0:
             raise ValidationError("amount must be positive")
-        transfer_type = validation.bounded_text(data.get("transfer_type", "internal"), max_length=20, field="transfer_type")
+        transfer_type = validation.bounded_text(
+            data.get(
+                "transfer_type",
+                "internal"),
+            max_length=20,
+            field="transfer_type")
         if transfer_type not in dict(Transfer.TRANSFER_TYPES):
-            raise ValidationError(f"Invalid transfer_type. Must be one of: {[k for k, _ in Transfer.TRANSFER_TYPES]}")
-        status = validation.bounded_text(data.get("status", "completed"), max_length=20, field="status")
+            raise ValidationError(
+                f"Invalid transfer_type. Must be one of: {[k for k, _ in Transfer.TRANSFER_TYPES]}")
+        status = validation.bounded_text(
+            data.get(
+                "status",
+                "completed"),
+            max_length=20,
+            field="status")
         if status not in dict(Transfer.STATUS_CHOICES):
-            raise ValidationError(f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}")
+            raise ValidationError(
+                f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}")
         transfer_date = validation.parse_date(data.get("date"), field="date")
         description = data.get("description", "")
-        
+
         from_account = None
         to_account = None
         if data.get("from_account"):
@@ -89,7 +118,7 @@ class TransferService:
             to_account = Account.objects.filter(id=data["to_account"], user=user).first()
             if to_account is None:
                 raise NotFoundError("To account not found")
-        
+
         # Update account balances if internal transfer and completed
         if transfer_type == 'internal' and status == 'completed' and from_account and to_account:
             from_account.balance -= amount
@@ -102,7 +131,7 @@ class TransferService:
         elif transfer_type == 'deposit' and status == 'completed' and to_account:
             to_account.balance += amount
             to_account.save()
-        
+
         transfer = Transfer.objects.create(
             user=user,
             from_account=from_account,
@@ -125,7 +154,8 @@ class TransferService:
         if "status" in data:
             status = validation.bounded_text(data["status"], max_length=20, field="status")
             if status not in dict(Transfer.STATUS_CHOICES):
-                raise ValidationError(f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}")
+                raise ValidationError(
+                    f"Invalid status. Must be one of: {[k for k, _ in Transfer.STATUS_CHOICES]}")
             # Handle balance updates if status changes
             if transfer.status == 'completed' and status != 'completed':
                 # Revert balance changes
@@ -183,7 +213,15 @@ class TransferService:
         logger.info("transfers.delete user_id=%s id=%s", user.id, transfer_id)
         return True
 
-    def summary(self, user, *, year=None, month=None, transfer_type=None, start_date=None, end_date=None):
+    def summary(
+            self,
+            user,
+            *,
+            year=None,
+            month=None,
+            transfer_type=None,
+            start_date=None,
+            end_date=None):
         qs = Transfer.objects.filter(user=user)
         if year is not None or month is not None:
             qs = self._apply_period_filters(qs, year=year, month=month)

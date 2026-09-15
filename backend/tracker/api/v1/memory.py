@@ -24,7 +24,7 @@ class MemoryQuerySerializer(serializers.Serializer):
 
 class MemoryListCreateView(TrackerAPIView):
     """GET/POST /api/v1/memory/ - List or create memories"""
-    
+
     def get(self, request):
         query = self.validated_query(MemoryQuerySerializer)
         memories = memory_service.get_memories(
@@ -47,7 +47,8 @@ class MemoryListCreateView(TrackerAPIView):
         conversation = None
         if request.data.get("conversation_id"):
             from ...models import AIConversation
-            conversation = AIConversation.objects.filter(id=request.data["conversation_id"], user=request.user).first()
+            conversation = AIConversation.objects.filter(
+                id=request.data["conversation_id"], user=request.user).first()
             if not conversation:
                 return self.error("Conversation not found", status_code=status.HTTP_404_NOT_FOUND)
 
@@ -74,7 +75,7 @@ class MemoryListCreateView(TrackerAPIView):
 
 class MemoryDetailView(TrackerAPIView):
     """GET/PUT/DELETE /api/v1/memory/<id>/ - Memory detail"""
-    
+
     def get(self, request, id):
         memory = memory_service.get_memory(request.user, int(id))
         serializer = AIMemorySerializer(memory)
@@ -93,7 +94,7 @@ class MemoryDetailView(TrackerAPIView):
 
 class MemoryBulkDeleteView(TrackerAPIView):
     """DELETE /api/v1/memory/bulk/ - Bulk delete memories"""
-    
+
     class BulkDeleteSerializer(serializers.Serializer):
         memory_ids = serializers.ListField(child=serializers.IntegerField(), min_length=1)
         hard = serializers.BooleanField(default=False)
@@ -111,7 +112,7 @@ class MemoryBulkDeleteView(TrackerAPIView):
 
 class MemorySearchView(TrackerAPIView):
     """GET /api/v1/memory/search/ - Search memories"""
-    
+
     class SearchSerializer(serializers.Serializer):
         q = serializers.CharField(min_length=1, max_length=200)
         memory_type = serializers.CharField(required=False, max_length=20, allow_blank=True)
@@ -120,21 +121,22 @@ class MemorySearchView(TrackerAPIView):
     def get(self, request):
         serializer = self.SearchSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        
+
         results = memory_service.search_memories(
             request.user,
             query=serializer.validated_data["q"],
             memory_type=serializer.validated_data.get("memory_type"),
             limit=serializer.validated_data.get("limit", 20),
         )
-        
-        serializer = AIMemorySearchResultSerializer([{'memory': r['memory'], 'score': r['score']} for r in results], many=True)
+
+        serializer = AIMemorySearchResultSerializer(
+            [{'memory': r['memory'], 'score': r['score']} for r in results], many=True)
         return self.ok(data=serializer.data, count=len(results))
 
 
 class MemoryStatsView(TrackerAPIView):
     """GET /api/v1/memory/stats/ - Get memory statistics"""
-    
+
     def get(self, request):
         stats = memory_service.get_memory_stats(request.user)
         return self.ok(data=stats)
@@ -142,7 +144,7 @@ class MemoryStatsView(TrackerAPIView):
 
 class UserPreferenceView(TrackerAPIView):
     """GET/PUT /api/v1/memory/preferences/ - Get/update user preferences"""
-    
+
     def get(self, request):
         prefs = memory_service.get_preferences(request.user)
         serializer = UserPreferenceSerializer(prefs)
@@ -156,7 +158,7 @@ class UserPreferenceView(TrackerAPIView):
 
 class SummarizationJobView(TrackerAPIView):
     """POST /api/v1/memory/conversations/<id>/summarize/ - Create summarization job"""
-    
+
     def post(self, request, id):
         from ...models import AIConversation
         conversation = AIConversation.objects.filter(id=id, user=request.user).first()
@@ -170,7 +172,7 @@ class SummarizationJobView(TrackerAPIView):
 
 class SummarizationStatusView(TrackerAPIView):
     """GET /api/v1/memory/conversations/<id>/summarize/ - Get summarization status"""
-    
+
     def get(self, request, id):
         from ...models import AIConversation
         conversation = AIConversation.objects.filter(id=id, user=request.user).first()
@@ -185,7 +187,7 @@ class SummarizationStatusView(TrackerAPIView):
 
 class SummarizationProcessView(TrackerAPIView):
     """POST /api/v1/memory/summarization/<id>/process/ - Process summarization job"""
-    
+
     def post(self, request, id):
         from ...models import AIMemorySummarization
         job = AIMemorySummarization.objects.filter(id=id, conversation__user=request.user).first()

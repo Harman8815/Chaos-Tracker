@@ -2,7 +2,7 @@
 
 Each alert type has its own checker that creates notifications when conditions are met.
 """
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db.models import Sum, F
@@ -10,10 +10,9 @@ from django.utils import timezone
 
 from ...models import (
     Goal, Habit, DailyHabitScore, Budget, Expense, Achievement,
-    DailyActivityAggregate, User, NotificationDeduplication,
+    DailyActivityAggregate, NotificationDeduplication,
 )
-from .notifications import notification_service, scheduled_job_service
-from ..exceptions import ValidationError
+from .notifications import notification_service
 from ..logging import get_logger
 
 logger = get_logger("tracker.domain.alerts")
@@ -49,7 +48,10 @@ class GoalDeadlineAlertService:
             priority = 'high'
         elif days_left == 1:
             title = f"Goal due tomorrow: {goal.text[:50]}"
-            message = f"Your goal '{goal.text}' is due tomorrow. {goal.completed_tasks}/{goal.target} completed."
+            message = f"Your goal '{
+                goal.text}' is due tomorrow. {
+                goal.completed_tasks}/{
+                goal.target} completed."
             priority = 'normal'
         else:
             title = f"Goal due in {days_left} days: {goal.text[:50]}"
@@ -157,7 +159,11 @@ class BudgetAlertService:
             return
 
         title = f"Budget warning: {budget.category}"
-        message = f"You've spent {percent:.0f}% of your ${budget.amount} budget for {budget.category} (${spent:.2f} used)."
+        message = f"You've spent {
+            percent:.0f}% of your ${
+            budget.amount} budget for {
+            budget.category} (${
+                spent:.2f} used)."
 
         notification_service.create_notification(
             user=user,
@@ -165,7 +171,11 @@ class BudgetAlertService:
             title=title,
             message=message,
             priority='normal',
-            data={'budget_id': budget.id, 'category': budget.category, 'percent': percent, 'spent': float(spent)},
+            data={
+                'budget_id': budget.id,
+                'category': budget.category,
+                'percent': percent,
+                'spent': float(spent)},
             dedupe_key=dedupe_key,
             dedupe_window_hours=24,
         )
@@ -176,7 +186,12 @@ class BudgetAlertService:
             return
 
         title = f"Budget exceeded: {budget.category}"
-        message = f"You've exceeded your ${budget.amount} budget for {budget.category} by ${float(spent) - float(budget.amount):.2f}!"
+        message = f"You've exceeded your ${
+            budget.amount} budget for {
+            budget.category} by ${
+            float(spent) -
+            float(
+                budget.amount):.2f}!"
 
         notification_service.create_notification(
             user=user,
@@ -184,7 +199,11 @@ class BudgetAlertService:
             title=title,
             message=message,
             priority='high',
-            data={'budget_id': budget.id, 'category': budget.category, 'percent': percent, 'spent': float(spent)},
+            data={
+                'budget_id': budget.id,
+                'category': budget.category,
+                'percent': percent,
+                'spent': float(spent)},
             dedupe_key=dedupe_key,
             dedupe_window_hours=12,
         )
@@ -255,7 +274,9 @@ class StreakAlertService:
 
     def _notify_streak_at_risk(self, user, habit: Habit) -> None:
         title = f"⚠️ Streak at risk: {habit.name}"
-        message = f"Your {habit.streak}-day streak for '{habit.name}' will break if you don't complete it today!"
+        message = f"Your {
+            habit.streak}-day streak for '{
+            habit.name}' will break if you don't complete it today!"
 
         notification_service.create_notification(
             user=user,

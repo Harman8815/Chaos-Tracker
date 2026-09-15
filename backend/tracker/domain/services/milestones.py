@@ -7,7 +7,7 @@ from django.db.models import F
 
 from ...models import Goal, GoalMilestone
 from .. import validation
-from ..exceptions import NotFoundError, ValidationError
+from ..exceptions import NotFoundError
 from ..logging import get_logger
 
 logger = get_logger("tracker.domain.milestones")
@@ -56,7 +56,11 @@ class GoalMilestoneService:
                 Goal.objects.filter(id=milestone.goal.id, user=user).update(
                     completed_tasks=F("completed_tasks") - 1,
                 )
-        logger.info("milestones.complete user_id=%s id=%s completed=%s", user.id, milestone_id, completed)
+        logger.info(
+            "milestones.complete user_id=%s id=%s completed=%s",
+            user.id,
+            milestone_id,
+            completed)
         return milestone
 
     def delete(self, user, milestone_id):

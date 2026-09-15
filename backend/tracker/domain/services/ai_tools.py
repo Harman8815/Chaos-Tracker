@@ -1,5 +1,5 @@
 """AI Tool system and permission layer (P7-05, P7-06)."""
-from typing import Any, Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 from django.utils import timezone
 from django.db import transaction
 
@@ -21,23 +21,37 @@ class ToolExecutor:
         self._tools: Dict[str, Callable] = {}
         self._schemas: Dict[str, dict] = {}
 
-    def register(self, name: str, func: Callable, schema: dict, required_permissions: List[str] = None, is_destructive: bool = False):
+    def register(
+            self,
+            name: str,
+            func: Callable,
+            schema: dict,
+            required_permissions: List[str] = None,
+            is_destructive: bool = False):
         """Register a tool function with its schema and permissions."""
         self._tools[name] = func
         self._schemas[name] = schema
 
-        # Sync with database
-        AITool.objects.update_or_create(
-            name=name,
-            defaults={
-                'description': schema.get('description', ''),
-                'parameters_schema': schema.get('parameters', {}),
-                'required_permissions': required_permissions or [],
-                'is_destructive': is_destructive,
-                'is_enabled': True,
-            }
-        )
-        logger.info("ai_tool.registered name=%s destructive=%s", name, is_destructive)
+        # Sync with database. This may run before migrations are applied
+        # (e.g. during ``manage.py check`` on a fresh database), so failure
+        # here must not break import or system checks.
+        try:
+            AITool.objects.update_or_create(
+                name=name,
+                defaults={
+                    'description': schema.get('description', ''),
+                    'parameters_schema': schema.get('parameters', {}),
+                    'required_permissions': required_permissions or [],
+                    'is_destructive': is_destructive,
+                    'is_enabled': True,
+                }
+            )
+        except Exception:
+            # Database not ready (table missing) or unavailable; registration
+            # in memory still succeeded, so the tool remains callable later.
+            logger.debug("ai_tool.registered db_sync_skipped name=%s", name)
+        else:
+            logger.info("ai_tool.registered name=%s destructive=%s", name, is_destructive)
 
     def get_tool(self, name: str) -> Optional[AITool]:
         """Get tool definition from database."""
@@ -128,7 +142,10 @@ class ToolExecutor:
             tool_call.result = result
             tool_call.executed_at = timezone.now()
             tool_call.save(update_fields=['status', 'result', 'executed_at'])
-            logger.info("ai_tool.executed name=%s conversation_id=%s", tool_name, tool_call.conversation_id)
+            logger.info(
+                "ai_tool.executed name=%s conversation_id=%s",
+                tool_name,
+                tool_call.conversation_id)
         except Exception as e:
             tool_call.status = 'failed'
             tool_call.error = str(e)

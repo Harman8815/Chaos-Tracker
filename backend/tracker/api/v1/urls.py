@@ -118,10 +118,16 @@ urlpatterns = [
 
     # Quote sources
     path('quotes/sources/', QuoteSourceListCreateView.as_view(), name='quote-source-list-create'),
-    path('quotes/sources/<str:source_id>/', QuoteSourceDetailView.as_view(), name='quote-source-detail'),
+    path(
+        'quotes/sources/<str:source_id>/',
+        QuoteSourceDetailView.as_view(),
+        name='quote-source-detail'),
     path('quotes/search/', QuoteFuzzySearchView.as_view(), name='quote-fuzzy-search'),
     path('quotes/tags/', QuoteTagsView.as_view(), name='quote-tags'),
-    path('quotes/sources/<str:source_id>/quotes/', QuoteListCreateView.as_view(), name='quote-list-create'),
+    path(
+        'quotes/sources/<str:source_id>/quotes/',
+        QuoteListCreateView.as_view(),
+        name='quote-list-create'),
     path('quotes/<str:quote_id>/', QuoteDetailView.as_view(), name='quote-detail'),
 
     # Achievements
@@ -149,9 +155,16 @@ urlpatterns = [
     path('accounts/<int:id>/', AccountDetailView.as_view(), name='account-detail'),
 
     # Recurring Expenses
-    path('recurring-expenses/process/', RecurringExpenseProcessView.as_view(), name='recurring-expense-process'),
-    path('recurring-expenses/', RecurringExpenseListCreateView.as_view(), name='recurring-expense-list-create'),
-    path('recurring-expenses/<int:id>/', RecurringExpenseDetailView.as_view(), name='recurring-expense-detail'),
+    path('recurring-expenses/process/',
+         RecurringExpenseProcessView.as_view(),
+         name='recurring-expense-process'),
+    path(
+        'recurring-expenses/',
+        RecurringExpenseListCreateView.as_view(),
+        name='recurring-expense-list-create'),
+    path('recurring-expenses/<int:id>/',
+         RecurringExpenseDetailView.as_view(),
+         name='recurring-expense-detail'),
 
     # Transfers
     path('transfers/summary/', TransferSummaryView.as_view(), name='transfer-summary'),
@@ -160,21 +173,33 @@ urlpatterns = [
 
     # Subscriptions
     path('subscriptions/summary/', SubscriptionSummaryView.as_view(), name='subscription-summary'),
-    path('subscriptions/upcoming/', SubscriptionUpcomingView.as_view(), name='subscription-upcoming'),
+    path('subscriptions/upcoming/',
+         SubscriptionUpcomingView.as_view(),
+         name='subscription-upcoming'),
     path('subscriptions/', SubscriptionListCreateView.as_view(), name='subscription-list-create'),
     path('subscriptions/<int:id>/', SubscriptionDetailView.as_view(), name='subscription-detail'),
 
     # Budget Alerts
-    path('budget-alerts/unread-count/', BudgetAlertUnreadCountView.as_view(), name='budget-alert-unread-count'),
+    path('budget-alerts/unread-count/',
+         BudgetAlertUnreadCountView.as_view(),
+         name='budget-alert-unread-count'),
     path('budget-alerts/check/', BudgetAlertCheckView.as_view(), name='budget-alert-check'),
-    path('budget-alerts/mark-all-read/', BudgetAlertMarkAllReadView.as_view(), name='budget-alert-mark-all-read'),
-    path('budget-alerts/<int:id>/read/', BudgetAlertMarkReadView.as_view(), name='budget-alert-mark-read'),
-    path('budget-alerts/<int:id>/dismiss/', BudgetAlertMarkDismissedView.as_view(), name='budget-alert-mark-dismissed'),
+    path('budget-alerts/mark-all-read/',
+         BudgetAlertMarkAllReadView.as_view(),
+         name='budget-alert-mark-all-read'),
+    path('budget-alerts/<int:id>/read/',
+         BudgetAlertMarkReadView.as_view(),
+         name='budget-alert-mark-read'),
+    path('budget-alerts/<int:id>/dismiss/',
+         BudgetAlertMarkDismissedView.as_view(),
+         name='budget-alert-mark-dismissed'),
     path('budget-alerts/<int:id>/', BudgetAlertDetailView.as_view(), name='budget-alert-detail'),
     path('budget-alerts/', BudgetAlertListView.as_view(), name='budget-alert-list'),
 
     # Budgets
-    path('budgets/actual-vs-budget/', BudgetActualVsBudgetView.as_view(), name='budget-actual-vs-budget'),
+    path('budgets/actual-vs-budget/',
+         BudgetActualVsBudgetView.as_view(),
+         name='budget-actual-vs-budget'),
     path('budgets/', BudgetListCreateView.as_view(), name='budget-list-create'),
     path('budgets/<int:id>/', BudgetDetailView.as_view(), name='budget-detail'),
 
@@ -184,7 +209,10 @@ urlpatterns = [
 
     # Planner
     path('planner/', PlannerDataView.as_view(), name='planner-data'),
-    path('planner/blocks/<str:block_id>/', PlannerBlockDetailView.as_view(), name='planner-block-detail'),
+    path(
+        'planner/blocks/<str:block_id>/',
+        PlannerBlockDetailView.as_view(),
+        name='planner-block-detail'),
 
     # Mood
     path('mood/', MoodListCreateView.as_view(), name='mood-list-create'),
@@ -198,7 +226,10 @@ urlpatterns = [
     path('analytics/productivity/', ProductivityScoreView.as_view(), name='analytics-productivity'),
     path('analytics/consistency/', ConsistencyScoreView.as_view(), name='analytics-consistency'),
     path('analytics/goal-velocity/', GoalVelocityView.as_view(), name='analytics-goal-velocity'),
-    path('analytics/financial-health/', FinancialHealthView.as_view(), name='analytics-financial-health'),
+    path(
+        'analytics/financial-health/',
+        FinancialHealthView.as_view(),
+        name='analytics-financial-health'),
     path('analytics/trends/', TrendsView.as_view(), name='analytics-trends'),
     path('analytics/correlations/', CorrelationsView.as_view(), name='analytics-correlations'),
     path('analytics/insights/', InsightsView.as_view(), name='analytics-insights'),
@@ -206,12 +237,22 @@ urlpatterns = [
 
     # Notifications
     path('notifications/', NotificationListView.as_view(), name='notification-list'),
-    path('notifications/unread-count/', NotificationUnreadCountView.as_view(), name='notification-unread-count'),
-    path('notifications/mark-all-read/', NotificationMarkAllReadView.as_view(), name='notification-mark-all-read'),
-    path('notifications/delete-read/', NotificationDeleteAllReadView.as_view(), name='notification-delete-read'),
-    path('notifications/<int:id>/read/', NotificationMarkReadView.as_view(), name='notification-mark-read'),
+    path('notifications/unread-count/',
+         NotificationUnreadCountView.as_view(),
+         name='notification-unread-count'),
+    path('notifications/mark-all-read/',
+         NotificationMarkAllReadView.as_view(),
+         name='notification-mark-all-read'),
+    path('notifications/delete-read/',
+         NotificationDeleteAllReadView.as_view(),
+         name='notification-delete-read'),
+    path('notifications/<int:id>/read/',
+         NotificationMarkReadView.as_view(),
+         name='notification-mark-read'),
     path('notifications/<int:id>/', NotificationDeleteView.as_view(), name='notification-delete'),
-    path('notifications/preferences/', NotificationPreferenceView.as_view(), name='notification-preferences'),
+    path('notifications/preferences/',
+         NotificationPreferenceView.as_view(),
+         name='notification-preferences'),
 
     # Scheduled Jobs
     path('jobs/', ScheduledJobListView.as_view(), name='job-list'),
@@ -221,19 +262,38 @@ urlpatterns = [
     path('jobs/<int:id>/cancel/', ScheduledJobCancelView.as_view(), name='job-cancel'),
 
     # Recurring Income
-    path('recurring-income/', RecurringIncomeListCreateView.as_view(), name='recurring-income-list-create'),
-    path('recurring-income/<int:id>/', RecurringIncomeDetailView.as_view(), name='recurring-income-detail'),
+    path(
+        'recurring-income/',
+        RecurringIncomeListCreateView.as_view(),
+        name='recurring-income-list-create'),
+    path('recurring-income/<int:id>/',
+         RecurringIncomeDetailView.as_view(),
+         name='recurring-income-detail'),
 
     # AI Assistant
-    path('ai/conversations/', AIConversationListCreateView.as_view(), name='ai-conversation-list-create'),
-    path('ai/conversations/<int:id>/', AIConversationDetailView.as_view(), name='ai-conversation-detail'),
-    path('ai/conversations/<int:id>/archive/', AIConversationArchiveView.as_view(), name='ai-conversation-archive'),
+    path(
+        'ai/conversations/',
+        AIConversationListCreateView.as_view(),
+        name='ai-conversation-list-create'),
+    path('ai/conversations/<int:id>/',
+         AIConversationDetailView.as_view(),
+         name='ai-conversation-detail'),
+    path(
+        'ai/conversations/<int:id>/archive/',
+        AIConversationArchiveView.as_view(),
+        name='ai-conversation-archive'),
     path('ai/conversations/<int:id>/chat/', AIChatView.as_view(), name='ai-chat'),
     path('ai/conversations/<int:id>/chat/stream/', AIChatStreamView.as_view(), name='ai-chat-stream'),
     path('ai/conversations/<int:id>/messages/', AIMessageListView.as_view(), name='ai-message-list'),
     path('ai/tools/', AIToolListView.as_view(), name='ai-tool-list'),
-    path('ai/conversations/<int:id>/tool-calls/', AIToolCallExecuteView.as_view(), name='ai-tool-call-execute'),
-    path('ai/tool-calls/<int:id>/confirm/', AIToolCallConfirmView.as_view(), name='ai-tool-call-confirm'),
+    path(
+        'ai/conversations/<int:id>/tool-calls/',
+        AIToolCallExecuteView.as_view(),
+        name='ai-tool-call-execute'),
+    path(
+        'ai/tool-calls/<int:id>/confirm/',
+        AIToolCallConfirmView.as_view(),
+        name='ai-tool-call-confirm'),
     path('ai/tool-calls/<int:id>/retry/', AIToolCallRetryView.as_view(), name='ai-tool-call-retry'),
     path('ai/confirmations/', AIPendingConfirmationsView.as_view(), name='ai-pending-confirmations'),
 
@@ -244,7 +304,16 @@ urlpatterns = [
     path('memory/stats/', MemoryStatsView.as_view(), name='memory-stats'),
     path('memory/preferences/', UserPreferenceView.as_view(), name='memory-preferences'),
     path('memory/<int:id>/', MemoryDetailView.as_view(), name='memory-detail'),
-    path('memory/conversations/<int:id>/summarize/', SummarizationJobView.as_view(), name='memory-summarize'),
-    path('memory/conversations/<int:id>/summarize/status/', SummarizationStatusView.as_view(), name='memory-summarize-status'),
-    path('memory/summarization/<int:id>/process/', SummarizationProcessView.as_view(), name='memory-summarize-process'),
+    path(
+        'memory/conversations/<int:id>/summarize/',
+        SummarizationJobView.as_view(),
+        name='memory-summarize'),
+    path(
+        'memory/conversations/<int:id>/summarize/status/',
+        SummarizationStatusView.as_view(),
+        name='memory-summarize-status'),
+    path(
+        'memory/summarization/<int:id>/process/',
+        SummarizationProcessView.as_view(),
+        name='memory-summarize-process'),
 ]

@@ -8,7 +8,7 @@ from typing import Optional
 from django.db import transaction
 from django.utils import timezone
 
-from ...models import Notification, NotificationPreference, NotificationDeduplication, User
+from ...models import Notification, NotificationPreference, NotificationDeduplication
 from ..exceptions import NotFoundError, ValidationError
 from ..logging import get_logger
 
@@ -45,9 +45,11 @@ class NotificationService:
 
         # Quiet hours
         if 'quiet_hours_start' in data:
-            prefs.quiet_hours_start = self._parse_time(data['quiet_hours_start']) if data['quiet_hours_start'] else None
+            prefs.quiet_hours_start = self._parse_time(
+                data['quiet_hours_start']) if data['quiet_hours_start'] else None
         if 'quiet_hours_end' in data:
-            prefs.quiet_hours_end = self._parse_time(data['quiet_hours_end']) if data['quiet_hours_end'] else None
+            prefs.quiet_hours_end = self._parse_time(
+                data['quiet_hours_end']) if data['quiet_hours_end'] else None
         if 'timezone' in data:
             prefs.timezone = data['timezone'][:50]
 
@@ -107,7 +109,8 @@ class NotificationService:
                 sent_at__gte=window_start,
             ).exists()
             if exists:
-                logger.debug("notifications.deduplicated user_id=%s type=%s key=%s", user.id, notification_type, dedupe_key)
+                logger.debug("notifications.deduplicated user_id=%s type=%s key=%s",
+                             user.id, notification_type, dedupe_key)
                 return None
 
         with transaction.atomic():
@@ -127,7 +130,11 @@ class NotificationService:
                     dedupe_key=dedupe_key,
                 )
 
-        logger.info("notifications.created user_id=%s type=%s priority=%s", user.id, notification_type, priority)
+        logger.info(
+            "notifications.created user_id=%s type=%s priority=%s",
+            user.id,
+            notification_type,
+            priority)
         return notification
 
     def list_notifications(
@@ -196,7 +203,8 @@ class ScheduledJobService:
             payload=payload or {},
             max_retries=max_retries,
         )
-        logger.info("jobs.created type=%s scheduled_at=%s user_id=%s", job_type, scheduled_at, user.id if user else None)
+        logger.info("jobs.created type=%s scheduled_at=%s user_id=%s",
+                    job_type, scheduled_at, user.id if user else None)
         return job
 
     def get_due_jobs(self, limit: int = 100):
@@ -215,7 +223,6 @@ class ScheduledJobService:
         return job
 
     def start_job(self, job) -> None:
-        from ...models import ScheduledJob
         job.status = 'running'
         job.started_at = timezone.now()
         job.save(update_fields=['status', 'started_at', 'updated_at'])

@@ -3,13 +3,11 @@
 Owns all business logic for journal entries: creation, upsert, retrieval,
 and deletion. Ownership is enforced on every operation.
 """
-from datetime import date, datetime
 
 from django.db import transaction
 
 from ...models import JournalEntry
-from .. import permissions, validation
-from ..exceptions import NotFoundError, ValidationError
+from .. import validation
 from ..logging import get_logger
 
 logger = get_logger("tracker.domain.journal")

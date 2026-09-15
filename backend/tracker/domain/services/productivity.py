@@ -5,9 +5,8 @@ points engine with goal/habit/planner completion signals.
 """
 from datetime import date, datetime, timedelta
 
-from django.db.models import Count, Sum
 
-from ...models import DailyActivityAggregate, Goal, Habit
+from ...models import DailyActivityAggregate
 from ..exceptions import ValidationError
 from ..logging import get_logger
 from .points import points_engine

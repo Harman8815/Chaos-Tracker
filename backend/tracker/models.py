@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
 class JournalEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='journal_entries')
     date = models.DateField()
@@ -28,7 +29,7 @@ class QuoteSource(models.Model):
     ]
 
     SOURCE_TYPES_KEYS = [k for k, _ in SOURCE_TYPES]
-    
+
     id = models.CharField(max_length=100, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quote_sources')
     title = models.CharField(max_length=255)
@@ -94,7 +95,8 @@ class Achievement(models.Model):
     date = models.DateField()
     image = models.URLField(max_length=500, blank=True, null=True)
     trigger_rule = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text='Optional rule describing what measurable event triggers this achievement, e.g. {"event_type": "planner_task_completed", "count": 7}',
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -129,7 +131,7 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.item} - {self.category} - ${self.price}"
-    
+
     @property
     def total(self):
         """Calculate total cost (quantity * price)"""
@@ -189,7 +191,10 @@ class Goal(models.Model):
     due_date = models.DateField(blank=True, null=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='medium')
     frequency = models.CharField(max_length=50, blank=True, null=True)
-    recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default=RECURRENCE_NONE)
+    recurrence = models.CharField(
+        max_length=20,
+        choices=RECURRENCE_CHOICES,
+        default=RECURRENCE_NONE)
     reminders = models.JSONField(default=list, blank=True)
     completion_criteria = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
@@ -278,7 +283,10 @@ class PlannerTask(models.Model):
     order = models.IntegerField(default=0)
     due_date = models.DateField(blank=True, null=True)
     priority = models.CharField(max_length=10, choices=Goal.PRIORITY_LEVELS, default='medium')
-    recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default=RECURRENCE_NONE)
+    recurrence = models.CharField(
+        max_length=20,
+        choices=RECURRENCE_CHOICES,
+        default=RECURRENCE_NONE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -320,8 +328,14 @@ class PlannerLink(models.Model):
     """
     id = models.CharField(max_length=100, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='planner_links')
-    from_block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='outgoing_links')
-    to_block = models.ForeignKey(PlannerBlock, on_delete=models.CASCADE, related_name='incoming_links')
+    from_block = models.ForeignKey(
+        PlannerBlock,
+        on_delete=models.CASCADE,
+        related_name='outgoing_links')
+    to_block = models.ForeignKey(
+        PlannerBlock,
+        on_delete=models.CASCADE,
+        related_name='incoming_links')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -376,11 +390,20 @@ class Habit(models.Model):
     target = models.IntegerField(default=1)
     range_max = models.IntegerField(default=10)
     schedule = models.CharField(max_length=20, choices=SCHEDULE_CHOICES, default=SCHEDULE_DAILY)
-    schedule_days = models.JSONField(default=list, blank=True, help_text='Weekdays (0=Mon..6=Sun) for weekly/custom schedules')
-    reminders = models.JSONField(default=list, blank=True, help_text='Optional reminder config list')
+    schedule_days = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Weekdays (0=Mon..6=Sun) for weekly/custom schedules')
+    reminders = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Optional reminder config list')
     grace_period = models.IntegerField(default=0, help_text='Missed-day grace before streak breaks')
     streak = models.IntegerField(default=0, help_text='Current consecutive-day streak')
-    completed_dates = models.JSONField(default=list, blank=True, help_text='ISO dates the habit was completed')
+    completed_dates = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='ISO dates the habit was completed')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -548,9 +571,17 @@ class UserEvent(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
     event_type = models.CharField(max_length=50, choices=EVENT_TYPES)
-    subject_type = models.CharField(max_length=100, blank=True, help_text='Model name of the related object, e.g. "Goal"')
-    subject_id = models.CharField(max_length=100, blank=True, help_text='String id of the related object')
-    occurred_at = models.DateTimeField(default=timezone.now, help_text='When the event actually happened')
+    subject_type = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Model name of the related object, e.g. "Goal"')
+    subject_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='String id of the related object')
+    occurred_at = models.DateTimeField(
+        default=timezone.now,
+        help_text='When the event actually happened')
     payload = models.JSONField(default=dict, blank=True, help_text='Optional structured extra data')
 
     class Meta:
@@ -738,9 +769,16 @@ class RecurringExpense(models.Model):
     frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    day_of_month = models.IntegerField(null=True, blank=True, help_text='Day of month for monthly frequency (1-31)')
-    day_of_week = models.IntegerField(null=True, blank=True, help_text='Day of week for weekly frequency (0=Mon..6=Sun)')
-    next_occurrence = models.DateField(help_text='Next date this recurring expense should be created')
+    day_of_month = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text='Day of month for monthly frequency (1-31)')
+    day_of_week = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text='Day of week for weekly frequency (0=Mon..6=Sun)')
+    next_occurrence = models.DateField(
+        help_text='Next date this recurring expense should be created')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -784,8 +822,12 @@ class RecurringIncome(models.Model):
     frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    day_of_month = models.IntegerField(null=True, blank=True, help_text='Day of month for monthly frequency (1-31)')
-    next_occurrence = models.DateField(help_text='Next date this recurring income should be created')
+    day_of_month = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text='Day of month for monthly frequency (1-31)')
+    next_occurrence = models.DateField(
+        help_text='Next date this recurring income should be created')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -813,7 +855,8 @@ class BudgetAlert(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budget_alerts')
     budget = models.ForeignKey('Budget', on_delete=models.CASCADE, related_name='alerts')
     alert_type = models.CharField(max_length=20, choices=ALERT_TYPES)
-    threshold_percent = models.IntegerField(default=80, help_text='Alert when spending reaches this percentage of budget')
+    threshold_percent = models.IntegerField(
+        default=80, help_text='Alert when spending reaches this percentage of budget')
     message = models.TextField(blank=True)
     is_read = models.BooleanField(default=False)
     is_dismissed = models.BooleanField(default=False)
@@ -847,8 +890,18 @@ class Transfer(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transfers')
-    from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_from')
-    to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
+    from_account = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transfers_from')
+    to_account = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transfers_to')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     transfer_type = models.CharField(max_length=20, choices=TRANSFER_TYPES, default='internal')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
@@ -957,7 +1010,10 @@ class Notification(models.Model):
 class NotificationPreference(models.Model):
     """User notification preferences (P6-02, P6-15)."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_preferences')
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notification_preferences')
 
     # Type-specific toggles
     goal_deadline_enabled = models.BooleanField(default=True)
@@ -976,8 +1032,10 @@ class NotificationPreference(models.Model):
     push_enabled = models.BooleanField(default=False)
 
     # Quiet hours (P6-15)
-    quiet_hours_start = models.TimeField(null=True, blank=True, help_text='Start of quiet hours (24h format)')
-    quiet_hours_end = models.TimeField(null=True, blank=True, help_text='End of quiet hours (24h format)')
+    quiet_hours_start = models.TimeField(
+        null=True, blank=True, help_text='Start of quiet hours (24h format)')
+    quiet_hours_end = models.TimeField(
+        null=True, blank=True, help_text='End of quiet hours (24h format)')
     timezone = models.CharField(max_length=50, default='UTC')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1041,7 +1099,12 @@ class ScheduledJob(models.Model):
         ('subscription_billing', 'Subscription Billing'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scheduled_jobs', null=True, blank=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='scheduled_jobs',
+        null=True,
+        blank=True)
     job_type = models.CharField(max_length=50, choices=JOB_TYPES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     scheduled_at = models.DateTimeField()
@@ -1077,7 +1140,13 @@ class ScheduledJob(models.Model):
         self.next_retry_at = timezone.now() + timedelta(minutes=delay_minutes)
         self.status = 'pending'
         self.error_message = ''
-        self.save(update_fields=['retry_count', 'next_retry_at', 'status', 'error_message', 'updated_at'])
+        self.save(
+            update_fields=[
+                'retry_count',
+                'next_retry_at',
+                'status',
+                'error_message',
+                'updated_at'])
 
 
 class NotificationDeduplication(models.Model):
@@ -1085,7 +1154,9 @@ class NotificationDeduplication(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notification_dedupes')
     notification_type = models.CharField(max_length=30)
-    dedupe_key = models.CharField(max_length=255, help_text='Unique key for deduplication (e.g., goal_id, habit_id)')
+    dedupe_key = models.CharField(
+        max_length=255,
+        help_text='Unique key for deduplication (e.g., goal_id, habit_id)')
     sent_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1139,11 +1210,21 @@ class AIMessage(models.Model):
         ('tool', 'Tool'),
     ]
 
-    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='messages')
+    conversation = models.ForeignKey(
+        AIConversation,
+        on_delete=models.CASCADE,
+        related_name='messages')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     content = models.TextField()
-    tool_calls = models.JSONField(default=list, blank=True, help_text='Structured tool calls made by assistant')
-    tool_call_id = models.CharField(max_length=100, blank=True, default='', help_text='ID of tool call this message responds to')
+    tool_calls = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Structured tool calls made by assistant')
+    tool_call_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='ID of tool call this message responds to')
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1163,7 +1244,8 @@ class AITool(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     parameters_schema = models.JSONField(help_text='JSON Schema for tool parameters')
-    required_permissions = models.JSONField(default=list, blank=True, help_text='List of required permissions')
+    required_permissions = models.JSONField(
+        default=list, blank=True, help_text='List of required permissions')
     is_destructive = models.BooleanField(default=False, help_text='Whether tool modifies data')
     is_enabled = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1187,8 +1269,16 @@ class AIToolCall(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='tool_calls')
-    message = models.ForeignKey(AIMessage, on_delete=models.CASCADE, related_name='tool_call_records', null=True, blank=True)
+    conversation = models.ForeignKey(
+        AIConversation,
+        on_delete=models.CASCADE,
+        related_name='tool_calls')
+    message = models.ForeignKey(
+        AIMessage,
+        on_delete=models.CASCADE,
+        related_name='tool_call_records',
+        null=True,
+        blank=True)
     tool = models.ForeignKey(AITool, on_delete=models.PROTECT, related_name='calls')
     arguments = models.JSONField()
     result = models.JSONField(null=True, blank=True)
@@ -1213,7 +1303,10 @@ class AIToolCall(models.Model):
 class AIActionConfirmation(models.Model):
     """User confirmation for destructive AI actions (P7-13)."""
 
-    tool_call = models.OneToOneField(AIToolCall, on_delete=models.CASCADE, related_name='confirmation')
+    tool_call = models.OneToOneField(
+        AIToolCall,
+        on_delete=models.CASCADE,
+        related_name='confirmation')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
     confirmed_at = models.DateTimeField(null=True, blank=True)
@@ -1224,7 +1317,9 @@ class AIActionConfirmation(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Confirmation for {self.tool_call_id} - {'Confirmed' if self.confirmed else 'Pending'}"
+        return f"Confirmation for {
+            self.tool_call_id} - {
+            'Confirmed' if self.confirmed else 'Pending'}"
 
 
 class UserPreference(models.Model):
@@ -1238,13 +1333,17 @@ class UserPreference(models.Model):
         ('normal', 'Normal'),
         ('detailed', 'Detailed'),
     ], default='normal')
-    auto_execute_tools = models.BooleanField(default=False, help_text='Auto-execute non-destructive tools')
-    include_context_summary = models.BooleanField(default=True, help_text='Include conversation summary in context')
+    auto_execute_tools = models.BooleanField(
+        default=False, help_text='Auto-execute non-destructive tools')
+    include_context_summary = models.BooleanField(
+        default=True, help_text='Include conversation summary in context')
 
     # Memory settings
     memory_enabled = models.BooleanField(default=True, help_text='Enable memory system')
-    memory_retention_days = models.IntegerField(default=90, help_text='Days to retain memory entries')
-    max_memory_entries = models.IntegerField(default=1000, help_text='Maximum memory entries per user')
+    memory_retention_days = models.IntegerField(
+        default=90, help_text='Days to retain memory entries')
+    max_memory_entries = models.IntegerField(
+        default=1000, help_text='Maximum memory entries per user')
 
     # Notification settings for AI
     notify_on_tool_execution = models.BooleanField(default=False)
@@ -1282,21 +1381,37 @@ class AIMemory(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_memories')
-    conversation = models.ForeignKey(AIConversation, on_delete=models.SET_NULL, null=True, blank=True, related_name='memories')
+    conversation = models.ForeignKey(
+        AIConversation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='memories')
     memory_type = models.CharField(max_length=20, choices=MEMORY_TYPES)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal')
 
     # Content
     title = models.CharField(max_length=255)
     content = models.TextField()
-    entities = models.JSONField(default=dict, blank=True, help_text='Extracted entities (people, dates, amounts, etc.)')
+    entities = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Extracted entities (people, dates, amounts, etc.)')
 
     # Source
-    source_message = models.ForeignKey(AIMessage, on_delete=models.SET_NULL, null=True, blank=True, related_name='memories_created')
+    source_message = models.ForeignKey(
+        AIMessage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='memories_created')
     confidence = models.FloatField(default=1.0, help_text='Confidence score 0-1')
 
     # Vector embedding for retrieval (P8-06)
-    embedding = models.JSONField(null=True, blank=True, help_text='Vector embedding for semantic search')
+    embedding = models.JSONField(
+        null=True,
+        blank=True,
+        help_text='Vector embedding for semantic search')
     embedding_model = models.CharField(max_length=100, blank=True, default='')
 
     # Lifecycle
@@ -1337,11 +1452,19 @@ class AIMemorySummarization(models.Model):
         ('failed', 'Failed'),
     ]
 
-    conversation = models.ForeignKey(AIConversation, on_delete=models.CASCADE, related_name='summarizations')
+    conversation = models.ForeignKey(
+        AIConversation,
+        on_delete=models.CASCADE,
+        related_name='summarizations')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     source_message_count = models.IntegerField(default=0)
     summary_text = models.TextField(blank=True, default='')
-    summary_memory = models.ForeignKey(AIMemory, on_delete=models.SET_NULL, null=True, blank=True, related_name='summarizations')
+    summary_memory = models.ForeignKey(
+        AIMemory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='summarizations')
     error = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -1381,7 +1504,10 @@ class MLDataSet(models.Model):
     data_type = models.CharField(max_length=20, choices=DATA_TYPES)
     split = models.CharField(max_length=20, choices=SPLIT_TYPES, default='train')
     records_count = models.IntegerField(default=0)
-    features = models.JSONField(default=list, blank=True, help_text='List of feature names included')
+    features = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of feature names included')
     file_path = models.CharField(max_length=500, blank=True, default='')
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1413,8 +1539,12 @@ class MLFeature(models.Model):
     name = models.CharField(max_length=255)
     feature_type = models.CharField(max_length=20, choices=FEATURE_TYPES)
     description = models.TextField(blank=True)
-    source_domains = models.JSONField(default=list, blank=True, help_text='Which tracker domains this feature derives from')
-    computation_logic = models.TextField(blank=True, help_text='Description or code snippet of how feature is computed')
+    source_domains = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Which tracker domains this feature derives from')
+    computation_logic = models.TextField(
+        blank=True, help_text='Description or code snippet of how feature is computed')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1450,7 +1580,10 @@ class MLDataQualityCheck(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_quality_checks')
     check_type = models.CharField(max_length=20, choices=CHECK_TYPES)
-    domain = models.CharField(max_length=50, blank=True, help_text='Which domain was checked (expenses, habits, etc.)')
+    domain = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Which domain was checked (expenses, habits, etc.)')
     severity = models.CharField(max_length=10, choices=SEVERITY, default='medium')
     total_records = models.IntegerField(default=0)
     valid_records = models.IntegerField(default=0)
@@ -1474,7 +1607,10 @@ class MLDataQualityCheck(models.Model):
 class MLTransactionCategory(models.Model):
     """Transaction categorization prediction (P9-04)."""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_transaction_categories')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ml_transaction_categories')
     transaction_id = models.CharField(max_length=100, blank=True, default='')
     item_name = models.CharField(max_length=255, blank=True, default='')
     predicted_category = models.CharField(max_length=100, blank=True, default='')
@@ -1531,7 +1667,8 @@ class MLHabitConsistency(models.Model):
     habit_id = models.CharField(max_length=100, blank=True, default='')
     habit_name = models.CharField(max_length=255, blank=True, default='')
     prediction_date = models.DateField()
-    likelihood_of_miss = models.FloatField(default=0.0, help_text='Probability 0-1 that habit will be missed')
+    likelihood_of_miss = models.FloatField(default=0.0,
+                                           help_text='Probability 0-1 that habit will be missed')
     contributing_factors = models.JSONField(default=dict, blank=True)
     model_version = models.CharField(max_length=50, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1552,7 +1689,8 @@ class MLGoalCompletion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_goal_completion')
     goal_id = models.CharField(max_length=100, blank=True, default='')
     goal_text = models.CharField(max_length=500, blank=True, default='')
-    predicted_probability = models.FloatField(default=0.0, help_text='Probability 0-1 of completion')
+    predicted_probability = models.FloatField(
+        default=0.0, help_text='Probability 0-1 of completion')
     estimated_completion_date = models.DateField(null=True, blank=True)
     remaining_days = models.IntegerField(default=0)
     contributing_factors = models.JSONField(default=dict, blank=True)
@@ -1592,9 +1730,24 @@ class MLAnomaly(models.Model):
     severity = models.CharField(max_length=10, choices=SEVERITY, default='medium')
     domain = models.CharField(max_length=50, blank=True)
     description = models.TextField()
-    detected_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=None)
-    expected_range_low = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=None)
-    expected_range_high = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=None)
+    detected_value = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=None)
+    expected_range_low = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=None)
+    expected_range_high = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=None)
     is_resolved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1620,7 +1773,10 @@ class MLRecommendationScore(models.Model):
         ('general', 'General'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ml_recommendation_scores')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ml_recommendation_scores')
     rank_type = models.CharField(max_length=20, choices=RANK_TYPES)
     target_id = models.CharField(max_length=100, blank=True, default='')
     target_type = models.CharField(max_length=50, blank=True, default='')
@@ -1670,7 +1826,11 @@ class MLEvaluation(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.model_name} v{self.model_version} — {self.get_metric_type_display()}: {self.value:.4f}"
+        return f"{
+            self.model_name} v{
+            self.model_version} — {
+            self.get_metric_type_display()}: {
+                self.value:.4f}"
 
 
 class MLModelVersion(models.Model):
@@ -1741,7 +1901,10 @@ class MLModelMonitoring(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.model_name} — {self.get_monitor_type_display()}: {self.get_alert_level_display()}"
+        return f"{
+            self.model_name} — {
+            self.get_monitor_type_display()}: {
+            self.get_alert_level_display()}"
 
 
 # =============================================================================
@@ -1752,7 +1915,10 @@ class UnifiedPersonalState(models.Model):
     """Current user state snapshot (P10-01)."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='personal_state')
-    state_data = models.JSONField(default=dict, blank=True, help_text='Comprehensive user state including all domains')
+    state_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Comprehensive user state including all domains')
     last_updated = models.DateTimeField(auto_now=True)
     productivity_score = models.FloatField(default=0.0)
     financial_health = models.FloatField(default=0.0)
@@ -1777,7 +1943,8 @@ class CrossDomainReasoning(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cross_domain_reasoning')
     reasoning_type = models.CharField(max_length=20, choices=REASONING_TYPES)
-    domains_involved = models.JSONField(default=list, blank=True, help_text='List of domains analyzed')
+    domains_involved = models.JSONField(
+        default=list, blank=True, help_text='List of domains analyzed')
     insight = models.TextField()
     confidence = models.FloatField(default=0.0)
     supporting_evidence = models.JSONField(default=dict, blank=True)
@@ -1897,7 +2064,8 @@ class Risk(models.Model):
         ('decreasing', 'Decreasing'),
         ('stable', 'Stable'),
     ], default='increasing')
-    estimated_timeframe = models.CharField(max_length=100, blank=True, help_text='e.g. "2 weeks", "1 month"')
+    estimated_timeframe = models.CharField(
+        max_length=100, blank=True, help_text='e.g. "2 weeks", "1 month"')
     is_mitigated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1966,7 +2134,10 @@ class DailyPlan(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_plans')
     date = models.DateField()
-    plan_data = models.JSONField(default=dict, blank=True, help_text='Plan items with tasks, habits, goals')
+    plan_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Plan items with tasks, habits, goals')
     overall_priority = models.CharField(max_length=10, choices=PRIORITY, default='medium')
     confidence = models.FloatField(default=0.0)
     generated_by_model = models.CharField(max_length=50, blank=True, default='')
@@ -1989,7 +2160,10 @@ class WeeklyStrategy(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='weekly_strategies')
     week_start_date = models.DateField()
-    priorities = models.JSONField(default=list, blank=True, help_text='List of priority items for the week')
+    priorities = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of priority items for the week')
     focus_areas = models.JSONField(default=list, blank=True)
     key_goals = models.JSONField(default=list, blank=True)
     risk_mitigations = models.JSONField(default=list, blank=True)
@@ -2071,4 +2245,3 @@ class UserFeedback(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()}: {self.target_id[:50]}"
-

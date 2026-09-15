@@ -2,9 +2,8 @@
 
 Provides integration with Gemini API for AI assistant responses.
 """
-import json
 import logging
-from typing import Dict, List, Optional, Any, Generator
+from typing import Dict, List, Generator
 from dataclasses import dataclass
 
 from django.conf import settings
@@ -38,7 +37,8 @@ class LLMService:
                 genai.configure(api_key=self.api_key)
                 self._client = genai
             except ImportError:
-                raise ValueError("google-generativeai package not installed. Run: pip install google-generativeai")
+                raise ValueError(
+                    "google-generativeai package not installed. Run: pip install google-generativeai")
         return self._client
 
     def _build_system_prompt(self, context: Dict, available_tools: List[Dict]) -> str:
@@ -90,14 +90,25 @@ Guidelines:
             lines.append("Habits:")
             for h in habits[:5]:
                 today_done = "✓" if h.get('completed_today') else "○"
-                lines.append(f"  {today_done} {h.get('name', 'N/A')} (target: {h.get('target', 1)}, streak: {h.get('streak', 0)})")
+                lines.append(
+                    f"  {today_done} {
+                        h.get(
+                            'name',
+                            'N/A')} (target: {
+                        h.get(
+                            'target',
+                            1)}, streak: {
+                        h.get(
+                            'streak',
+                            0)})")
 
         # Recent expenses
         expenses = context.get('recent_expenses', [])
         if expenses:
             lines.append(f"Recent expenses ({len(expenses)}):")
             for e in expenses[:3]:
-                lines.append(f"  - {e.get('item', 'N/A')} (${e.get('total', 0):.2f}) [{e.get('category', 'N/A')}]")
+                lines.append(
+                    f"  - {e.get('item', 'N/A')} (${e.get('total', 0):.2f}) [{e.get('category', 'N/A')}]")
 
         # Recent journal
         journal = context.get('recent_journal', [])
@@ -118,7 +129,11 @@ Guidelines:
 
         return "\n".join(lines) if lines else "No data available yet."
 
-    def _build_messages(self, context: Dict, conversation_history: List[Dict], user_message: str) -> List[Dict]:
+    def _build_messages(
+            self,
+            context: Dict,
+            conversation_history: List[Dict],
+            user_message: str) -> List[Dict]:
         """Build message list for LLM."""
         messages = []
 
@@ -251,24 +266,39 @@ Guidelines:
                 "• **Budget**: Set and check budgets\n"
                 "• **Journal**: Write entries, view history\n"
                 "• **Analytics**: Get insights and trends\n\n"
-                "Just tell me what you'd like to do!"
-            ),
+                "Just tell me what you'd like to do!"),
             'create_goal': "I'd be happy to help you create a goal! What would you like to achieve? (e.g., 'Read 2 books this month', 'Exercise 3x per week')",
             'create_expense': "Sure! What did you spend money on? Tell me the item, category, and amount (e.g., 'Coffee, Food, $5.50').",
             'view_analytics': "Here are your current stats..." + self._format_context_summary(context),
         }
 
-        content = responses.get(intent, f"I understand you want to {intent.replace('_', ' ')}. Let me help you with that! (Full AI integration requires GEMINI_API_KEY)")
+        content = responses.get(
+            intent,
+            f"I understand you want to {
+                intent.replace(
+                    '_',
+                    ' ')}. Let me help you with that! (Full AI integration requires GEMINI_API_KEY)")
 
         return LLMResponse(content=content, tool_calls=[], model="fallback")
 
     def _format_context_summary(self, context: Dict) -> str:
         lines = []
         today = context.get('today_summary', {})
-        if today.get('data_available') != False:
-            lines.append(f"\nToday: {today.get('habits_completed', 0)}/{today.get('habits_total', 0)} habits, "
-                         f"{today.get('tasks_completed', 0)} tasks, "
-                         f"${today.get('expense_total', 0):.2f} spent")
+        if today.get('data_available'):
+            lines.append(
+                f"\nToday: {
+                    today.get(
+                        'habits_completed',
+                        0)}/{
+                    today.get(
+                        'habits_total',
+                        0)} habits, " f"{
+                    today.get(
+                        'tasks_completed',
+                        0)} tasks, " f"${
+                    today.get(
+                        'expense_total',
+                        0):.2f} spent")
 
         goals = context.get('active_goals', [])
         if goals:

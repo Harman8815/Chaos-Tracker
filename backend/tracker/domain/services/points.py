@@ -5,9 +5,8 @@ Derives a user's daily, weekly and monthly point totals from
 centralized so scores cannot be manipulated unexpectedly by individual
 domain services.
 """
-from datetime import date, timedelta
+from datetime import date
 
-from django.db.models import Sum
 
 from ...models import DailyActivityAggregate
 from ..exceptions import ValidationError

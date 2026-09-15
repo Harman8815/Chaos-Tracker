@@ -54,7 +54,11 @@ class QuoteSourceDetailView(TrackerAPIView):
     def update(self, request, *args, **kwargs):
         serializer = QuoteSourceCreateUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        source = quote_source_service.update(request.user, kwargs["source_id"], serializer.validated_data, partial=True)
+        source = quote_source_service.update(
+            request.user,
+            kwargs["source_id"],
+            serializer.validated_data,
+            partial=True)
         serializer = QuoteSourceSerializer(source)
         return self.ok(data=serializer.data, message="Quote source updated")
 
@@ -95,7 +99,11 @@ class QuoteDetailView(TrackerAPIView):
     def update(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        quote = quote_service.update(request.user, kwargs["quote_id"], serializer.validated_data, partial=True)
+        quote = quote_service.update(
+            request.user,
+            kwargs["quote_id"],
+            serializer.validated_data,
+            partial=True)
         serializer = QuoteSerializer(quote)
         return self.ok(data=serializer.data, message="Quote updated")
 

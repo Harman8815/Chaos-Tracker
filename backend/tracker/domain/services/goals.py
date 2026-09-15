@@ -46,8 +46,11 @@ class GoalService:
         description = validation.bounded_text(
             data.get("description", ""), max_length=2000, field="description", allow_blank=True,
         )
-        start_date = validation.parse_date(data["start_date"], field="start_date") if data.get("start_date") else None
-        due_date = validation.parse_date(data["due_date"], field="due_date") if data.get("due_date") else None
+        start_date = validation.parse_date(
+            data["start_date"],
+            field="start_date") if data.get("start_date") else None
+        due_date = validation.parse_date(data["due_date"],
+                                         field="due_date") if data.get("due_date") else None
         priority = validation.choice(
             data.get("priority", "medium"), Goal.PRIORITY_LEVELS_KEYS, field="priority",
         )
@@ -57,9 +60,19 @@ class GoalService:
         recurrence = validation.choice(
             data.get("recurrence", Goal.RECURRENCE_NONE), Goal.RECURRENCE_KEYS, field="recurrence",
         )
-        reminders = validation.bounded_list(data.get("reminders", []), max_length=50, field="reminders")
+        reminders = validation.bounded_list(
+            data.get(
+                "reminders",
+                []),
+            max_length=50,
+            field="reminders")
         completion_criteria = validation.bounded_text(
-            data.get("completion_criteria", ""), max_length=2000, field="completion_criteria", allow_blank=True,
+            data.get(
+                "completion_criteria",
+                ""),
+            max_length=2000,
+            field="completion_criteria",
+            allow_blank=True,
         )
         notes = validation.bounded_text(
             data.get("notes", ""), max_length=2000, field="notes", allow_blank=True,

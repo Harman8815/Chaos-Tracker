@@ -37,7 +37,15 @@ class EventService:
             raise NotFoundError("Event not found")
         return instance
 
-    def record(self, user, event_type, *, subject_type="", subject_id="", payload=None, occurred_at=None):
+    def record(
+            self,
+            user,
+            event_type,
+            *,
+            subject_type="",
+            subject_id="",
+            payload=None,
+            occurred_at=None):
         event_type = validation.choice(event_type, UserEvent.EVENT_TYPE_KEYS, field="event_type")
         subject_type = validation.bounded_text(
             subject_type, max_length=100, field="subject_type", allow_blank=True,
@@ -59,7 +67,8 @@ class EventService:
             occurred_at=occurred_at,
             payload=payload,
         )
-        logger.info("events.record user_id=%s type=%s subject=%s/%s", user.id, event_type, subject_type, subject_id)
+        logger.info("events.record user_id=%s type=%s subject=%s/%s",
+                    user.id, event_type, subject_type, subject_id)
         return instance
 
     def count_by_type(self, user, *, start_date=None, end_date=None):

@@ -6,7 +6,6 @@ transitively through their source).
 """
 import uuid
 
-from django.db import transaction
 from django.db.models import Count, Prefetch
 
 from ...models import Quote, QuoteSource, QuoteTag
@@ -106,7 +105,8 @@ class QuoteSourceService:
         if "title" in data:
             fields["title"] = validation.bounded_text(data["title"], max_length=255, field="title")
         if "type" in data:
-            fields["type"] = validation.choice(data["type"], QuoteSource.SOURCE_TYPES_KEYS, field="type")
+            fields["type"] = validation.choice(
+                data["type"], QuoteSource.SOURCE_TYPES_KEYS, field="type")
         if "cover_image" in data:
             fields["cover_image"] = validation.bounded_text(
                 data["cover_image"], max_length=500, field="cover_image", allow_blank=True,
@@ -132,8 +132,20 @@ class QuoteSourceService:
 
     def _create_quote(self, user, source, raw):
         text = validation.bounded_text(raw.get("text"), max_length=5000, field="text")
-        author = validation.bounded_text(raw.get("author", "Unknown"), max_length=255, field="author", allow_blank=True)
-        image = validation.bounded_text(raw.get("image", ""), max_length=500, field="image", allow_blank=True)
+        author = validation.bounded_text(
+            raw.get(
+                "author",
+                "Unknown"),
+            max_length=255,
+            field="author",
+            allow_blank=True)
+        image = validation.bounded_text(
+            raw.get(
+                "image",
+                ""),
+            max_length=500,
+            field="image",
+            allow_blank=True)
         quote = Quote.objects.create(
             id=str(uuid.uuid4()),
             source=source,
@@ -209,9 +221,14 @@ class QuoteService:
         if "text" in data:
             quote.text = validation.bounded_text(data["text"], max_length=5000, field="text")
         if "author" in data:
-            quote.author = validation.bounded_text(data["author"], max_length=255, field="author", allow_blank=True) or "Unknown"
+            quote.author = validation.bounded_text(
+                data["author"],
+                max_length=255,
+                field="author",
+                allow_blank=True) or "Unknown"
         if "image" in data:
-            quote.image = validation.bounded_text(data["image"], max_length=500, field="image", allow_blank=True)
+            quote.image = validation.bounded_text(
+                data["image"], max_length=500, field="image", allow_blank=True)
         quote.save()
         if "tags" in data:
             _replace_tags(quote, _normalize_tags(data["tags"]))

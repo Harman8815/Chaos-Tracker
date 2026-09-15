@@ -32,7 +32,7 @@ class NotificationQuerySerializer(serializers.Serializer):
 
 class NotificationListView(TrackerAPIView):
     """GET /api/v1/notifications/ - List notifications with filters"""
-    
+
     def get(self, request):
         query = self.validated_query(NotificationQuerySerializer)
         notifications = notification_service.list_notifications(
@@ -48,7 +48,7 @@ class NotificationListView(TrackerAPIView):
 
 class NotificationUnreadCountView(TrackerAPIView):
     """GET /api/v1/notifications/unread-count/ - Get unread notification count"""
-    
+
     def get(self, request):
         count = notification_service.get_unread_count(request.user)
         return self.ok(data={"count": count})
@@ -56,7 +56,7 @@ class NotificationUnreadCountView(TrackerAPIView):
 
 class NotificationMarkReadView(TrackerAPIView):
     """POST /api/v1/notifications/<id>/read/ - Mark notification as read"""
-    
+
     def post(self, request, id):
         notification = notification_service.mark_read(request.user, int(id))
         serializer = NotificationSerializer(notification)
@@ -65,15 +65,16 @@ class NotificationMarkReadView(TrackerAPIView):
 
 class NotificationMarkAllReadView(TrackerAPIView):
     """POST /api/v1/notifications/mark-all-read/ - Mark all notifications as read"""
-    
+
     def post(self, request):
         count = notification_service.mark_all_read(request.user)
-        return self.ok(data={"marked_count": count}, message=f"Marked {count} notifications as read")
+        return self.ok(data={"marked_count": count},
+                       message=f"Marked {count} notifications as read")
 
 
 class NotificationDeleteView(TrackerAPIView):
     """DELETE /api/v1/notifications/<id>/ - Delete notification"""
-    
+
     def delete(self, request, id):
         notification_service.delete(request.user, int(id))
         return self.ok(message="Notification deleted", status_code=status.HTTP_204_NO_CONTENT)
@@ -81,7 +82,7 @@ class NotificationDeleteView(TrackerAPIView):
 
 class NotificationDeleteAllReadView(TrackerAPIView):
     """DELETE /api/v1/notifications/delete-read/ - Delete all read notifications"""
-    
+
     def delete(self, request):
         count = notification_service.delete_all_read(request.user)
         return self.ok(data={"deleted_count": count}, message=f"Deleted {count} read notifications")
@@ -89,7 +90,7 @@ class NotificationDeleteAllReadView(TrackerAPIView):
 
 class NotificationPreferenceView(TrackerAPIView):
     """GET/PUT /api/v1/notifications/preferences/ - Get/update notification preferences"""
-    
+
     def get(self, request):
         prefs = notification_service.get_preferences(request.user)
         serializer = NotificationPreferenceSerializer(prefs)
@@ -110,7 +111,7 @@ class ScheduledJobQuerySerializer(serializers.Serializer):
 
 class ScheduledJobListView(TrackerAPIView):
     """GET /api/v1/jobs/ - List scheduled jobs"""
-    
+
     def get(self, request):
         query = self.validated_query(ScheduledJobQuerySerializer)
         # Filter by user for non-staff
@@ -121,18 +122,18 @@ class ScheduledJobListView(TrackerAPIView):
         if query.get("job_type"):
             qs = qs.filter(job_type=query["job_type"])
         qs = qs.order_by('-scheduled_at')
-        
+
         offset = query.get("offset", 0)
         limit = query.get("limit", 50)
         jobs = list(qs[offset:offset + limit])
-        
+
         serializer = ScheduledJobSerializer(jobs, many=True)
         return self.ok(data=serializer.data, count=len(jobs))
 
 
 class ScheduledJobDetailView(TrackerAPIView):
     """GET /api/v1/jobs/<id>/ - Get job details"""
-    
+
     def get(self, request, id):
         job = scheduled_job_service.get_job(int(id))
         if job.user != request.user:
@@ -143,7 +144,7 @@ class ScheduledJobDetailView(TrackerAPIView):
 
 class ScheduledJobRetryView(TrackerAPIView):
     """POST /api/v1/jobs/<id>/retry/ - Retry failed job"""
-    
+
     def post(self, request, id):
         job = scheduled_job_service.get_job(int(id))
         if job.user != request.user:
@@ -155,7 +156,7 @@ class ScheduledJobRetryView(TrackerAPIView):
 
 class ScheduledJobCancelView(TrackerAPIView):
     """POST /api/v1/jobs/<id>/cancel/ - Cancel pending job"""
-    
+
     def post(self, request, id):
         job = scheduled_job_service.get_job(int(id))
         if job.user != request.user:
@@ -167,15 +168,15 @@ class ScheduledJobCancelView(TrackerAPIView):
 
 class RunJobNowView(TrackerAPIView):
     """POST /api/v1/jobs/run-now/ - Manually trigger a job type"""
-    
+
     class JobRunSerializer(serializers.Serializer):
         job_type = serializers.CharField(max_length=50)
-    
+
     def post(self, request):
         serializer = self.JobRunSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         job_type = serializer.validated_data["job_type"]
-        
+
         # Map job types to services
         job_map = {
             "goal_deadline_check": goal_deadline_alert_service,
@@ -188,18 +189,20 @@ class RunJobNowView(TrackerAPIView):
             "recurring_income_process": recurring_income_job_service,
             "subscription_billing": subscription_billing_job_service,
         }
-        
+
         service = job_map.get(job_type)
         if not service:
-            return self.error(f"Unknown job type: {job_type}", status_code=status.HTTP_400_BAD_REQUEST)
-        
+            return self.error(
+                f"Unknown job type: {job_type}",
+                status_code=status.HTTP_400_BAD_REQUEST)
+
         if job_type == "weekly_summary":
             service.send_weekly_summary(request.user)
         elif job_type == "monthly_summary":
             service.send_monthly_summary(request.user)
         else:
             service.check_user(request.user)
-        
+
         return self.ok(message=f"Job {job_type} executed")
 
 
@@ -245,7 +248,8 @@ class RecurringIncomeDetailView(TrackerAPIView):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         from ...domain.services import income_service
-        instance = income_service.update_recurring_income(request.user, kwargs["id"], serializer.validated_data, partial=True)
+        instance = income_service.update_recurring_income(
+            request.user, kwargs["id"], serializer.validated_data, partial=True)
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, message="Recurring income updated")
 

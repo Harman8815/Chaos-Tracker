@@ -1,35 +1,34 @@
 """Thin v1 controller for AI assistant endpoints."""
 from rest_framework import status
 from rest_framework import serializers
-from rest_framework.response import Response
 from django.http import StreamingHttpResponse
 import json
 
 from ._base import TrackerAPIView
 from ...domain.services import (
     ai_assistant_service,
-    tool_executor,
-    register_builtin_tools,
 )
 from ...serializers import (
     AIConversationSerializer,
     AIConversationDetailSerializer,
     AIMessageSerializer,
-    AIToolSerializer,
     AIToolCallSerializer,
-    AIActionConfirmationSerializer,
 )
 
 
 class AIConversationQuerySerializer(serializers.Serializer):
-    status = serializers.CharField(required=False, max_length=20, allow_blank=True, default='active')
+    status = serializers.CharField(
+        required=False,
+        max_length=20,
+        allow_blank=True,
+        default='active')
     limit = serializers.IntegerField(required=False, min_value=1, max_value=100, default=50)
     offset = serializers.IntegerField(required=False, min_value=0, default=0)
 
 
 class AIConversationListCreateView(TrackerAPIView):
     """GET/POST /api/v1/ai/conversations/ - List or create conversations"""
-    
+
     def get(self, request):
         query = self.validated_query(AIConversationQuerySerializer)
         conversations = ai_assistant_service.list_conversations(
@@ -53,7 +52,7 @@ class AIConversationListCreateView(TrackerAPIView):
 
 class AIConversationDetailView(TrackerAPIView):
     """GET/PUT/DELETE /api/v1/ai/conversations/<id>/ - Conversation detail"""
-    
+
     def get(self, request, id):
         conversation = ai_assistant_service.get_conversation(request.user, int(id))
         if not conversation:
@@ -81,7 +80,7 @@ class AIConversationDetailView(TrackerAPIView):
 
 class AIConversationArchiveView(TrackerAPIView):
     """POST /api/v1/ai/conversations/<id>/archive/ - Archive conversation"""
-    
+
     def post(self, request, id):
         success = ai_assistant_service.archive_conversation(request.user, int(id))
         if not success:
@@ -96,26 +95,27 @@ class AIMessageSerializer_view(serializers.Serializer):
 
 class AIChatView(TrackerAPIView):
     """POST /api/v1/ai/conversations/<id>/chat/ - Send message and get AI response"""
-    
+
     def post(self, request, id):
         serializer = AIMessageSerializer_view(data=request.data)
         serializer.is_valid(raise_exception=True)
         content = serializer.validated_data["content"]
-        
+
         result = ai_assistant_service.process_user_message(request.user, int(id), content)
         return self.ok(data=result)
 
 
 class AIChatStreamView(TrackerAPIView):
     """POST /api/v1/ai/conversations/<id>/chat/stream/ - Send message and get streaming AI response"""
-    
+
     def post(self, request, id):
         serializer = AIMessageSerializer_view(data=request.data)
         serializer.is_valid(raise_exception=True)
         content = serializer.validated_data["content"]
-        
+
         # Add user message
-        user_message = ai_assistant_service.send_message(request.user, int(id), content, role='user')
+        user_message = ai_assistant_service.send_message(
+            request.user, int(id), content, role='user')
 
         # Save user message as memory
         conv = ai_assistant_service.get_conversation(request.user, int(id))
@@ -130,31 +130,31 @@ class AIChatStreamView(TrackerAPIView):
                 importance=3,
                 metadata={'message_id': user_message.id, 'role': 'user'},
             )
-        
+
         def generate():
             # Send user message confirmation
             yield f"data: {json.dumps({'type': 'user_message', 'message': {'id': user_message.id, 'role': 'user', 'content': content}})}\n\n"
-            
+
             # Get context and detect intent
             conv = ai_assistant_service.get_conversation(request.user, int(id))
             if not conv:
                 yield f"data: {json.dumps({'type': 'error', 'error': 'Conversation not found'})}\n\n"
                 return
-            
+
             from ...domain.services import build_context, detect_intent
             context = build_context(request.user, conv)
             intent_result = detect_intent(content, context)
-            
+
             # Add available tools to context
             available_tools = ai_assistant_service.get_available_tools(request.user)
             context['available_tools'] = available_tools
-            
+
             # Yield intent
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent_result.intent, 'confidence': intent_result.confidence, 'entities': intent_result.entities})}\n\n"
-            
+
             # Get conversation history
             conversation_history = context.get('conversation_history', [])
-            
+
             # Stream response from LLM
             from ...domain.services.llm import llm_service
             full_content = ""
@@ -176,7 +176,7 @@ class AIChatStreamView(TrackerAPIView):
                     chunk = word + (" " if i < len(words) - 1 else "")
                     full_content += chunk
                     yield f"data: {json.dumps({'type': 'content', 'delta': chunk})}\n\n"
-            
+
             # Save assistant response as memory
             if conv and full_content:
                 from ..domain.services.memory import memory_service
@@ -189,10 +189,10 @@ class AIChatStreamView(TrackerAPIView):
                     importance=3,
                     metadata={'role': 'assistant', 'intent': intent_result.intent},
                 )
-            
+
             # Yield completion
             yield f"data: {json.dumps({'type': 'done', 'message': {'role': 'assistant', 'content': full_content}})}\n\n"
-        
+
         response = StreamingHttpResponse(generate(), content_type='text/event-stream')
         response['Cache-Control'] = 'no-cache'
         response['X-Accel-Buffering'] = 'no'
@@ -201,7 +201,7 @@ class AIChatStreamView(TrackerAPIView):
 
 class AIMessageListView(TrackerAPIView):
     """GET /api/v1/ai/conversations/<id>/messages/ - List messages"""
-    
+
     class MessageQuerySerializer(serializers.Serializer):
         limit = serializers.IntegerField(required=False, min_value=1, max_value=200, default=100)
         offset = serializers.IntegerField(required=False, min_value=0, default=0)
@@ -211,7 +211,7 @@ class AIMessageListView(TrackerAPIView):
         conversation = ai_assistant_service.get_conversation(request.user, int(id))
         if not conversation:
             return self.error("Conversation not found", status_code=status.HTTP_404_NOT_FOUND)
-        
+
         messages = ai_assistant_service.get_messages(request.user, int(id), query.get("limit", 100))
         serializer = AIMessageSerializer(messages, many=True)
         return self.ok(data=serializer.data, count=len(messages))
@@ -219,7 +219,7 @@ class AIMessageListView(TrackerAPIView):
 
 class AIToolListView(TrackerAPIView):
     """GET /api/v1/ai/tools/ - List available tools"""
-    
+
     def get(self, request):
         tools = ai_assistant_service.get_available_tools(request.user)
         return self.ok(data=tools, count=len(tools))
@@ -227,7 +227,7 @@ class AIToolListView(TrackerAPIView):
 
 class AIToolCallExecuteView(TrackerAPIView):
     """POST /api/v1/ai/conversations/<id>/tool-calls/ - Execute a tool call"""
-    
+
     class ToolCallSerializer(serializers.Serializer):
         tool_name = serializers.CharField(max_length=100)
         arguments = serializers.JSONField()
@@ -236,7 +236,7 @@ class AIToolCallExecuteView(TrackerAPIView):
     def post(self, request, id):
         serializer = self.ToolCallSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         tool_call = ai_assistant_service.execute_tool_call(
             user=request.user,
             conversation_id=int(id),
@@ -250,26 +250,28 @@ class AIToolCallExecuteView(TrackerAPIView):
 
 class AIToolCallConfirmView(TrackerAPIView):
     """POST /api/v1/ai/tool-calls/<id>/confirm/ - Confirm a pending tool call"""
-    
+
     class ConfirmSerializer(serializers.Serializer):
         confirmed = serializers.BooleanField()
 
     def post(self, request, id):
         serializer = self.ConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         tool_call = ai_assistant_service.confirm_tool_call(
             user=request.user,
             tool_call_id=int(id),
             confirmed=serializer.validated_data["confirmed"],
         )
         ser = AIToolCallSerializer(tool_call)
-        return self.ok(data=ser.data, message="Tool call confirmed" if serializer.validated_data["confirmed"] else "Tool call cancelled")
+        return self.ok(
+            data=ser.data,
+            message="Tool call confirmed" if serializer.validated_data["confirmed"] else "Tool call cancelled")
 
 
 class AIToolCallRetryView(TrackerAPIView):
     """POST /api/v1/ai/tool-calls/<id>/retry/ - Retry a failed tool call"""
-    
+
     def post(self, request, id):
         tool_call = ai_assistant_service.recover_failed_tool_call(request.user, int(id))
         ser = AIToolCallSerializer(tool_call)
@@ -278,7 +280,7 @@ class AIToolCallRetryView(TrackerAPIView):
 
 class AIPendingConfirmationsView(TrackerAPIView):
     """GET /api/v1/ai/confirmations/ - List pending confirmations"""
-    
+
     def get(self, request):
         confirmations = ai_assistant_service.get_pending_confirmations(request.user)
         return self.ok(data=confirmations, count=len(confirmations))

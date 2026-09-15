@@ -5,7 +5,7 @@ from django.db.migrations.operations import RunSQL, RunPython
 from django.db.migrations.writer import MigrationWriter
 from django.db.migrations.loader import MigrationLoader
 from django.db import connection
-from typing import List, Callable, Optional
+from typing import List, Callable
 
 
 class SafeMigrationMixin:
@@ -57,7 +57,10 @@ class SafeMigrationMixin:
         )
 
     @staticmethod
-    def conditional_run_python(forward_fn: Callable, reverse_fn: Callable = None, elidable: bool = False):
+    def conditional_run_python(
+            forward_fn: Callable,
+            reverse_fn: Callable = None,
+            elidable: bool = False):
         """Run Python conditionally - only if not already applied."""
         return RunPython(
             code=forward_fn,

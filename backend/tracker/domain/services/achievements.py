@@ -47,7 +47,8 @@ class AchievementService:
         if achievement is None:
             raise NotFoundError("Achievement not found")
         if "title" in data:
-            achievement.title = validation.bounded_text(data["title"], max_length=255, field="title")
+            achievement.title = validation.bounded_text(
+                data["title"], max_length=255, field="title")
         if "description" in data:
             achievement.description = validation.bounded_text(
                 data["description"], max_length=2000, field="description", allow_blank=True,

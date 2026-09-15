@@ -4,7 +4,6 @@ import re
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
-from .exceptions import ValidationError
 
 
 PROMPT_INJECTION_PATTERNS = [
@@ -149,7 +148,11 @@ def validate_tool_schema(schema: Dict[str, Any]) -> List[str]:
             issues.append(f"{path}: string parameter without format validation")
 
         # Check for file path parameters
-        if 'path' in params.get('description', '').lower() or 'file' in params.get('description', '').lower():
+        if 'path' in params.get(
+                'description',
+                '').lower() or 'file' in params.get(
+                'description',
+                '').lower():
             issues.append(f"{path}: potential file path parameter")
 
         # Recursively check properties

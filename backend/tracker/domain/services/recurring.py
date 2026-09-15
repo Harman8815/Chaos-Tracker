@@ -7,10 +7,8 @@ into a scheduler later (Phase 6).
 from datetime import date, datetime, timedelta
 
 from django.db import transaction
-from django.db.models import F
 
-from ...models import Goal, PlannerBlock, PlannerTask
-from .. import validation
+from ...models import Goal, PlannerTask
 from ..exceptions import ValidationError
 from ..logging import get_logger
 

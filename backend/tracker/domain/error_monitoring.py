@@ -3,9 +3,8 @@
 import logging
 import traceback
 import json
-import sys
 from datetime import datetime
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Callable
 from functools import wraps
 from contextvars import ContextVar
 
@@ -87,9 +86,22 @@ class ErrorTrackingMiddleware(MiddlewareMixin):
     def process_request(self, request: HttpRequest):
         # Set request context
         ctx = {
-            'request_id': getattr(request, 'request_id', None),
-            'user_id': getattr(request.user, 'id', None) if hasattr(request, 'user') and request.user.is_authenticated else None,
-            'username': getattr(request.user, 'username', None) if hasattr(request, 'user') and request.user.is_authenticated else None,
+            'request_id': getattr(
+                request,
+                'request_id',
+                None),
+            'user_id': getattr(
+                request.user,
+                'id',
+                None) if hasattr(
+                request,
+                'user') and request.user.is_authenticated else None,
+            'username': getattr(
+                request.user,
+                'username',
+                    None) if hasattr(
+                        request,
+                        'user') and request.user.is_authenticated else None,
             'method': request.method,
             'path': request.path,
             'ip': self._get_client_ip(request),
@@ -106,11 +118,14 @@ class ErrorTrackingMiddleware(MiddlewareMixin):
                     'request_method': request.method,
                     'request_path': request.path,
                     'request_ip': self._get_client_ip(request),
-                    'user_id': getattr(request.user, 'id', None) if hasattr(request, 'user') and request.user.is_authenticated else None,
-                }
-            },
-            exc_info=True
-        )
+                    'user_id': getattr(
+                        request.user,
+                        'id',
+                        None) if hasattr(
+                        request,
+                        'user') and request.user.is_authenticated else None,
+                }},
+            exc_info=True)
         return None
 
     def _get_client_ip(self, request: HttpRequest) -> str:
@@ -203,7 +218,10 @@ def log_audit_event(
         extra['extra_data']['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
 
     level = logging.INFO if success else logging.WARNING
-    logger.log(level, f"Audit: {action} {resource_type}#{resource_id} by user#{user_id}", extra=extra)
+    logger.log(
+        level,
+        f"Audit: {action} {resource_type}#{resource_id} by user#{user_id}",
+        extra=extra)
 
 
 def monitor_performance(threshold_seconds: float = 1.0):

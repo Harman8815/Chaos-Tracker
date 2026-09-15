@@ -3,7 +3,6 @@
 Owns RecurringExpense CRUD plus processing logic. All queries are scoped to the requesting user.
 """
 from datetime import date, timedelta
-from decimal import Decimal
 
 from ...models import RecurringExpense, Expense
 from .. import validation
@@ -35,7 +34,8 @@ class RecurringExpenseService:
             raise ValidationError("price must be non-negative")
         frequency = validation.bounded_text(data.get("frequency"), max_length=20, field="frequency")
         if frequency not in dict(RecurringExpense.FREQUENCY_CHOICES):
-            raise ValidationError(f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}")
+            raise ValidationError(
+                f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}")
         start_date = validation.parse_date(data.get("start_date"), field="start_date")
         end_date = None
         if data.get("end_date"):
@@ -43,10 +43,23 @@ class RecurringExpenseService:
         day_of_month = None
         day_of_week = None
         if frequency == 'monthly':
-            day_of_month = validation.positive_int(data.get("day_of_month", start_date.day), field="day_of_month", minimum=1, maximum=31)
+            day_of_month = validation.positive_int(
+                data.get(
+                    "day_of_month",
+                    start_date.day),
+                field="day_of_month",
+                minimum=1,
+                maximum=31)
         elif frequency == 'weekly':
-            day_of_week = validation.positive_int(data.get("day_of_week", start_date.weekday()), field="day_of_week", minimum=0, maximum=6)
-        next_occurrence = self._calculate_next_occurrence(frequency, start_date, day_of_month, day_of_week)
+            day_of_week = validation.positive_int(
+                data.get(
+                    "day_of_week",
+                    start_date.weekday()),
+                field="day_of_week",
+                minimum=0,
+                maximum=6)
+        next_occurrence = self._calculate_next_occurrence(
+            frequency, start_date, day_of_month, day_of_week)
         is_active = data.get("is_active", True)
         recurring = RecurringExpense.objects.create(
             user=user,
@@ -65,7 +78,12 @@ class RecurringExpenseService:
         logger.info("recurring_expenses.create user_id=%s id=%s", user.id, recurring.id)
         return recurring
 
-    def _calculate_next_occurrence(self, frequency, start_date, day_of_month=None, day_of_week=None):
+    def _calculate_next_occurrence(
+            self,
+            frequency,
+            start_date,
+            day_of_month=None,
+            day_of_week=None):
         """Calculate the next occurrence date based on frequency."""
         if frequency == 'daily':
             return start_date
@@ -82,7 +100,8 @@ class RecurringExpenseService:
                 if next_date < start_date:
                     # Move to next month
                     if start_date.month == 12:
-                        next_date = start_date.replace(year=start_date.year + 1, month=1, day=day_of_month)
+                        next_date = start_date.replace(
+                            year=start_date.year + 1, month=1, day=day_of_month)
                     else:
                         next_date = start_date.replace(month=start_date.month + 1, day=day_of_month)
                 return next_date
@@ -102,9 +121,11 @@ class RecurringExpenseService:
         if "item" in data:
             recurring.item = validation.bounded_text(data["item"], max_length=255, field="item")
         if "category" in data:
-            recurring.category = validation.bounded_text(data["category"], max_length=100, field="category")
+            recurring.category = validation.bounded_text(
+                data["category"], max_length=100, field="category")
         if "quantity" in data:
-            recurring.quantity = validation.positive_int(data["quantity"], field="quantity", minimum=1)
+            recurring.quantity = validation.positive_int(
+                data["quantity"], field="quantity", minimum=1)
         if "price" in data:
             price = validation.bounded_decimal(data["price"], field="price")
             if price < 0:
@@ -113,16 +134,26 @@ class RecurringExpenseService:
         if "frequency" in data:
             frequency = validation.bounded_text(data["frequency"], max_length=20, field="frequency")
             if frequency not in dict(RecurringExpense.FREQUENCY_CHOICES):
-                raise ValidationError(f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}")
+                raise ValidationError(
+                    f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}")
             recurring.frequency = frequency
         if "start_date" in data:
             recurring.start_date = validation.parse_date(data["start_date"], field="start_date")
         if "end_date" in data:
-            recurring.end_date = validation.parse_date(data["end_date"], field="end_date") if data["end_date"] else None
+            recurring.end_date = validation.parse_date(
+                data["end_date"], field="end_date") if data["end_date"] else None
         if "day_of_month" in data:
-            recurring.day_of_month = validation.positive_int(data["day_of_month"], field="day_of_month", minimum=1, maximum=31) if data["day_of_month"] else None
+            recurring.day_of_month = validation.positive_int(
+                data["day_of_month"],
+                field="day_of_month",
+                minimum=1,
+                maximum=31) if data["day_of_month"] else None
         if "day_of_week" in data:
-            recurring.day_of_week = validation.positive_int(data["day_of_week"], field="day_of_week", minimum=0, maximum=6) if data["day_of_week"] else None
+            recurring.day_of_week = validation.positive_int(
+                data["day_of_week"],
+                field="day_of_week",
+                minimum=0,
+                maximum=6) if data["day_of_week"] else None
         if "is_active" in data:
             recurring.is_active = data["is_active"]
         # Recalculate next_occurrence if relevant fields changed
@@ -178,7 +209,11 @@ class RecurringExpenseService:
             if recurring.end_date and recurring.next_occurrence > recurring.end_date:
                 recurring.is_active = False
             recurring.save()
-            logger.info("recurring_expenses.processed user_id=%s recurring_id=%s expense_id=%s", user.id, recurring.id, expense.id)
+            logger.info(
+                "recurring_expenses.processed user_id=%s recurring_id=%s expense_id=%s",
+                user.id,
+                recurring.id,
+                expense.id)
         return created_expenses
 
 

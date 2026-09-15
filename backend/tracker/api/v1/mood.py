@@ -33,7 +33,11 @@ class MoodDetailView(TrackerAPIView):
     def update(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        instance = _mood_service.update(request.user, kwargs["id"], serializer.validated_data, partial=True)
+        instance = _mood_service.update(
+            request.user,
+            kwargs["id"],
+            serializer.validated_data,
+            partial=True)
         serializer = self.serializer_class(instance)
         return self.ok(data=serializer.data, message="Mood updated successfully")
 

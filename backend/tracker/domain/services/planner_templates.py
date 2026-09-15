@@ -2,9 +2,8 @@
 
 Provides reusable planning structures and search across blocks/tasks.
 """
-from django.db.models import Q
 
-from ...models import Goal, PlannerBlock, PlannerLink, PlannerSettings, PlannerTask, PlannerTemplate
+from ...models import PlannerBlock, PlannerTask, PlannerTemplate
 from .. import validation
 from ..exceptions import NotFoundError, ValidationError
 from ..logging import get_logger

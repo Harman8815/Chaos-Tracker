@@ -1,9 +1,7 @@
 """Mood and water domain services."""
-from datetime import date, datetime
 
 from ...models import Mood, Water
 from .. import validation
-from ..exceptions import NotFoundError
 from ..logging import get_logger
 
 logger = get_logger("tracker.domain.health")
@@ -26,7 +24,8 @@ class MoodService:
         instance, created = Mood.objects.update_or_create(
             user=user, date=entry_date, defaults={"mood": mood_value},
         )
-        logger.info("mood.upsert user_id=%s date=%s created=%s", user.id, entry_date.isoformat(), created)
+        logger.info("mood.upsert user_id=%s date=%s created=%s",
+                    user.id, entry_date.isoformat(), created)
         return instance
 
     def update(self, user, mood_id, data, *, partial=True):
@@ -64,7 +63,8 @@ class WaterService:
         instance, created = Water.objects.update_or_create(
             user=user, date=entry_date, defaults={"glasses": glasses, "target": target},
         )
-        logger.info("water.upsert user_id=%s date=%s created=%s", user.id, entry_date.isoformat(), created)
+        logger.info("water.upsert user_id=%s date=%s created=%s",
+                    user.id, entry_date.isoformat(), created)
         return instance
 
     def update(self, user, water_id, data, *, partial=True):

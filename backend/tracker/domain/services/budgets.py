@@ -4,9 +4,7 @@ Owns Budget CRUD plus budget-vs-actual analytics. Budgets are scoped
 to ``(user, category, year, month)`` and compared against Expense
 records for the same period.
 """
-from datetime import date
 
-from django.db.models import Sum
 
 from ...models import Budget, Expense
 from .. import validation
@@ -71,7 +69,8 @@ class BudgetService:
         if budget is None:
             raise NotFoundError("Budget not found")
         if "category" in data:
-            budget.category = validation.bounded_text(data["category"], max_length=100, field="category")
+            budget.category = validation.bounded_text(
+                data["category"], max_length=100, field="category")
         if "year" in data:
             budget.year = _normalize_year(data["year"])
         if "month" in data:
@@ -104,7 +103,8 @@ class BudgetService:
         result = []
         for budget in budgets:
             actual = round(actual_map.get(budget.category, 0.0), 2)
-            spent_pct = round((actual / float(budget.amount)) * 100, 2) if float(budget.amount) > 0 else 0.0
+            spent_pct = round((actual / float(budget.amount)) * 100,
+                              2) if float(budget.amount) > 0 else 0.0
             result.append({
                 "id": budget.id,
                 "category": budget.category,

@@ -1,15 +1,14 @@
 """AI Context builder and intent detection (P7-07, P7-08)."""
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
-from django.db.models import Count, Sum
+from django.db.models import Sum
 
 from ...models import (
     AIConversation, AIMessage, Goal, Habit, DailyHabitScore,
     Expense, JournalEntry, Mood, Water, Achievement,
     DailyActivityAggregate, Budget,
-    AIMemory,
 )
 from ..services.memory import memory_service
 from ..logging import get_logger
@@ -49,7 +48,8 @@ class ContextBuilder:
         }
 
         if self.conversation:
-            context['conversation_history'] = self._get_conversation_history(include_recent_messages)
+            context['conversation_history'] = self._get_conversation_history(
+                include_recent_messages)
 
         return context
 
@@ -102,7 +102,8 @@ class ContextBuilder:
         habits = Habit.objects.filter(user=self.user)[:20]
         result = []
         for h in habits:
-            today_score = DailyHabitScore.objects.filter(user=self.user, habit=h, date=date.today()).first()
+            today_score = DailyHabitScore.objects.filter(
+                user=self.user, habit=h, date=date.today()).first()
             result.append({
                 'id': h.id,
                 'name': h.name,
@@ -128,7 +129,8 @@ class ContextBuilder:
 
     def _get_recent_journal(self, days: int = 7) -> List[Dict]:
         since = date.today() - timedelta(days=days)
-        entries = JournalEntry.objects.filter(user=self.user, date__gte=since).order_by('-date')[:10]
+        entries = JournalEntry.objects.filter(
+            user=self.user, date__gte=since).order_by('-date')[:10]
         return [{
             'date': e.date.isoformat(),
             'content': e.content[:200],
@@ -195,7 +197,8 @@ class ContextBuilder:
     def _get_conversation_history(self, limit: int) -> List[Dict]:
         if not self.conversation:
             return []
-        messages = AIMessage.objects.filter(conversation=self.conversation).order_by('-created_at')[:limit]
+        messages = AIMessage.objects.filter(
+            conversation=self.conversation).order_by('-created_at')[:limit]
         return list(reversed([{
             'role': m.role,
             'content': m.content,
