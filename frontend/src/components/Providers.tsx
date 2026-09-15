@@ -199,7 +199,9 @@ function AppContent({ children }: { children: React.ReactNode }) {
                     setIsCommandPaletteOpen={setIsCommandPaletteOpen}
                     isSettingsModalOpen={isSettingsModalOpen}
                     isEditHabitsModalOpen={isEditHabitsModalOpen}
+                    setIsEditHabitsModalOpen={setIsEditHabitsModalOpen}
                     isEditRulesModalOpen={isEditRulesModalOpen}
+                    setIsEditRulesModalOpen={setIsEditRulesModalOpen}
                     habits={habits}
                     setHabits={setHabits}
                     scoringRules={scoringRules}
@@ -218,15 +220,17 @@ interface AppInnerProps {
     setIsCommandPaletteOpen: (open: boolean) => void;
     isSettingsModalOpen: boolean;
     isEditHabitsModalOpen: boolean;
+    setIsEditHabitsModalOpen: (open: boolean) => void;
     isEditRulesModalOpen: boolean;
-    habits: any[];
-    setHabits: (habits: any[]) => void;
-    scoringRules: any[];
-    setScoringRules: (rules: any[]) => void;
+    setIsEditRulesModalOpen: (open: boolean) => void;
+    habits: Habit[];
+    setHabits: Dispatch<SetStateAction<Habit[]>>;
+    scoringRules: ScoringRule[];
+    setScoringRules: Dispatch<SetStateAction<ScoringRule[]>>;
     children: React.ReactNode;
 }
 
-function AppInner({ shortcutContext, isCommandPaletteOpen, setIsCommandPaletteOpen, isSettingsModalOpen, isEditHabitsModalOpen, isEditRulesModalOpen, habits, setHabits, scoringRules, setScoringRules, children }: AppInnerProps) {
+function AppInner({ shortcutContext, isCommandPaletteOpen, setIsCommandPaletteOpen, isSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, habits, setHabits, scoringRules, setScoringRules, children }: AppInnerProps) {
     const realtime = useRealtime();
     useKeyboardShortcuts(shortcutContext, [], { enabled: true });
 
