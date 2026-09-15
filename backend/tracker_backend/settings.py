@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 from tracker.api.versions import CURRENT_API_VERSION, SUPPORTED_API_VERSIONS
 
@@ -22,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a$0w%&2*2r1)o%e@*s71uc6!yi)2=q)j*b^t0uj4%xgedel43f'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'drf_spectacular',
     'authentication',
     'tracker',
 ]
@@ -83,6 +85,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'CONN_MAX_AGE': 60,
+        'OPTIONS': {
+            'timeout': 20,
+        },
     }
 }
 
@@ -128,29 +134,115 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-]
-
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001').split(',')
 CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-api-version',
 ]
+
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://localhost:3001').split(',')
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = False
+
+# Session Security
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
+
+# SSL/HTTPS (enable in production)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'ALLOWED_VERSIONS': list(SUPPORTED_API_VERSIONS),
     'DEFAULT_VERSION': CURRENT_API_VERSION,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'burst': '60/minute',
+        'ai_chat': '30/minute',
+        'ai_tools': '20/minute',
+        'auth': '10/minute',
+        'export': '10/hour',
+    },
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
+    ],
+    'EXCEPTION_HANDLER': 'tracker.domain.exceptions.to_http_response',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Chaos Tracker API',
+    'DESCRIPTION': 'API for Chaos Tracker - Personal productivity and finance tracker',
+    'VERSION': 'v1',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/v1',
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'User authentication and session management'},
+        {'name': 'Journal', 'description': 'Daily journal entries'},
+        {'name': 'Quotes', 'description': 'Quote sources and quotes'},
+        {'name': 'Achievements', 'description': 'User achievements'},
+        {'name': 'Expenses', 'description': 'Expense tracking and analytics'},
+        {'name': 'Income', 'description': 'Income tracking'},
+        {'name': 'Accounts', 'description': 'Financial accounts and transfers'},
+        {'name': 'Recurring', 'description': 'Recurring expenses and income'},
+        {'name': 'Budgets', 'description': 'Budget management and alerts'},
+        {'name': 'Goals', 'description': 'Goal tracking and milestones'},
+        {'name': 'Planner', 'description': 'Visual planner with blocks and tasks'},
+        {'name': 'Mood', 'description': 'Mood tracking'},
+        {'name': 'Water', 'description': 'Water intake tracking'},
+        {'name': 'Analytics', 'description': 'Productivity and financial analytics'},
+        {'name': 'Notifications', 'description': 'In-app notifications and preferences'},
+        {'name': 'Jobs', 'description': 'Scheduled background jobs'},
+        {'name': 'AI Assistant', 'description': 'AI conversations and tool calling'},
+        {'name': 'Memory', 'description': 'AI memory and summarization'},
+        {'name': 'ML', 'description': 'Machine learning datasets and predictions'},
+        {'name': 'Intelligence', 'description': 'Personal intelligence engine'},
+    ],
 }
 
 LOGGING = {
@@ -161,6 +253,9 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
+        'json': {
+            '()': 'tracker_backend.logging_config.JsonFormatter',
+        },
     },
     'handlers': {
         'console': {
@@ -168,30 +263,69 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'file': {
-            'class': 'logging.FileHandler',
-            'filename': str(BASE_DIR / 'debug.log'),
-            'formatter': 'verbose',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs' / 'app.log'),
+            'formatter': 'json',
+            'maxBytes': 10485760,  # 10MB
+            'backupCount': 10,
+        },
+        'error_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs' / 'error.log'),
+            'formatter': 'json',
+            'maxBytes': 10485760,
+            'backupCount': 10,
+            'level': 'ERROR',
+        },
+        'security_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs' / 'security.log'),
+            'formatter': 'json',
+            'maxBytes': 10485760,
+            'backupCount': 10,
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console', 'file', 'error_file'],
         'level': 'INFO',
     },
     'loggers': {
         'tracker': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'authentication': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'file', 'error_file', 'security_file'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
             'propagate': False,
         },
     },
 }
 
 # AI/LLM Configuration
-import os
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+
+# AI Security
+AI_MAX_CONTEXT_TOKENS = int(os.environ.get('AI_MAX_CONTEXT_TOKENS', '8000'))
+AI_MAX_RESPONSE_TOKENS = int(os.environ.get('AI_MAX_RESPONSE_TOKENS', '2000'))
+AI_TOOL_EXECUTION_TIMEOUT = int(os.environ.get('AI_TOOL_EXECUTION_TIMEOUT', '30'))
+AI_RATE_LIMIT_ENABLED = os.environ.get('AI_RATE_LIMIT_ENABLED', 'True').lower() == 'true'
+
+# Backup/Disaster Recovery
+BACKUP_DIR = BASE_DIR / 'backups'
+BACKUP_RETENTION_DAYS = int(os.environ.get('BACKUP_RETENTION_DAYS', '30'))
+
+# Migration Safety
+MIGRATION_MODULES = {}
