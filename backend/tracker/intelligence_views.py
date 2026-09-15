@@ -431,3 +431,21 @@ class UserFeedbackDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return UserFeedback.objects.filter(user=self.request.user)
+
+
+class MLPipelineRunView(views.APIView):
+    permission_classes = PERMISSION_CLASSES
+
+    def post(self, request):
+        from .services import run_ml_pipeline
+        result = run_ml_pipeline(request.user)
+        return success_response(data=result, message='ML pipeline run completed')
+
+
+class IntelligenceRunView(views.APIView):
+    permission_classes = PERMISSION_CLASSES
+
+    def post(self, request):
+        from .services import run_intelligence_engine
+        result = run_intelligence_engine(request.user)
+        return success_response(data=result, message='Intelligence engine run completed')
