@@ -83,12 +83,32 @@ class RateLimitError(DomainError):
         super().__init__(message, details)
 
 
-def to_http_response(error: DomainError):
+def to_http_response(exc, context=None):
     """Convert a :class:`DomainError` into a DRF ``Response``.
 
     Used by the API layer so HTTP mapping stays in one place.
     """
     from rest_framework.response import Response
+    from rest_framework import exceptions as drf_exceptions
+
+    # Handle DRF built-in exceptions
+    if isinstance(exc, drf_exceptions.NotAuthenticated):
+        error = DomainError("Authentication credentials were not provided")
+        error.code = "NOT_AUTHENTICATED"
+        error.http_status = status.HTTP_401_UNAUTHORIZED
+    elif isinstance(exc, drf_exceptions.PermissionDenied):
+        error = DomainError("Permission denied")
+        error.code = "PERMISSION_DENIED"
+        error.http_status = status.HTTP_403_FORBIDDEN
+    elif isinstance(exc, drf_exceptions.ValidationError):
+        error = DomainError("Validation failed", details=exc.detail)
+        error.code = "VALIDATION_ERROR"
+        error.http_status = status.HTTP_400_BAD_REQUEST
+    elif isinstance(exc, DomainError):
+        error = exc
+    else:
+        # Wrap unexpected errors
+        error = DomainError(str(exc))
 
     payload = {
         "success": False,

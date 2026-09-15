@@ -234,7 +234,7 @@ class V1APIRegressionTests(APITestCase):
     def test_unauthenticated_versioned_endpoint_is_rejected(self):
         client = APIClient()
         response = client.get('/api/v1/mood/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_cross_user_expense_detail_is_not_found(self):
         expense = Expense.objects.create(user=self.other_user, date='2025-01-01', item='Secret', category='Food', quantity=1, price='1.00')
