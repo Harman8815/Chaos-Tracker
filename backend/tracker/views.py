@@ -3262,6 +3262,7 @@ class TempDataView(views.APIView):
     POST /api/temp-data/
     """
 
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
