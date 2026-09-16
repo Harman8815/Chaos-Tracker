@@ -58,6 +58,9 @@ jobs:
       - name: Run migrations
         run: python manage.py migrate --noinput
 
+      - name: Provision demo admin account
+        run: python manage.py createadmin
+
       - name: Run tests
         run: python manage.py test authentication tracker tracker.domain -v 2
 
