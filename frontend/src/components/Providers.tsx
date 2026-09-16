@@ -9,6 +9,7 @@ import { DUMMY_ACHIEVEMENTS } from '../data/achievements_data';
 import { DEFAULT_HABITS, DEFAULT_SCORING_RULES } from '../constants';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchAppData } from '../api/services';
+import { onUnauthenticated } from '../api/client';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext, SettingsEffects } from '../context/SettingsContext';
 import { ToolsProvider, useTools } from './ToolsProvider';
@@ -283,6 +284,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     const login = () => setIsAuthenticated(true);
     const logout = () => setIsAuthenticated(false);
+
+    // Auto-redirect to login when the API responds with 401 (missing/expired
+    // session). This keeps the app usable even when the backend rejects a
+    // request because the user is no longer authenticated.
+    useEffect(() => {
+        const unsubscribe = onUnauthenticated(() => {
+            setIsAuthenticated(false);
+            setAuthView('login');
+        });
+        return unsubscribe;
+    }, [setIsAuthenticated, setAuthView]);
 
     const t = (key: string): string => {
         return translations[settings.language][key] || key;

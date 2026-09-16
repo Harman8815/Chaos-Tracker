@@ -1,6 +1,30 @@
 
 import { API_BASE_URL, REQUEST_TIMEOUT_MS } from './constants';
 
+/**
+ * Emitted by the ApiClient when the server responds with 401 Unauthorized.
+ * Subscribers (e.g. the auth provider) can listen and redirect to login.
+ */
+export const UNAUTHENTICATED_EVENT = 'api:unauthenticated';
+type UnauthListener = () => void;
+const listeners: UnauthListener[] = [];
+export function onUnauthenticated(fn: UnauthListener): () => void {
+    listeners.push(fn);
+    return () => {
+        const idx = listeners.indexOf(fn);
+        if (idx >= 0) listeners.splice(idx, 1);
+    };
+}
+export function emitUnauthenticated(): void {
+    listeners.forEach(fn => {
+        try {
+            fn();
+        } catch {
+            // ignore listener errors
+        }
+    });
+}
+
 class ApiClient {
     private baseURL: string;
 
@@ -21,7 +45,7 @@ class ApiClient {
         const id = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
         const csrfToken = this.getCookie('csrftoken');
-        
+
         const config: RequestInit = {
             ...options,
             headers: {
@@ -37,10 +61,19 @@ class ApiClient {
             const response = await fetch(`${this.baseURL}${endpoint}`, config);
             clearTimeout(id);
 
+            if (response.status === 401) {
+                // Token/session missing or expired: force re-auth.
+                emitUnauthenticated();
+                const error = new Error('Authentication required. Please log in again.') as any;
+                error.code = 'UNAUTHENTICATED';
+                error.status = 401;
+                throw error;
+            }
+
             if (!response.ok) {
                 const text = await response.text();
                 let errorMessage = `API call failed: ${response.status} ${response.statusText}`;
-                
+
                 try {
                     const errorData = JSON.parse(text);
                     if (errorData.error && typeof errorData.error === 'object') {
@@ -59,12 +92,12 @@ class ApiClient {
                     throw new Error(errorMessage);
                 }
             }
-            
+
             const text = await response.text();
             if (!text) return {} as T;
-            
+
             const parsed = JSON.parse(text);
-            
+
             if (parsed && typeof parsed === 'object') {
                 if (parsed.success === true && 'data' in parsed) {
                     return parsed.data as T;
@@ -76,7 +109,7 @@ class ApiClient {
                     throw apiError;
                 }
             }
-            
+
             return parsed as T;
         } catch (error) {
             clearTimeout(id);
