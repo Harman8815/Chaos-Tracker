@@ -40,7 +40,7 @@ class LLMService:
                 self._client = genai
             except ImportError:
                 raise ValueError(
-                    "google-generativeai package not installed. Run: pip install google-generativeai"
+                    "google-generativeai package not installed. Run: pip install google-generativeai"  # noqa: E501
                 )
         return self._client
 
@@ -48,7 +48,7 @@ class LLMService:
         """Build system prompt with context and tool definitions."""
         context_summary = self._format_context(context)
 
-        return f"""You are the Chaos Tracker AI assistant. You help users manage their goals, habits, expenses, journal, and productivity.
+        return f"""You are the Chaos Tracker AI assistant. You help users manage their goals, habits, expenses, journal, and productivity.  # noqa: E501
 
 Current context:
 {context_summary}
@@ -114,7 +114,7 @@ Guidelines:
             lines.append(f"Recent expenses ({len(expenses)}):")
             for e in expenses[:3]:
                 lines.append(
-                    f"  - {e.get('item', 'N/A')} (${e.get('total', 0):.2f}) [{e.get('category', 'N/A')}]"
+                    f"  - {e.get('item', 'N/A')} (${e.get('total', 0):.2f}) [{e.get('category', 'N/A')}]"  # noqa: E501
                 )
 
         # Recent journal
@@ -267,7 +267,7 @@ Guidelines:
         intent = intent_result.intent
 
         responses = {
-            "greeting": "Hello! I'm your Chaos Tracker assistant. I can help you with goals, habits, expenses, journaling, and more. What would you like to do today?",
+            "greeting": "Hello! I'm your Chaos Tracker assistant. I can help you with goals, habits, expenses, journaling, and more. What would you like to do today?",  # noqa: E501
             "get_help": (
                 "I can help you with:\n"
                 "• **Goals**: Create, update, complete goals\n"
@@ -278,8 +278,8 @@ Guidelines:
                 "• **Analytics**: Get insights and trends\n\n"
                 "Just tell me what you'd like to do!"
             ),
-            "create_goal": "I'd be happy to help you create a goal! What would you like to achieve? (e.g., 'Read 2 books this month', 'Exercise 3x per week')",
-            "create_expense": "Sure! What did you spend money on? Tell me the item, category, and amount (e.g., 'Coffee, Food, $5.50').",
+            "create_goal": "I'd be happy to help you create a goal! What would you like to achieve? (e.g., 'Read 2 books this month', 'Exercise 3x per week')",  # noqa: E501
+            "create_expense": "Sure! What did you spend money on? Tell me the item, category, and amount (e.g., 'Coffee, Food, $5.50').",  # noqa: E501
             "view_analytics": "Here are your current stats..."
             + self._format_context_summary(context),
         }

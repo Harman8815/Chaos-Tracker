@@ -105,7 +105,7 @@ class AIChatView(TrackerAPIView):
 
 
 class AIChatStreamView(TrackerAPIView):
-    """POST /api/v1/ai/conversations/<id>/chat/stream/ - Send message and get streaming AI response"""
+    """POST /api/v1/ai/conversations/<id>/chat/stream/ - Send message and get streaming AI response"""  # noqa: E501
 
     def post(self, request, id):
         serializer = AIMessageSerializer_view(data=request.data)
@@ -134,7 +134,7 @@ class AIChatStreamView(TrackerAPIView):
 
         def generate():
             # Send user message confirmation
-            yield f"data: {json.dumps({'type': 'user_message', 'message': {'id': user_message.id, 'role': 'user', 'content': content}})}\n\n"
+            yield f"data: {json.dumps({'type': 'user_message', 'message': {'id': user_message.id, 'role': 'user', 'content': content}})}\n\n"  # noqa: E501
 
             # Get context and detect intent
             conv = ai_assistant_service.get_conversation(request.user, int(id))
@@ -156,7 +156,7 @@ class AIChatStreamView(TrackerAPIView):
             context["available_tools"] = available_tools
 
             # Yield intent
-            yield f"data: {json.dumps({'type': 'intent', 'intent': intent_result.intent, 'confidence': intent_result.confidence, 'entities': intent_result.entities})}\n\n"
+            yield f"data: {json.dumps({'type': 'intent', 'intent': intent_result.intent, 'confidence': intent_result.confidence, 'entities': intent_result.entities})}\n\n"  # noqa: E501
 
             # Get conversation history
             conversation_history = context.get("conversation_history", [])

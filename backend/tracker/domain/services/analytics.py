@@ -323,7 +323,7 @@ class AnalyticsService:
                 {
                     "type": "positive",
                     "title": "Excellent Consistency",
-                    "message": f"You're completing {consistency['score']}% of your tracked activities. Keep up the great work!",
+                    "message": f"You're completing {consistency['score']}% of your tracked activities. Keep up the great work!",  # noqa: E501
                     "domain": "consistency",
                 }
             )
@@ -332,7 +332,7 @@ class AnalyticsService:
                 {
                     "type": "neutral",
                     "title": "Moderate Consistency",
-                    "message": f"You're completing {consistency['score']}% of activities. Try to build a daily routine to improve.",
+                    "message": f"You're completing {consistency['score']}% of activities. Try to build a daily routine to improve.",  # noqa: E501
                     "domain": "consistency",
                 }
             )
@@ -342,7 +342,7 @@ class AnalyticsService:
                     "type": "negative",
                     "title": "Low Consistency",
                     "message": f"Only {
-                        consistency['score']}% completion rate. Consider reducing habit targets or focusing on 1-2 key habits.",
+                        consistency['score']}% completion rate. Consider reducing habit targets or focusing on 1-2 key habits.",  # noqa: E501
                     "domain": "consistency",
                 }
             )
@@ -367,7 +367,7 @@ class AnalyticsService:
                         "type": "neutral",
                         "title": "Slow Goal Progress",
                         "message": f"Only {
-                            velocity['goals_completed']} goals completed in {days} days. Consider breaking goals into smaller milestones.",
+                            velocity['goals_completed']} goals completed in {days} days. Consider breaking goals into smaller milestones.",  # noqa: E501
                         "domain": "goals",
                     }
                 )
@@ -376,7 +376,7 @@ class AnalyticsService:
                 {
                     "type": "neutral",
                     "title": "No Goals Completed",
-                    "message": "No goals completed in this period. Set smaller, achievable goals to build momentum.",
+                    "message": "No goals completed in this period. Set smaller, achievable goals to build momentum.",  # noqa: E501
                     "domain": "goals",
                 }
             )
@@ -388,7 +388,7 @@ class AnalyticsService:
                 {
                     "type": "positive",
                     "title": "Healthy Savings Rate",
-                    "message": f"Saving {financial['savings_rate']}% of income. Great financial discipline!",
+                    "message": f"Saving {financial['savings_rate']}% of income. Great financial discipline!",  # noqa: E501
                     "domain": "finance",
                 }
             )
@@ -397,7 +397,7 @@ class AnalyticsService:
                 {
                     "type": "neutral",
                     "title": "Positive Cash Flow",
-                    "message": f"Saving {financial['savings_rate']}% of income. Consider increasing savings rate.",
+                    "message": f"Saving {financial['savings_rate']}% of income. Consider increasing savings rate.",  # noqa: E501
                     "domain": "finance",
                 }
             )
@@ -408,7 +408,7 @@ class AnalyticsService:
                     "title": "Negative Cash Flow",
                     "message": f"Spending ${
                         abs(
-                            financial['net_flow']):.2f} more than income. Review top expense categories: {
+                            financial['net_flow']):.2f} more than income. Review top expense categories: {  # noqa: E501
                         ', '.join(
                             list(
                                 financial['category_breakdown'].keys())[
@@ -425,7 +425,7 @@ class AnalyticsService:
                     {
                         "type": "positive",
                         "title": f"{domain.replace('_', ' ').title()} Improving",
-                        "message": f"{domain.replace('_', ' ').title()} increased by {data['pct_change']}% recently.",
+                        "message": f"{domain.replace('_', ' ').title()} increased by {data['pct_change']}% recently.",  # noqa: E501
                         "domain": "trends",
                     }
                 )
@@ -434,7 +434,7 @@ class AnalyticsService:
                     {
                         "type": "negative",
                         "title": f"{domain.replace('_', ' ').title()} Declining",
-                        "message": f"{domain.replace('_', ' ').title()} decreased by {abs(data['pct_change'])}% recently. Consider addressing this.",
+                        "message": f"{domain.replace('_', ' ').title()} decreased by {abs(data['pct_change'])}% recently. Consider addressing this.",  # noqa: E501
                         "domain": "trends",
                     }
                 )

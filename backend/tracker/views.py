@@ -2761,7 +2761,7 @@ class ExportDataView(views.APIView):
             for expense in data["expenses"][:5]:  # Show last 5 expenses
                 story.append(
                     Paragraph(
-                        f"<b>{expense['date']}</b> - {expense['category']} - ${expense['amount']:.2f}",
+                        f"<b>{expense['date']}</b> - {expense['category']} - ${expense['amount']:.2f}",  # noqa: E501
                         normal_style,
                     )
                 )
@@ -2780,7 +2780,7 @@ class ExportDataView(views.APIView):
                 )
                 story.append(
                     Paragraph(
-                        f"<b>{goal['title']}</b> - <font color='{status_color}'>{goal['status']}</font>",
+                        f"<b>{goal['title']}</b> - <font color='{status_color}'>{goal['status']}</font>",  # noqa: E501
                         normal_style,
                     )
                 )
@@ -3311,7 +3311,7 @@ class TempDataView(views.APIView):
                 Expense.objects.create(
                     user=user,
                     date=expense_date,
-                    item=f"Expense {random.choice(['Grocery', 'Gas', 'Entertainment', 'Shopping', 'Bills'])}",
+                    item=f"Expense {random.choice(['Grocery', 'Gas', 'Entertainment', 'Shopping', 'Bills'])}",  # noqa: E501
                     category=random.choice(expense_categories),
                     quantity=random.randint(1, 3),
                     price=round(random.uniform(5.0, 200.0), 2),
@@ -3323,7 +3323,7 @@ class TempDataView(views.APIView):
             for _ in range(num_goals):
                 Goal.objects.create(
                     user=user,
-                    text=f"Goal {random.choice(['Exercise', 'Read', 'Save Money', 'Learn', 'Travel'])} - {target_date.strftime('%B %Y')}",
+                    text=f"Goal {random.choice(['Exercise', 'Read', 'Save Money', 'Learn', 'Travel'])} - {target_date.strftime('%B %Y')}",  # noqa: E501
                     category=random.choice(goal_categories),
                     status=random.choice(goal_statuses),
                     tags=[random.choice(["health", "learning", "finance", "personal", "career"])],
@@ -3340,7 +3340,7 @@ class TempDataView(views.APIView):
                         user=user,
                         date=entry_date,
                         content=f"Journal entry from {
-                            entry_date.strftime('%B %d, %Y')}. Today was a productive day with various activities and accomplishments.",
+                            entry_date.strftime('%B %d, %Y')}. Today was a productive day with various activities and accomplishments.",  # noqa: E501
                     )
                     journal_entries_created += 1
 

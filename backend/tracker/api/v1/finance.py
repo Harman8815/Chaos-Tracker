@@ -1,4 +1,4 @@
-"""Thin v1 controller for finance: expenses, income, accounts, budgets, recurring, transfers, subscriptions, alerts."""
+"""Thin v1 controller for finance: expenses, income, accounts, budgets, recurring, transfers, subscriptions, alerts."""  # noqa: E501
 
 from rest_framework import status
 from rest_framework import serializers

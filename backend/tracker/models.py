@@ -100,7 +100,7 @@ class Achievement(models.Model):
     trigger_rule = models.JSONField(
         default=dict,
         blank=True,
-        help_text='Optional rule describing what measurable event triggers this achievement, e.g. {"event_type": "planner_task_completed", "count": 7}',
+        help_text='Optional rule describing what measurable event triggers this achievement, e.g. {"event_type": "planner_task_completed", "count": 7}',  # noqa: E501
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -81,7 +81,7 @@ def check_migration_safety(apps, schema_editor) -> List[str]:
                 WHERE table_schema = 'public'
                 AND is_nullable = 'NO'
                 AND column_default IS NULL
-                AND table_name NOT IN ('django_migrations', 'django_content_type', 'auth_permission')
+                AND table_name NOT IN ('django_migrations', 'django_content_type', 'auth_permission')  # noqa: E501
             """)
             for row in cursor.fetchall():
                 issues.append(f"Non-nullable column without default: {row[0]}.{row[1]} ({row[2]})")

@@ -37,7 +37,7 @@ class SubscriptionService:
         )
         if billing_cycle not in dict(Subscription.BILLING_CYCLES):
             raise ValidationError(
-                f"Invalid billing_cycle. Must be one of: {[k for k, _ in Subscription.BILLING_CYCLES]}"
+                f"Invalid billing_cycle. Must be one of: {[k for k, _ in Subscription.BILLING_CYCLES]}"  # noqa: E501
             )
         next_billing_date = validation.parse_date(
             data.get("next_billing_date"), field="next_billing_date"
@@ -90,7 +90,7 @@ class SubscriptionService:
             )
             if billing_cycle not in dict(Subscription.BILLING_CYCLES):
                 raise ValidationError(
-                    f"Invalid billing_cycle. Must be one of: {[k for k, _ in Subscription.BILLING_CYCLES]}"
+                    f"Invalid billing_cycle. Must be one of: {[k for k, _ in Subscription.BILLING_CYCLES]}"  # noqa: E501
                 )
             subscription.billing_cycle = billing_cycle
         if "next_billing_date" in data:
