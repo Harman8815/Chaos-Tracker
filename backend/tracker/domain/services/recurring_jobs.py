@@ -339,9 +339,6 @@ class SubscriptionBillingJobService:
         )
 
 
-# Import RecurringIncome model for type hints
-from ...models import RecurringIncome  # noqa: E402
-
 recurring_expense_job_service = RecurringExpenseJobService()
 recurring_income_job_service = RecurringIncomeJobService()
 subscription_billing_job_service = SubscriptionBillingJobService()

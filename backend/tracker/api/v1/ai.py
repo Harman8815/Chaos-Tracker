@@ -171,7 +171,7 @@ class AIChatStreamView(TrackerAPIView):
                 ):
                     full_content += chunk
                     yield f"data: {json.dumps({'type': 'content', 'delta': chunk})}\n\n"
-            except Exception as e:
+            except Exception:
                 # Fallback to simulated streaming
                 response_text = "I'm having trouble connecting to the AI service. Please check your API configuration."
                 words = response_text.split()

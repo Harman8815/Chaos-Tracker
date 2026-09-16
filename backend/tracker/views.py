@@ -50,6 +50,7 @@ from .serializers import (
     UserProfileSerializer,
     MoodSerializer,
     WaterSerializer,
+    DailyHabitScoreSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -229,7 +230,7 @@ class JournalEntryDetailView(views.APIView):
 
     def put(self, request, date):
         try:
-            date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+            datetime.datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
             return error_response(
                 message="Invalid date format",
@@ -678,7 +679,6 @@ class HabitListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
@@ -730,7 +730,6 @@ class ScoringRuleListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
@@ -1538,7 +1537,6 @@ class MoodListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
@@ -1590,7 +1588,6 @@ class WaterListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
@@ -1645,7 +1642,6 @@ class AchievementListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
@@ -2146,7 +2142,6 @@ class GoalListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return success_response(data=serializer.data, status_code=status.HTTP_201_CREATED)
 
 
@@ -3313,7 +3308,7 @@ class TempDataView(views.APIView):
             num_expenses = random.randint(5, 15)
             for _ in range(num_expenses):
                 expense_date = target_date - timedelta(days=random.randint(0, 29))
-                expense = Expense.objects.create(
+                Expense.objects.create(
                     user=user,
                     date=expense_date,
                     item=f"Expense {random.choice(['Grocery', 'Gas', 'Entertainment', 'Shopping', 'Bills'])}",
@@ -3326,7 +3321,7 @@ class TempDataView(views.APIView):
             # Create 2-5 goals per month
             num_goals = random.randint(2, 5)
             for _ in range(num_goals):
-                goal = Goal.objects.create(
+                Goal.objects.create(
                     user=user,
                     text=f"Goal {random.choice(['Exercise', 'Read', 'Save Money', 'Learn', 'Travel'])} - {target_date.strftime('%B %Y')}",
                     category=random.choice(goal_categories),
@@ -3341,7 +3336,7 @@ class TempDataView(views.APIView):
                 entry_date = target_date - timedelta(days=random.randint(0, 29))
                 # Check if journal entry already exists for this date
                 if not JournalEntry.objects.filter(user=user, date=entry_date).exists():
-                    journal_entry = JournalEntry.objects.create(
+                    JournalEntry.objects.create(
                         user=user,
                         date=entry_date,
                         content=f"Journal entry from {

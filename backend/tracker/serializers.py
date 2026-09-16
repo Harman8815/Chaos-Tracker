@@ -200,7 +200,7 @@ class QuoteSourceCreateUpdateSerializer(serializers.ModelSerializer):
         return source
 
     def update(self, instance, validated_data):
-        quotes_data = validated_data.pop("quotes", None)
+        validated_data.pop("quotes", None)
 
         # Update source fields
         instance.title = validated_data.get("title", instance.title)

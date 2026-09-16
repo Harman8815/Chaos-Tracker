@@ -415,8 +415,5 @@ class SummarizationService:
         }
 
 
-# Import at end
-from django.utils import timezone  # noqa: E402
-
 memory_service = MemoryService()
 summarization_service = SummarizationService()

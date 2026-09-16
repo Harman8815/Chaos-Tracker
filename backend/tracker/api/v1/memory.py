@@ -186,10 +186,10 @@ class SummarizationStatusView(TrackerAPIView):
         if not conversation:
             return self.error("Conversation not found", status_code=status.HTTP_404_NOT_FOUND)
 
-        status = summarization_service.get_summarization_status(conversation)
-        if not status:
+        status_value = summarization_service.get_summarization_status(conversation)
+        if not status_value:
             return self.error("No summarization job found", status_code=status.HTTP_404_NOT_FOUND)
-        return self.ok(data=status)
+        return self.ok(data=status_value)
 
 
 class SummarizationProcessView(TrackerAPIView):

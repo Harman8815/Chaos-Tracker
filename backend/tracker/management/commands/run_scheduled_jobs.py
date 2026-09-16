@@ -185,7 +185,6 @@ class Command(BaseCommand):
         """Execute a specific job based on its type."""
         user = job.user
         job_type = job.job_type
-        payload = job.payload
 
         if job_type == "goal_deadline_check":
             goal_deadline_alert_service.check_user(user)

@@ -1175,7 +1175,7 @@ class CrossDomainTests(TestCase):
     # --- P2-07: Expense -> Budget ---
 
     def test_budget_create_and_actual_vs_budget(self):
-        budget = budget_service.create(
+        budget_service.create(
             self.user, {"category": "Food", "year": 2025, "month": 1, "amount": "100.00"}
         )
         Expense.objects.create(
