@@ -139,7 +139,11 @@ class AIChatStreamView(TrackerAPIView):
             # Get context and detect intent
             conv = ai_assistant_service.get_conversation(request.user, int(id))
             if not conv:
-                yield f"data: {json.dumps({'type': 'error', 'error': 'Conversation not found'})}\n\n"
+                error_payload = {
+                    "type": "error",
+                    "error": "Conversation not found",
+                }
+                yield f"data: {json.dumps(error_payload)}\n\n"
                 return
 
             from ...domain.services import build_context, detect_intent
@@ -170,15 +174,20 @@ class AIChatStreamView(TrackerAPIView):
                     stream=True,
                 ):
                     full_content += chunk
-                    yield f"data: {json.dumps({'type': 'content', 'delta': chunk})}\n\n"
+                    content_payload = {"type": "content", "delta": chunk}
+                    yield f"data: {json.dumps(content_payload)}\n\n"
             except Exception:
                 # Fallback to simulated streaming
-                response_text = "I'm having trouble connecting to the AI service. Please check your API configuration."
+                response_text = (
+                    "I'm having trouble connecting to the AI service. "
+                    "Please check your API configuration."
+                )
                 words = response_text.split()
                 for i, word in enumerate(words):
                     chunk = word + (" " if i < len(words) - 1 else "")
                     full_content += chunk
-                    yield f"data: {json.dumps({'type': 'content', 'delta': chunk})}\n\n"
+                    content_payload = {"type": "content", "delta": chunk}
+                    yield f"data: {json.dumps(content_payload)}\n\n"
 
             # Save assistant response as memory
             if conv and full_content:
@@ -195,7 +204,11 @@ class AIChatStreamView(TrackerAPIView):
                 )
 
             # Yield completion
-            yield f"data: {json.dumps({'type': 'done', 'message': {'role': 'assistant', 'content': full_content}})}\n\n"
+            done_payload = {
+                "type": "done",
+                "message": {"role": "assistant", "content": full_content},
+            }
+            yield f"data: {json.dumps(done_payload)}\n\n"
 
         response = StreamingHttpResponse(generate(), content_type="text/event-stream")
         response["Cache-Control"] = "no-cache"
