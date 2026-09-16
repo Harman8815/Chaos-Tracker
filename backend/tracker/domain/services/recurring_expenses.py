@@ -36,7 +36,8 @@ class RecurringExpenseService:
         frequency = validation.bounded_text(data.get("frequency"), max_length=20, field="frequency")
         if frequency not in dict(RecurringExpense.FREQUENCY_CHOICES):
             raise ValidationError(
-                f"Invalid frequency. Must be one of: {[k for k, _ in RecurringExpense.FREQUENCY_CHOICES]}"  # noqa: E501
+                "Invalid frequency. Must be one of: "
+                + str([k for k, _ in RecurringExpense.FREQUENCY_CHOICES])
             )
         start_date = validation.parse_date(data.get("start_date"), field="start_date")
         end_date = None
