@@ -33,7 +33,11 @@ class QuoteSourceListCreateView(TrackerAPIView):
             source_type=query.get("source_type"),
             include_quotes=query.get("include_quotes"),
         )
-        serializer = self.serializer_class(sources, many=True)
+        include_quotes = query.get("include_quotes")
+        if include_quotes:
+            serializer = QuoteSourceSerializer(sources, many=True)
+        else:
+            serializer = QuoteSourceListSerializer(sources, many=True)
         return self.ok(data=serializer.data, count=len(sources))
 
     def create(self, request, *args, **kwargs):
