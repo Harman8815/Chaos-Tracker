@@ -1520,8 +1520,19 @@ class PopulateDataView(views.APIView):
                     )
                     goals_count += 1
                 except Exception as e:
-                    print(f"Failed to create goal: {e}")
+                    logger.error("Failed to create goal: %s", e)
                     continue
+
+        logger.info(
+            "Population complete for user %s: journal=%d quotes=%d "
+            "achievements=%d expenses=%d goals=%d",
+            user.username,
+            journal_count,
+            quote_count,
+            achievements_count,
+            expenses_count,
+            goals_count,
+        )
 
         return success_response(
             data={
