@@ -825,17 +825,19 @@ class PointsDataView(views.APIView):
         habits = Habit.objects.filter(user=self.request.user)
         rules = ScoringRule.objects.filter(user=self.request.user)
 
-        # Fetch daily scores
-        daily_scores = DailyHabitScore.objects.filter(user=self.request.user)
+        # Fetch daily scores as dicts for efficiency
+        daily_scores = DailyHabitScore.objects.filter(user=self.request.user).values(
+            "date", "habit_id", "score"
+        )
 
         # Build the daily data dictionary
         daily_data = {}
 
         for score in daily_scores:
-            date_str = score.date.strftime("%Y-%m-%d")
+            date_str = score["date"].strftime("%Y-%m-%d")
             if date_str not in daily_data:
                 daily_data[date_str] = {"habitScores": {}, "points": 0, "journal": ""}
-            daily_data[date_str]["habitScores"][score.habit.id] = score.score
+            daily_data[date_str]["habitScores"][score["habit_id"]] = score["score"]
 
         # Calculate daily points average
         habit_count = habits.count()
@@ -862,46 +864,52 @@ class PointsAnalyticsStreaksView(views.APIView):
 
     def get(self, request):
         habits = Habit.objects.filter(user=self.request.user)
-        results = []
+        today = datetime.date.today()
+        thirty_days_ago = (today - timedelta(days=365)).isoformat()
 
-        for habit in habits:
-            # Get all scores for this habit ordered by date
-            scores = DailyHabitScore.objects.filter(user=self.request.user, habit=habit).order_by(
-                "date"
+        all_scores = (
+            DailyHabitScore.objects.filter(
+                user=self.request.user,
+                date__gte=thirty_days_ago,
             )
+            .select_related("habit")
+            .order_by("habit_id", "date")
+            .values("habit_id", "date", "score")
+        )
 
-            # Compute best streak and current streak
+        habit_scores: dict[str, list[dict]] = {}
+        for s in all_scores:
+            hid = s["habit_id"]
+            if hid not in habit_scores:
+                habit_scores[hid] = []
+            habit_scores[hid].append(s)
+
+        results = []
+        for habit in habits:
+            scores = habit_scores.get(habit.id, [])
+
             best = 0
-            current = 0
-            prev_date = None
             running = 0
+            prev_date = None
 
             for s in scores:
-                done = (s.score or 0) > 0
+                done = (s["score"] or 0) > 0
                 if done:
-                    if prev_date is None or (s.date - prev_date).days == 1:
+                    if prev_date is None or (s["date"] - prev_date).days == 1:
                         running += 1
                     else:
                         running = 1
                 else:
                     running = 0
-
                 if running > best:
                     best = running
+                prev_date = s["date"]
 
-                prev_date = s.date
-
-            # current streak: look backwards from today
             current = 0
-            today = datetime.date.today()
-            day_cursor = today
-            while True:
-                score_obj = DailyHabitScore.objects.filter(
-                    user=self.request.user, habit=habit, date=day_cursor
-                ).first()
-                if score_obj and (score_obj.score or 0) > 0:
+            for i in range(len(scores) - 1, -1, -1):
+                s = scores[i]
+                if (s["score"] or 0) > 0 and s["date"] <= today:
                     current += 1
-                    day_cursor = day_cursor - timedelta(days=1)
                 else:
                     break
 
