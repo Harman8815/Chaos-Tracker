@@ -1,6 +1,6 @@
 
 
-import React, { useState, useContext, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useContext, useMemo, useRef, useEffect, useCallback } from 'react';
 import { DataContext } from '../../context/DataContext';
 import { SettingsContext } from '../../context/SettingsContext';
 import { TRACKERS } from '../../constants';
@@ -50,6 +50,37 @@ const TrajectoryChart = ({ dailyTotals, daysInMonth }: { dailyTotals: { [day: nu
         </div>
     );
 };
+
+
+type GridCellProps = {
+    score: number;
+    bgColor: string;
+    textColor: string;
+    isEditable: boolean;
+    date: string;
+    habitId: string;
+    onScoreClick: (date: string, habitId: string) => void;
+};
+
+const GridCell = React.memo(function GridCell({
+    score,
+    bgColor,
+    textColor,
+    isEditable,
+    date,
+    habitId,
+    onScoreClick,
+}: GridCellProps) {
+    return (
+        <div
+            onClick={() => onScoreClick(date, habitId)}
+            className={`flex items-center justify-center p-2 text-center border-b border-r border-white/5 ${isEditable ? "cursor-pointer" : ""}`}
+            style={{ backgroundColor: bgColor, color: textColor }}
+        >
+            {score}
+        </div>
+    );
+});
 
 
 const PointsTracker: React.FC = () => {
@@ -141,7 +172,7 @@ const PointsTracker: React.FC = () => {
         });
     };
 
-    const handleScoreClick = (date: string, habitId: string) => {
+    const handleScoreClick = useCallback((date: string, habitId: string) => {
         if (!isEditable) return;
 
         const originalState = { ...data };
@@ -170,10 +201,10 @@ const PointsTracker: React.FC = () => {
                 setData(originalState);
                 // Optionally, show a notification to the user
             });
-    };
+    }, [isEditable, data, habits, setData]);
 
 
-    const handleTargetChange = (habitId: string, newTarget: number) => {
+    const handleTargetChange = useCallback((habitId: string, newTarget: number) => {
         const originalHabits = [...habits];
         setHabits(prev => prev.map(h => h.id === habitId ? { ...h, target: newTarget } : h));
 
@@ -187,7 +218,7 @@ const PointsTracker: React.FC = () => {
                     // Optionally, show a notification to the user
                 });
         }
-    };
+    }, [habits, setHabits]);
 
     const getMonthData = (month: number, year: number) => {
         return Object.entries(data).filter(([date]) => {
@@ -336,9 +367,16 @@ const PointsTracker: React.FC = () => {
                                             const bgColor = getColor(score, habit.rangeMax ?? 10);
                                             const textColor = getTextColor(bgColor);
                                             return (
-                                                <div key={i} onClick={() => handleScoreClick(date, habit.id)} className={`flex items-center justify-center p-2 text-center border-b border-r border-white/5 ${isEditable ? 'cursor-pointer' : ''}`} style={{ backgroundColor: bgColor, color: textColor }}>
-                                                    {score}
-                                                </div>
+                                                <GridCell
+                                                    key={i}
+                                                    score={score}
+                                                    bgColor={bgColor}
+                                                    textColor={textColor}
+                                                    isEditable={isEditable}
+                                                    date={date}
+                                                    habitId={habit.id}
+                                                    onScoreClick={handleScoreClick}
+                                                />
                                             );
                                         })}
                                         <div className="sticky right-12 p-2 bg-white/[0.06] flex items-center justify-center font-bold z-20 text-white">{monthlyTotals[habit.id]}</div>
