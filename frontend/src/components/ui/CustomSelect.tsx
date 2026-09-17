@@ -3,20 +3,21 @@ import { ChevronDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './DropdownMenu';
 
 interface CustomSelectProps {
+  id?: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, placeholder }) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({ id, value, onChange, options, placeholder }) => {
   const [open, setOpen] = useState(false);
   const selectedLabel = options.find(opt => opt.value === value)?.label || placeholder || 'Select';
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="flex h-9 w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.06] px-3 py-1 text-sm text-white shadow-sm transition-colors hover:bg-white/[0.1]">
+        <button id={id} className="flex h-9 w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.06] px-3 py-1 text-sm text-white shadow-sm transition-colors hover:bg-white/[0.1]">
           {selectedLabel}
           <ChevronDown className="h-4 w-4 text-text-secondary pointer-events-none" />
         </button>

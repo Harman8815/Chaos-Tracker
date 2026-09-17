@@ -50,7 +50,7 @@ const DropdownMenuContent = ({ className, align = "center", children, ...props }
     <div
       ref={ref}
       className={cn(
-        "z-50 min-w-[8rem] rounded-md glass p-1 text-white shadow-md",
+        "absolute z-50 min-w-[8rem] rounded-md glass p-1 text-white shadow-md mt-1",
         className
       )}
       {...props}
