@@ -1082,6 +1082,7 @@ class PopulateDataView(views.APIView):
     permission_classes = []  # Allow any for dev convenience
 
     def get(self, request):
+        logger.info("Population started")
         # Get user: request.user if authenticated, else first user
         user = request.user
         if not user.is_authenticated:
@@ -1095,6 +1096,8 @@ class PopulateDataView(views.APIView):
                     code="VALIDATION_ERROR",
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
+
+        logger.info("Population: using user %s (id=%s)", user.username, user.id)
 
         # --- Populate Habits ---
         habits_data = [
@@ -1147,6 +1150,8 @@ class PopulateDataView(views.APIView):
                     user=user, date=date, habit=habit, defaults={"score": score}
                 )
 
+        logger.info("Population: habits and scoring rules populated")
+
         # --- Populate Journal ---
         journal_count = 0
 
@@ -1181,6 +1186,8 @@ class PopulateDataView(views.APIView):
                     )
                     JournalEntry.objects.create(user=user, date=date, content=content)
                     journal_count += 1
+
+        logger.info("Population: journal populated")
 
         # --- Populate Quotes ---
         quote_sources_data = [
@@ -1260,6 +1267,8 @@ class PopulateDataView(views.APIView):
                         QuoteTag.objects.create(quote=quote, tag=tag)
                     quote_count += 1
 
+        logger.info("Population: quotes populated")
+
         # --- Populate Achievements ---
         achievement_images = [
             "https://placehold.co/600x400/7c3aed/ffffff/png?text=Project+Launch",
@@ -1301,8 +1310,10 @@ class PopulateDataView(views.APIView):
                 )
                 achievements_count += 1
             except Exception as e:
-                print(f"Failed to create achievement: {e}")
+                logger.error("Failed to create achievement: %s", e)
                 continue
+
+        logger.info("Population: achievements populated")
 
         # --- Populate Expenses ---
         expense_categories = {
@@ -1431,8 +1442,10 @@ class PopulateDataView(views.APIView):
                 )
                 expenses_count += 1
             except Exception as e:
-                print(f"Failed to create expense: {e}")
+                logger.error("Failed to create expense: %s", e)
                 continue
+
+        logger.info("Population: expenses populated")
 
         # --- Populate Goals ---
         goal_templates = {
