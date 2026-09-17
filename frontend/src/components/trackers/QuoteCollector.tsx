@@ -5,7 +5,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
-import { Select } from '../ui/Select';
+import { CustomSelect } from '../ui/CustomSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '../ui/Dialog';
 import { Label } from '../ui/Label';
 import quoteService, { SearchResult } from '../../services/quoteService';
@@ -76,11 +76,15 @@ const SourceModal: React.FC<{ source?: QuoteSource | null; open: boolean; onOpen
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="source-type">Type</Label>
-                        <Select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])}>
-                            <option>Movie</option>
-                            <option>Web Series</option>
-                            <option>Book</option>
-                        </Select>
+                        <CustomSelect
+                            value={type}
+                            onChange={val => setType(val as QuoteSource['type'])}
+                            options={[
+                                { value: 'Movie', label: 'Movie' },
+                                { value: 'Web Series', label: 'Web Series' },
+                                { value: 'Book', label: 'Book' },
+                            ]}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="source-cover">Cover Image URL</Label>

@@ -4,6 +4,7 @@ import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { CustomSelect } from '../ui/CustomSelect';
 import { journalService } from '../../api/journalService';
 
 type Tab = 'editor' | 'history';
@@ -234,20 +235,16 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
             <Card>
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
-                        <select
-                            value={currentDate.getMonth()}
-                            onChange={(e) => handleDateChange(undefined, parseInt(e.target.value))}
-                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                        >
-                            {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
-                        </select>
-                        <select
-                            value={currentDate.getFullYear()}
-                            onChange={(e) => handleDateChange(parseInt(e.target.value), undefined)}
-                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                        >
-                            {years.map(y => <option key={y} value={y}>{y}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={String(currentDate.getMonth())}
+                            onChange={val => handleDateChange(undefined, parseInt(val))}
+                            options={months.map((m, i) => ({ value: String(i), label: m }))}
+                        />
+                        <CustomSelect
+                            value={String(currentDate.getFullYear())}
+                            onChange={val => handleDateChange(parseInt(val), undefined)}
+                            options={years.map(y => ({ value: String(y), label: String(y) }))}
+                        />
                     </div>
                     <h3 className="font-bold text-lg hidden md:block">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
                 </div>
