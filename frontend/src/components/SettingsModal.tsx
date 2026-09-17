@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { DataContext } from '../context/DataContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { Theme, TimeFormat, Language } from '../types';
+import { CustomSelect } from './ui/CustomSelect';
 
 const SettingsModal: React.FC = () => {
     const { settings, setSettings, setIsSettingsModalOpen, t } = useContext(SettingsContext);
@@ -65,15 +66,15 @@ const SettingsModal: React.FC = () => {
                 {/* Language Setting */}
                 <div className="mb-8">
                     <label className="block text-sm font-medium text-text-secondary mb-2">{t('Language (UI Only)')}</label>
-                    <select
+                    <CustomSelect
                         value={settings.language}
-                        onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                        className="w-full p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                    >
-                        <option value="en">{t('English')}</option>
-                        <option value="es">{t('Español')}</option>
-                        <option value="fr">{t('Français')}</option>
-                    </select>
+                        onChange={val => handleLanguageChange(val as Language)}
+                        options={[
+                            { value: 'en', label: t('English') },
+                            { value: 'es', label: t('Español') },
+                            { value: 'fr', label: t('Français') },
+                        ]}
+                    />
                 </div>
 
                 {/* Debug Actions */}

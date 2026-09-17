@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { DataContext } from '../../context/DataContext';
 import { SettingsContext } from '../../context/SettingsContext';
 import { TRACKERS } from '../../constants';
@@ -8,31 +8,76 @@ import TrackerWrapper from '../TrackerWrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Check, Plus } from 'lucide-react';
+import { pointsService } from '../../services/pointsService';
 
 const HabitTracker: React.FC = () => {
     const trackerInfo = TRACKERS.find(t => t.id === 'habits')!;
     const { habits, setHabits } = useContext(DataContext);
     const { today } = useContext(DataContext);
     const [newHabit, setNewHabit] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
 
-    const handleToggle = (id: string) => {
-        setHabits(prev => prev.map(h => 
-            h.id === id ? { ...h, completed: !h.completed } : h
-        ));
+    useEffect(() => {
+        const fetchHabits = async () => {
+            try {
+                setLoading(true);
+                const data = await pointsService.getHabits();
+                setHabits(data);
+            } catch (err) {
+                console.error('Failed to load habits:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHabits();
+    }, [setHabits]);
+
+    const handleToggle = async (id: string) => {
+        const habit = habits.find(h => h.id === id);
+        if (!habit) return;
+        
+        setSaving(true);
+        try {
+            const updated = await pointsService.updateHabit(id, {
+                ...habit,
+                completed: !habit.completed,
+            });
+            setHabits(prev => prev.map(h => h.id === id ? updated : h));
+        } catch (err) {
+            console.error('Failed to update habit:', err);
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleAdd = () => {
+    const handleAdd = async () => {
         if (!newHabit.trim()) return;
-        setHabits(prev => [...prev, {
-            id: Date.now().toString(),
-            name: newHabit.trim(),
-            completed: false,
-            target: 1,
-            rangeMax: 10,
-            createdAt: new Date().toISOString()
-        }]);
-        setNewHabit('');
+        setSaving(true);
+        try {
+            const created = await pointsService.createHabit({
+                name: newHabit.trim(),
+                target: 1,
+                rangeMax: 10,
+            });
+            setHabits(prev => [...prev, created]);
+            setNewHabit('');
+        } catch (err) {
+            console.error('Failed to add habit:', err);
+        } finally {
+            setSaving(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-text-secondary">Loading habits...</div>
+                </div>
+            </TrackerWrapper>
+        );
+    }
 
     return (
         <TrackerWrapper tracker={trackerInfo}>
@@ -53,11 +98,12 @@ const HabitTracker: React.FC = () => {
                             >
                                 <button
                                     onClick={() => handleToggle(habit.id)}
+                                    disabled={saving}
                                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                                         habit.completed 
                                             ? 'bg-success border-success' 
                                             : 'border-white/20 hover:border-accent-primary'
-                                    }`}
+                                    } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {habit.completed && <Check className="text-white w-3 h-3" />}
                                 </button>
@@ -79,7 +125,10 @@ const HabitTracker: React.FC = () => {
                             className="flex-1 px-4 py-2 rounded-lg bg-white/[0.06] border border-white/10 text-white placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                             onKeyDown={e => e.key === 'Enter' && handleAdd()}
                         />
-                        <Button onClick={handleAdd} size="icon">
+                        <Button 
+                            onClick={handleAdd} 
+                            disabled={saving || !newHabit.trim()}
+                        >
                             <Plus className="w-4 h-4" />
                         </Button>
                     </div>

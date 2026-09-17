@@ -3,13 +3,11 @@ import { ENDPOINTS } from '../api/constants';
 import { PlannerData, TodoBlock } from '../types';
 
 export interface PlannerResponse {
-    success: boolean;
     planner?: PlannerData;
     message?: string;
 }
 
 export interface BlockResponse {
-    success: boolean;
     block?: TodoBlock;
     message?: string;
 }
@@ -24,8 +22,8 @@ export const plannerService = {
      */
     async getPlanner(): Promise<PlannerData | null> {
         try {
-            const response = await client.get<PlannerResponse>(ENDPOINTS.PLANNER);
-            return response.planner || null;
+            const response = await client.get<PlannerData>(ENDPOINTS.PLANNER);
+            return response || null;
         } catch (error) {
             console.error('Failed to fetch planner data:', error);
             return null;
@@ -63,8 +61,8 @@ export const plannerService = {
      */
     async getBlock(blockId: string): Promise<TodoBlock | null> {
         try {
-            const response = await client.get<BlockResponse>(`${ENDPOINTS.PLANNER}/blocks/${blockId}`);
-            return response.block || null;
+            const response = await client.get<TodoBlock>(`${ENDPOINTS.PLANNER}/blocks/${blockId}`);
+            return response || null;
         } catch (error) {
             console.error(`Failed to fetch block ${blockId}:`, error);
             return null;

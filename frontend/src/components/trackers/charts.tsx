@@ -54,4 +54,3 @@ const BarChart: React.FC<{ data: { label: string; value: number }[], color?: str
 };
 
 export { PieChart, BarChart };
-

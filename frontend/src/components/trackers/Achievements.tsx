@@ -10,7 +10,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../ui/Dialog';
-import { Select } from '../ui/Select';
+import { CustomSelect } from '../ui/CustomSelect';
 import { Label } from '../ui/Label';
 import achievementService from '../../services/achievementService';
 
@@ -128,6 +128,17 @@ const Achievements: React.FC = () => {
         );
     }
 
+    if (achievements.length === 0) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="text-center text-text-secondary py-12">
+                    <p className="text-lg font-medium mb-2">No achievements yet</p>
+                    <p className="text-sm">Keep tracking to unlock badges!</p>
+                </div>
+            </TrackerWrapper>
+        );
+    }
+
     return (
         <TrackerWrapper tracker={trackerInfo}>
             {gallery && <GalleryModal gallery={gallery} onClose={() => setGallery(null)} />}
@@ -157,10 +168,14 @@ const Achievements: React.FC = () => {
 
                     <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-text-secondary">Sort by Date:</span>
-                        <Select value={sortOrder} onChange={e => setSortOrder(e.target.value as SortOrder)}>
-                            <option value="desc">Newest First</option>
-                            <option value="asc">Oldest First</option>
-                        </Select>
+                        <CustomSelect
+                            value={sortOrder}
+                            onChange={val => setSortOrder(val as SortOrder)}
+                            options={[
+                                { value: 'desc', label: 'Newest First' },
+                                { value: 'asc', label: 'Oldest First' },
+                            ]}
+                        />
                     </div>
                 </div>
                 {allTags.length > 0 && (

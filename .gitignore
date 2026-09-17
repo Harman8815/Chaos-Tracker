@@ -34,6 +34,7 @@ MANIFEST
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+db_fresh.sqlite3
 media/
 staticfiles/
 CHAOS_TRACKER_FEATURE_ROADMAP.md

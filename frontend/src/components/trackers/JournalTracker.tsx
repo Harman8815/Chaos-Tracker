@@ -4,6 +4,7 @@ import { TRACKERS } from '../../constants';
 import TrackerWrapper from '../TrackerWrapper';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { CustomSelect } from '../ui/CustomSelect';
 import { journalService } from '../../api/journalService';
 
 type Tab = 'editor' | 'history';
@@ -234,20 +235,16 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
             <Card>
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
-                        <select
-                            value={currentDate.getMonth()}
-                            onChange={(e) => handleDateChange(undefined, parseInt(e.target.value))}
-                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                        >
-                            {months.map((m, i) => <option key={m} value={i}>{m}</option>)}
-                        </select>
-                        <select
-                            value={currentDate.getFullYear()}
-                            onChange={(e) => handleDateChange(parseInt(e.target.value), undefined)}
-                            className="p-2 rounded-md bg-white/[0.06]  text-white focus:outline-none focus:ring-2 focus:ring-accent-primary"
-                        >
-                            {years.map(y => <option key={y} value={y}>{y}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={String(currentDate.getMonth())}
+                            onChange={val => handleDateChange(undefined, parseInt(val))}
+                            options={months.map((m, i) => ({ value: String(i), label: m }))}
+                        />
+                        <CustomSelect
+                            value={String(currentDate.getFullYear())}
+                            onChange={val => handleDateChange(parseInt(val), undefined)}
+                            options={years.map(y => ({ value: String(y), label: String(y) }))}
+                        />
                     </div>
                     <h3 className="font-bold text-lg hidden md:block">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
                 </div>
@@ -289,9 +286,10 @@ const JournalHistory: React.FC<{ onEditDate: (date: string) => void }> = ({ onEd
 };
 
 const JournalTracker: React.FC = () => {
-    const { setData, today } = useContext(DataContext);
+    const { setData, today, data } = useContext(DataContext);
     const [activeTab, setActiveTab] = useState<Tab>('editor');
     const [targetDate, setTargetDate] = useState(today);
+    const [loading, setLoading] = useState(false);
     const trackerInfo = TRACKERS.find(t => t.id === 'journal')!;
 
     useEffect(() => {
@@ -302,6 +300,7 @@ const JournalTracker: React.FC = () => {
     useEffect(() => {
         const fetchJournalData = async () => {
             try {
+                setLoading(true);
                 const entries = await journalService.getAllEntries();
                 console.log('Fetched journal entries:', entries);
                 if (entries && entries.length > 0) {
@@ -324,6 +323,8 @@ const JournalTracker: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Failed to load journal entries", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchJournalData();
@@ -334,28 +335,46 @@ const JournalTracker: React.FC = () => {
         setActiveTab('editor');
     };
 
+    const hasJournalEntries = useMemo(() => {
+        return Object.values(data).some(day => day.journal && day.journal.trim().length > 0);
+    }, [data]);
+
     return (
         <TrackerWrapper tracker={trackerInfo}>
-            <div className="flex border-b border-accent-primary/35 mb-6">
-                <button
-                    onClick={() => {
-                        setActiveTab('editor');
-                        setTargetDate(today); // Reset to today when clicking tab? Or keep selected? 
-                        // Usually "Today's Entry" implies today.
-                    }}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'editor' ? 'border-b-2 border-accent-primary text-white' : 'text-text-secondary hover:text-white'}`}
-                >
-                    Editor
-                </button>
-                <button
-                    onClick={() => setActiveTab('history')}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'history' ? 'border-b-2 border-accent-primary text-white' : 'text-text-secondary hover:text-white'}`}
-                >
-                    History
-                </button>
-            </div>
+            {loading ? (
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-text-secondary">Loading journal...</div>
+                </div>
+            ) : (
+                <>
+                    <div className="flex border-b border-accent-primary/35 mb-6">
+                        <button
+                            onClick={() => {
+                                setActiveTab('editor');
+                                setTargetDate(today);
+                            }}
+                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'editor' ? 'border-b-2 border-accent-primary text-white' : 'text-text-secondary hover:text-white'}`}
+                        >
+                            Editor
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'history' ? 'border-b-2 border-accent-primary text-white' : 'text-text-secondary hover:text-white'}`}
+                        >
+                            History
+                        </button>
+                    </div>
 
-            {activeTab === 'editor' ? <JournalEditor targetDate={targetDate} /> : <JournalHistory onEditDate={handleEditDate} />}
+                    {activeTab === 'editor' ? <JournalEditor targetDate={targetDate} /> : (
+                        !hasJournalEntries ? (
+                            <div className="text-center text-text-secondary py-12">
+                                <p className="text-lg font-medium mb-2">No journal entries yet</p>
+                                <p className="text-sm">Start writing to track your thoughts.</p>
+                            </div>
+                        ) : <JournalHistory onEditDate={handleEditDate} />
+                    )}
+                </>
+            )}
         </TrackerWrapper>
     );
 };

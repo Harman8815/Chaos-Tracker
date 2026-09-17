@@ -5,7 +5,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
-import { Select } from '../ui/Select';
+import { CustomSelect } from '../ui/CustomSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '../ui/Dialog';
 import { Label } from '../ui/Label';
 import quoteService, { SearchResult } from '../../services/quoteService';
@@ -17,6 +17,16 @@ const HomeIcon = Home;
 const EditIcon = Pencil;
 const TrashIcon = Trash2;
 const PlusIcon = Plus;
+
+const FALLBACK_COVER = 'https://placehold.co/400x600/0a0a0a/7c3aed/png?text=No+Cover';
+const FALLBACK_QUOTE_IMAGE = 'https://placehold.co/800x400/0a0a0a/7c3aed/png?text=No+Image';
+
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallback: string) => {
+    const img = e.currentTarget;
+    if (img.src !== fallback) {
+        img.src = fallback;
+    }
+};
 
 const HighlightText: React.FC<{ text: string; highlight: string }> = ({ text, highlight }) => {
     if (!highlight.trim()) return <>{text}</>;
@@ -66,11 +76,15 @@ const SourceModal: React.FC<{ source?: QuoteSource | null; open: boolean; onOpen
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="source-type">Type</Label>
-                        <Select value={type} onChange={e => setType(e.target.value as QuoteSource['type'])}>
-                            <option>Movie</option>
-                            <option>Web Series</option>
-                            <option>Book</option>
-                        </Select>
+                        <CustomSelect
+                            value={type}
+                            onChange={val => setType(val as QuoteSource['type'])}
+                            options={[
+                                { value: 'Movie', label: 'Movie' },
+                                { value: 'Web Series', label: 'Web Series' },
+                                { value: 'Book', label: 'Book' },
+                            ]}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="source-cover">Cover Image URL</Label>
@@ -413,7 +427,12 @@ const QuoteCollector: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
-                    <img src={selectedSource.coverImage} alt={selectedSource.title} className="w-48 rounded-lg shadow-lg object-cover aspect-[2/3]" />
+                    <img 
+                        src={selectedSource.coverImage} 
+                        alt={selectedSource.title} 
+                        className="w-48 rounded-lg shadow-lg object-cover aspect-[2/3]" 
+                        onError={(e) => handleImageError(e, FALLBACK_COVER)}
+                    />
                     <div className="flex-grow">
                         <h1 className="text-4xl font-bold">{selectedSource.title}</h1>
                         <p className="text-text-secondary mb-4">{selectedSource.type}</p>
@@ -436,7 +455,7 @@ const QuoteCollector: React.FC = () => {
                                             <Button variant="ghost" size="icon" onClick={() => setModalState({ quote })}><EditIcon /></Button>
                                             <Button variant="ghost" size="icon" onClick={() => handleDeleteQuote(quote.id)} className="text-red-400 hover:text-red-300"><TrashIcon /></Button>
                                         </div>
-                                        {quote.image && <img src={quote.image} alt={`Visual for "${quote.text}"`} className="w-full h-auto max-h-64 object-contain rounded-lg mb-4" />}
+                                        {quote.image && <img src={quote.image} alt={`Visual for "${quote.text}"`} className="w-full h-auto max-h-64 object-contain rounded-lg mb-4" onError={(e) => handleImageError(e, FALLBACK_QUOTE_IMAGE)} />}
                                         <p className="text-lg italic text-white">"{quote.text}"</p>
                                         <cite className="block text-right mt-2 text-text-secondary not-italic">&mdash; {quote.author}</cite>
                                     </blockquote>

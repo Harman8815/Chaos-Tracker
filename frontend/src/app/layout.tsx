@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "../components/Providers";
 import Sidebar from "../components/Sidebar";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "Chaos Tracker",
@@ -25,10 +26,12 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <div className="flex h-screen w-full">
+          <div className="flex h-screen w-full relative">
             <Sidebar />
             <main className="flex-1 h-full overflow-y-auto">
-              {children}
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
             </main>
           </div>
         </Providers>

@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, GoalData, Expense, QuoteSource, Achievement, UserProfile, Language } from '../types';
+import { AllData, PageId, Settings, Habit, ScoringRule, PlannerData, GoalData, Expense, QuoteSource, Achievement, UserProfile, Language, PointsData } from '../types';
 import { DUMMY_DATA } from '../data/dummy_data';
 import { DUMMY_QUOTES } from '../data/quotes_data';
 import { DUMMY_ACHIEVEMENTS } from '../data/achievements_data';
 import { DEFAULT_HABITS, DEFAULT_SCORING_RULES } from '../constants';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchAppData } from '../api/services';
+import { onUnauthenticated } from '../api/client';
 import { DataContext } from '../context/DataContext';
-import { SettingsContext } from '../context/SettingsContext';
+import { SettingsContext, SettingsEffects } from '../context/SettingsContext';
 import { ToolsProvider, useTools } from './ToolsProvider';
 import FloatingTools from './common/FloatingTools';
 import DraggableResizableModal from './common/DraggableResizableModal';
@@ -23,6 +24,12 @@ import EditRulesModal from './EditRulesModal';
 import LoginPage from './auth/LoginPage';
 import SignUpPage from './auth/SignUpPage';
 import VantaBackground from './VantaBackground';
+import { RealtimeProvider, useRealtime } from '../context/RealtimeContext';
+import { CommandPalette } from './CommandPalette';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import OnlineStatusIndicator from './common/OnlineStatusIndicator';
+import { DataContextType } from '../types';
+import { SettingsContextType } from '../context/SettingsContext';
 
 const getToday = () => {
     const d = new Date();
@@ -156,6 +163,91 @@ const ToolManager: React.FC = () => {
     );
 };
 
+function AppContent({ children }: { children: React.ReactNode }) {
+    const dataContext = React.useContext(DataContext) as DataContextType;
+    const settingsContext = React.useContext(SettingsContext) as SettingsContextType;
+    const { data, setData, habits, setHabits, plannerData, setPlannerData } = dataContext;
+    const { navigate, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules } = settingsContext;
+    const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+    const mergeRemote = useCallback((remotePoints: any) => {
+        console.log('Merging remote points:', remotePoints);
+    }, []);
+
+    const shortcutContext = {
+        openCommandPalette: () => setIsCommandPaletteOpen(true),
+        openShortcutsHelp: () => setIsCommandPaletteOpen(true),
+        navigate: (href: string) => navigate(href),
+        toggleTheme: () => setSettings((prev: any) => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' })),
+        toggleDensity: () => setSettings((prev: any) => {
+            const densities: ('compact' | 'comfortable' | 'spacious')[] = ['compact', 'comfortable', 'spacious'];
+            const current = prev.density || 'comfortable';
+            const idx = densities.indexOf(current);
+            return { ...prev, density: densities[(idx + 1) % densities.length] };
+        }),
+        toggleSidebar: () => {},
+        search: () => setIsCommandPaletteOpen(true),
+        openAIModal: () => { const { openTools } = require('./ToolsProvider').useTools(); openTools('chat'); },
+        openSettings: () => setIsSettingsModalOpen(true),
+    };
+
+    return (
+        <>
+            <RealtimeProvider mergeRemote={mergeRemote}>
+                <AppInner 
+                    shortcutContext={shortcutContext}
+                    isCommandPaletteOpen={isCommandPaletteOpen}
+                    setIsCommandPaletteOpen={setIsCommandPaletteOpen}
+                    isSettingsModalOpen={isSettingsModalOpen}
+                    isEditHabitsModalOpen={isEditHabitsModalOpen}
+                    setIsEditHabitsModalOpen={setIsEditHabitsModalOpen}
+                    isEditRulesModalOpen={isEditRulesModalOpen}
+                    setIsEditRulesModalOpen={setIsEditRulesModalOpen}
+                    habits={habits}
+                    setHabits={setHabits}
+                    scoringRules={scoringRules}
+                    setScoringRules={setScoringRules}
+                >
+                    {children}
+                </AppInner>
+            </RealtimeProvider>
+        </>
+    );
+}
+
+interface AppInnerProps {
+    shortcutContext: any;
+    isCommandPaletteOpen: boolean;
+    setIsCommandPaletteOpen: (open: boolean) => void;
+    isSettingsModalOpen: boolean;
+    isEditHabitsModalOpen: boolean;
+    setIsEditHabitsModalOpen: (open: boolean) => void;
+    isEditRulesModalOpen: boolean;
+    setIsEditRulesModalOpen: (open: boolean) => void;
+    habits: Habit[];
+    setHabits: Dispatch<SetStateAction<Habit[]>>;
+    scoringRules: ScoringRule[];
+    setScoringRules: Dispatch<SetStateAction<ScoringRule[]>>;
+    children: React.ReactNode;
+}
+
+function AppInner({ shortcutContext, isCommandPaletteOpen, setIsCommandPaletteOpen, isSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, habits, setHabits, scoringRules, setScoringRules, children }: AppInnerProps) {
+    const realtime = useRealtime();
+    useKeyboardShortcuts(shortcutContext, [], { enabled: true });
+
+    return (
+        <>
+            {children}
+            <ToolManager />
+            <CommandPalette />
+            <OnlineStatusIndicator />
+            {isSettingsModalOpen && <SettingsModal />}
+            {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
+            {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
+        </>
+    );
+}
+
 export default function Providers({ children }: { children: React.ReactNode }) {
     const [data, setData] = useLocalStorage<AllData>('tracker-data', DUMMY_DATA);
     const [selectedPage, setSelectedPage] = useState<PageId>('home');
@@ -167,6 +259,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const [quotes, setQuotes] = useLocalStorage<QuoteSource[]>('tracker-quotes', DUMMY_QUOTES);
     const [achievements, setAchievements] = useLocalStorage<Achievement[]>('tracker-achievements', DUMMY_ACHIEVEMENTS);
     const [userProfile, setUserProfile] = useLocalStorage<UserProfile>('tracker-user-profile', DEFAULT_USER_PROFILE);
+    const [dataLoading, setDataLoading] = useState(false);
 
     const [settings, setSettings] = useLocalStorage<Settings>('tracker-settings', {
         theme: 'dark',
@@ -191,6 +284,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     const login = () => setIsAuthenticated(true);
     const logout = () => setIsAuthenticated(false);
+
+    // Auto-redirect to login when the API responds with 401 (missing/expired
+    // session). This keeps the app usable even when the backend rejects a
+    // request because the user is no longer authenticated.
+    useEffect(() => {
+        const unsubscribe = onUnauthenticated(() => {
+            setIsAuthenticated(false);
+            setAuthView('login');
+        });
+        return unsubscribe;
+    }, [setIsAuthenticated, setAuthView]);
 
     const t = (key: string): string => {
         return translations[settings.language][key] || key;
@@ -224,6 +328,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             if (!isAuthenticated) return;
 
             try {
+                setDataLoading(true);
                 console.log('Attempting to sync with remote server...');
                 const apiData = await fetchAppData();
 
@@ -241,15 +346,38 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 }
             } catch (error) {
                 console.warn("API sync failed or unavailable. Using local fallback data.", error);
+            } finally {
+                setDataLoading(false);
             }
         };
 
         syncData();
     }, [isAuthenticated]);
 
+    const settingsContextValue = {
+        setSettings, 
+        isSettingsModalOpen, 
+        setIsSettingsModalOpen, 
+        isEditHabitsModalOpen, 
+        setIsEditHabitsModalOpen, 
+        isEditRulesModalOpen, 
+        setIsEditRulesModalOpen, 
+        scoringRules, 
+        setScoringRules, 
+        t, 
+        toggleTheme: () => setSettings((prev: Settings) => ({ ...prev, theme: prev.theme === 'light' ? 'dark' : 'light' })),
+        toggleDensity: () => setSettings((prev: Settings) => {
+            const densities: ('compact' | 'comfortable' | 'spacious')[] = ['compact', 'comfortable', 'spacious'];
+            const current = prev.density || 'comfortable';
+            const idx = densities.indexOf(current);
+            return { ...prev, density: densities[(idx + 1) % densities.length] };
+        }),
+        applyCustomizations: () => {},
+    };
+
     return (
-        <SettingsContext.Provider value={{ settings, setSettings, isSettingsModalOpen, setIsSettingsModalOpen, isEditHabitsModalOpen, setIsEditHabitsModalOpen, isEditRulesModalOpen, setIsEditRulesModalOpen, scoringRules, setScoringRules, t }}>
-            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, logout }}>
+        <SettingsEffects settings={settings} value={settingsContextValue}>
+            <DataContext.Provider value={{ data, setData, selectedPage, setSelectedPage, today, habits, setHabits, plannerData, setPlannerData, goals, setGoals, expenses, setExpenses, quotes, setQuotes, achievements, setAchievements, userProfile, setUserProfile, dataLoading, setDataLoading, logout }}>
                 <ToolsProvider>
                     <VantaBackground />
                     {!mounted ? (
@@ -265,17 +393,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                             )}
                         </div>
                     ) : (
-                        <>
+                        <AppContent>
                             {children}
-                            <ToolManager />
-                            {isSettingsModalOpen && <SettingsModal />}
-                            {isEditHabitsModalOpen && <EditHabitsModal habits={habits} setHabits={setHabits} onClose={() => setIsEditHabitsModalOpen(false)} />}
-                            {isEditRulesModalOpen && <EditRulesModal rules={scoringRules} setRules={setScoringRules} onClose={() => setIsEditRulesModalOpen(false)} />}
-                        </>
+                        </AppContent>
                     )}
                 </ToolsProvider>
             </DataContext.Provider>
-        </SettingsContext.Provider>
+        </SettingsEffects>
     );
 }
 

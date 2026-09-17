@@ -6,7 +6,7 @@ import TrackerWrapper from '../TrackerWrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/Dialog';
 import { Goal, GoalCategory, GoalStatus, GoalPriority } from '../../types';
 import goalService, { CreateGoalPayload as ServiceGoalPayload } from '../../services/goalService';
@@ -471,7 +471,7 @@ const GoalTracker: React.FC = () => {
             </div>
 
             {/* Search and Filter Bar */}
-            <Card className="mb-6 glass">
+            <Card className="mb-6 glass px-2 py-3">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-grow">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
@@ -480,19 +480,21 @@ const GoalTracker: React.FC = () => {
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Search goals by name or tag..."
+                            className="pl-10"
                         />
                     </div>
                     <div className="flex items-center gap-2">
                         <FilterIcon className="w-4 h-4 text-text-secondary" />
-                        <Select
+                        <CustomSelect
                             value={selectedCategory}
-                            onChange={e => setSelectedCategory(e.target.value)}
-                        >
-                            <option value="all">All Categories</option>
-                            <option value="daily">Daily</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="future">Future</option>
-                        </Select>
+                            onChange={val => setSelectedCategory(val)}
+                            options={[
+                                { value: 'all', label: 'All Categories' },
+                                { value: 'daily', label: 'Daily' },
+                                { value: 'monthly', label: 'Monthly' },
+                                { value: 'future', label: 'Future' },
+                            ]}
+                        />
                         <button
                             onClick={() => setShowCompleted(!showCompleted)}
                             className={`p-2 rounded-lg transition-colors ${showCompleted ? 'bg-accent-primary/20 text-accent-primary' : 'hover:bg-white/[0.06] text-text-secondary'}`}

@@ -50,23 +50,35 @@ function calculateStreaks(
   return streaks;
 }
 
+const ClockDisplay: React.FC<{ timeFormat: string }> = ({ timeFormat }) => {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <p className="text-4xl font-mono font-bold text-accent-primary tracking-tight">
+      {time.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: timeFormat === "12h",
+      })}
+    </p>
+  );
+};
+
 const Dashboard: React.FC = () => {
   const { data, habits, today } = useContext(DataContext);
   const { settings, t } = useContext(SettingsContext);
   const [summary, setSummary] = useState("Generating reflection...");
   const [isLoading, setIsLoading] = useState(true);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [serverStreaks, setServerStreaks] = useState<any[] | null>(null);
   const [todayDistributionServer, setTodayDistributionServer] = useState<
     any | null
   >(null);
   const [habitPerf7Server, setHabitPerf7Server] = useState<any[] | null>(null);
-  const [time, setTime] = useState(new Date());
   const [selectedTrend, setSelectedTrend] = useState("total");
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleGenerateSummary = () => {
     setIsLoading(true);
@@ -83,6 +95,7 @@ const Dashboard: React.FC = () => {
 
     const fetchAnalytics = async () => {
       try {
+        setAnalyticsLoading(true);
         const streaksRes = await dashboardService.getStreaks();
         if (mounted && streaksRes?.streaks)
           setServerStreaks(
@@ -100,6 +113,8 @@ const Dashboard: React.FC = () => {
         if (mounted && perfRes?.data) setHabitPerf7Server(perfRes.data);
       } catch (e) {
         console.debug("Analytics endpoints unavailable or failed", e);
+      } finally {
+        if (mounted) setAnalyticsLoading(false);
       }
     };
 
@@ -346,254 +361,256 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="relative h-full overflow-y-auto p-6">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-black tracking-tight text-white">
-              {t("dashboard")}
-            </h1>
-            <p className="text-sm text-text-secondary">
-              {new Date().toLocaleDateString(undefined, {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          <div
-            className="xl:col-span-4  animate-fade-in-up"
-            style={{ animationDelay: "0ms" }}
-          >
-            <StreakHighlight streaks={habitStreaks} />
+      {habits.length === 0 && Object.keys(data).length === 0 ? (
+        <NoData />
+      ) : (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-black tracking-tight text-white">
+                {t("dashboard")}
+              </h1>
+              <p className="text-sm text-text-secondary">
+                {new Date().toLocaleDateString(undefined, {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
           </div>
 
-          <Card
-            className="xl:col-span-4 glass px-4 py-3 animate-fade-in-up"
-            style={{ animationDelay: "100ms" }}
-          >
-            <div className="flex justify-between items-center flex-wrap gap-2">
-              <h3 className="font-bold text-xl text-white">
-                Habit Trends (30 Days)
-              </h3>
-              <CustomSelect
-                value={selectedTrend}
-                onChange={setSelectedTrend}
-                options={[
-                  { value: 'all', label: 'All Habits' },
-                  { value: 'total', label: 'Avg Daily Score' },
-                  ...habits.map(h => ({ value: h.id, label: h.name })),
-                ]}
-              />
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <div
+              className="xl:col-span-4  animate-fade-in-up"
+              style={{ animationDelay: "0ms" }}
+            >
+              <StreakHighlight streaks={habitStreaks} />
             </div>
-            <MultiLineTrendChart
-              data={dataForChart}
-              habits={habitsForChart}
-              maxY={maxYForChart}
-            />
-          </Card>
 
-          <Card
-            className="xl:col-span-2  px-4 py-3 glass animate-fade-in-up"
-            style={{ animationDelay: "200ms" }}
-          >
-            <h3 className="font-bold text-xl text-white mb-4">
-              Habit Performance (7 Days)
-            </h3>
-            <div className="w-full h-[700px]">
-              <RadarChart data={radarData} />
-            </div>
-          </Card>
-
-          <Card
-            className="xl:col-span-2 px-4 py-3  glass animate-fade-in-up"
-            style={{ animationDelay: "300ms" }}
-          >
-            <h3 className="font-bold text-xl text-white mb-4">
-              Today's Distribution
-            </h3>
-            <div className="h-64 flex items-center justify-center">
-              <PieChart data={todayPieData} type="pie" />
-            </div>
-          </Card>
-
-          <Card
-            className="xl:col-span-2  px-4 py-3 flex flex-col justify-between h-full glass animate-fade-in-up"
-            style={{ animationDelay: "400ms" }}
-          >
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-xl text-white">Habit Streaks</h3>
-                <span className="text-xs text-text-secondary uppercase tracking-wider">
-                  Current
-                </span>
-              </div>
-              <div className="mb-4">
-                <StreakBarChart data={habitStreaks} />
-              </div>
-            </div>
-            <div className="pt-4 border-t border-white/10 mt-auto">
-              <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-                Analytics
-              </h4>
-              <StreakStats streaks={habitStreaks} />
-            </div>
-          </Card>
-
-          <Card
-            className="xl:col-span-2  px-4 py-3 flex flex-col h-full glass animate-fade-in-up"
-            style={{ animationDelay: "500ms" }}
-          >
-            <h3 className="font-bold text-xl text-white mb-4 flex-shrink-0">
-              Monthly Daily Average
-            </h3>
-            <div className="relative flex-grow min-h-[200px]">
-              <MonthlyAverageTable data={monthlyAverages} />
-            </div>
-          </Card>
-
-          <Card
-            className="xl:col-span-2  px-4 py-3  flex flex-col border glass animate-fade-in-up"
-            style={{ animationDelay: "600ms" }}
-          >
-            <h3 className="font-bold text-xl text-white mb-4">
-              Weekly Performance
-            </h3>
-            <div className="flex-grow min-h-[200px]">
-              <WeeklyPerformanceChart data={weeklyPerformance} />
-            </div>
-            {bestDay && (
-              <div className="mt-4 pt-4 border-t border-white/10 text-center">
-                <p className="text-sm text-text-secondary">
-                  Your most productive day is{" "}
-                  <span className="text-warning font-bold text-lg">
-                    {bestDay.day}
-                  </span>
-                </p>
-              </div>
-            )}
-          </Card>
-
-          <Card
-            className="xl:col-span-2  px-4 py-3 glass animate-fade-in-up"
-            style={{ animationDelay: "700ms" }}
-          >
-            <div className="flex flex-col h-full">
-              <div className="mb-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-xl text-white">Tracker Rank</h3>
-                  <div className="px-3 py-1 rounded-full bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xs font-bold uppercase tracking-wider">
-                    {levelStats.rank}
-                  </div>
-                </div>
-
-                <div className="flex items-end gap-2 mb-2">
-                  <span className="text-5xl font-black text-accent-primary">
-                    {levelStats.level}
-                  </span>
-                  <span className="text-sm text-text-secondary font-bold mb-2">
-                    LEVEL
-                  </span>
-                </div>
-
-                <div className="w-full h-6 bg-white/[0.06] rounded-full overflow-hidden mb-2 relative">
-                  <div
-                    className="h-full bg-gradient-to-r from-accent-primary to-accent-primary-hover transition-all duration-500 ease-out relative"
-                    style={{
-                      width: `${(levelStats.progress / levelStats.needed) * 100}%`,
-                    }}
-                  ></div>
-                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
-                    {Math.round(
-                      (levelStats.progress / levelStats.needed) * 100,
-                    )}
-                    % to Lvl {levelStats.level + 1}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-xs text-text-secondary font-mono">
-                  <span>{levelStats.progress} XP</span>
-                  <span>{levelStats.needed} XP</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 glass-subtle rounded-lg text-center">
-                  <div className="text-2xl font-bold text-white">
-                    {levelStats.totalXP.toLocaleString()}
-                  </div>
-                  <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">
-                    Lifetime XP
-                  </div>
-                </div>
-                <div className="p-4 glass-subtle rounded-lg text-center">
-                  <div className="text-2xl font-bold text-white">
-                    {Object.keys(data).length}
-                  </div>
-                  <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">
-                    Days Active
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            className="xl:col-span-2  px-4 py-3 flex flex-col min-h-[300px] glass animate-fade-in-up"
-            style={{ animationDelay: "800ms" }}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-bold text-xl text-white flex items-center gap-2">
-                AI Daily Reflection
-                <span className="text-xs font-normal bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full">
-                  Beta
-                </span>
-              </h3>
-            </div>
-            <div className="text-text-secondary mb-4 flex-grow overflow-y-auto max-h-96 p-2 glass-subtle rounded-lg">
-              {isLoading ? <Loader /> : <MarkdownView content={summary} />}
-            </div>
-            <div className="mt-auto pt-2">
-              <Button
-                onClick={handleGenerateSummary}
-                disabled={isLoading}
-                className="w-full sm:w-auto"
-              >
-                {isLoading ? "Regenerating..." : "Regenerate Reflection"}
-              </Button>
-            </div>
-          </Card>
-
-          <Card
-            className="xl:col-span-2  px-4 py-3 border glass animate-fade-in-up"
-            style={{ animationDelay: "900ms" }}
-          >
-            <div className="flex flex-col items-center justify-between h-full p-4">
-              <h3 className="font-bold text-xl text-white mb-4 w-full text-left">
-                Monthly Target
-              </h3>
-              <div className="w-full flex-grow flex items-center justify-center">
-                <PieChart data={overallProgressData} type="donut" />
-              </div>
-              <div className="text-center mt-4 pt-4 border-t border-white/10">
-                <h3 className="font-bold text-sm text-text-secondary uppercase tracking-wide mb-2">
-                  Current Time
+            <Card
+              className="xl:col-span-4 glass px-4 py-3 animate-fade-in-up"
+              style={{ animationDelay: "100ms" }}
+            >
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <h3 className="font-bold text-xl text-white">
+                  Habit Trends (30 Days)
                 </h3>
-                <p className="text-4xl font-mono font-bold text-accent-primary tracking-tight">
-                  {time.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: settings.timeFormat === "12h",
-                  })}
-                </p>
+                <CustomSelect
+                  value={selectedTrend}
+                  onChange={setSelectedTrend}
+                  options={[
+                    { value: "all", label: "All Habits" },
+                    { value: "total", label: "Avg Daily Score" },
+                    ...habits.map((h) => ({ value: h.id, label: h.name })),
+                  ]}
+                />
               </div>
-            </div>
-          </Card>
+              <MultiLineTrendChart
+                data={dataForChart}
+                habits={habitsForChart}
+                maxY={maxYForChart}
+              />
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3 glass animate-fade-in-up"
+              style={{ animationDelay: "200ms" }}
+            >
+              <h3 className="font-bold text-xl text-white mb-4">
+                Habit Performance (7 Days)
+              </h3>
+              <div className="w-full h-[700px]">
+                <RadarChart data={radarData} />
+              </div>
+            </Card>
+
+            <Card
+              className="xl:col-span-2 px-4 py-3  glass animate-fade-in-up "
+              style={{ animationDelay: "300ms" }}
+            >
+              <h3 className="font-bold text-xl text-white mb-4">
+                Today's Distribution
+              </h3>
+              <div className="min-h-64 h-full flex items-center justify-center">
+                <PieChart data={todayPieData} type="pie" height="70%" />
+              </div>
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3 flex flex-col justify-between h-full glass animate-fade-in-up"
+              style={{ animationDelay: "400ms" }}
+            >
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-bold text-xl text-white">
+                    Habit Streaks
+                  </h3>
+                  <span className="text-xs text-text-secondary uppercase tracking-wider">
+                    Current
+                  </span>
+                </div>
+                <div className="mb-4">
+                  <StreakBarChart data={habitStreaks} />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-white/10 mt-auto">
+                <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
+                  Analytics
+                </h4>
+                <StreakStats streaks={habitStreaks} />
+              </div>
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3 flex flex-col h-full glass animate-fade-in-up"
+              style={{ animationDelay: "500ms" }}
+            >
+              <h3 className="font-bold text-xl text-white mb-4 flex-shrink-0">
+                Monthly Daily Average
+              </h3>
+              <div className="relative flex-grow min-h-[200px]">
+                <MonthlyAverageTable data={monthlyAverages} />
+              </div>
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3  flex flex-col border glass animate-fade-in-up"
+              style={{ animationDelay: "600ms" }}
+            >
+              <h3 className="font-bold text-xl text-white mb-4">
+                Weekly Performance
+              </h3>
+              <div className="flex-grow min-h-[200px]">
+                <WeeklyPerformanceChart data={weeklyPerformance} />
+              </div>
+              {bestDay && (
+                <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                  <p className="text-sm text-text-secondary">
+                    Your most productive day is{" "}
+                    <span className="text-warning font-bold text-lg">
+                      {bestDay.day}
+                    </span>
+                  </p>
+                </div>
+              )}
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3 glass animate-fade-in-up"
+              style={{ animationDelay: "700ms" }}
+            >
+              <div className="flex flex-col h-full">
+                <div className="mb-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-bold text-xl text-white">
+                      Tracker Rank
+                    </h3>
+                    <div className="px-3 py-1 rounded-full bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xs font-bold uppercase tracking-wider">
+                      {levelStats.rank}
+                    </div>
+                  </div>
+
+                  <div className="flex items-end gap-2 mb-2">
+                    <span className="text-5xl font-black text-accent-primary">
+                      {levelStats.level}
+                    </span>
+                    <span className="text-sm text-text-secondary font-bold mb-2">
+                      LEVEL
+                    </span>
+                  </div>
+
+                  <div className="w-full h-6 bg-white/[0.06] rounded-full overflow-hidden mb-2 relative">
+                    <div
+                      className="h-full bg-gradient-to-r from-accent-primary to-accent-primary-hover transition-all duration-500 ease-out relative"
+                      style={{
+                        width: `${(levelStats.progress / levelStats.needed) * 100}%`,
+                      }}
+                    ></div>
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
+                      {Math.round(
+                        (levelStats.progress / levelStats.needed) * 100,
+                      )}
+                      % to Lvl {levelStats.level + 1}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-xs text-text-secondary font-mono">
+                    <span>{levelStats.progress} XP</span>
+                    <span>{levelStats.needed} XP</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 glass-subtle rounded-lg text-center">
+                    <div className="text-2xl font-bold text-white">
+                      {levelStats.totalXP.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">
+                      Lifetime XP
+                    </div>
+                  </div>
+                  <div className="p-4 glass-subtle rounded-lg text-center">
+                    <div className="text-2xl font-bold text-white">
+                      {Object.keys(data).length}
+                    </div>
+                    <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">
+                      Days Active
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3 flex flex-col min-h-[300px] glass animate-fade-in-up"
+              style={{ animationDelay: "800ms" }}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                  AI Daily Reflection
+                  <span className="text-xs font-normal bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full">
+                    Beta
+                  </span>
+                </h3>
+              </div>
+              <div className="text-text-secondary mb-4 flex-grow overflow-y-auto max-h-96 p-2 glass-subtle rounded-lg">
+                {isLoading ? <Loader /> : <MarkdownView content={summary} />}
+              </div>
+              <div className="mt-auto pt-2">
+                <Button
+                  onClick={handleGenerateSummary}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto"
+                >
+                  {isLoading ? "Regenerating..." : "Regenerate Reflection"}
+                </Button>
+              </div>
+            </Card>
+
+            <Card
+              className="xl:col-span-2  px-4 py-3 border glass animate-fade-in-up"
+              style={{ animationDelay: "900ms" }}
+            >
+              <div className="flex flex-col items-center justify-between h-full p-4">
+                <h3 className="font-bold text-xl text-white mb-4 w-full text-left">
+                  Monthly Target
+                </h3>
+                <div className="w-full flex-grow flex items-center justify-center">
+                  <PieChart data={overallProgressData} type="donut" />
+                </div>
+                {/* <div className="text-center mt-4 pt-4 border-t border-white/10">
+                  <h3 className="font-bold text-sm text-text-secondary uppercase tracking-wide mb-2">
+                    Current Time
+                  </h3>
+                  <ClockDisplay timeFormat={settings.timeFormat} />
+                </div> */}
+              </div>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

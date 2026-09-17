@@ -70,7 +70,7 @@ const BarChart: React.FC<ChartProps> = ({
             <ResponsiveContainer width="100%" height={height}>
                 <RechartsBarChart
                     data={displayData}
-                    margin={{ top: 20, right: 0, left: -30, bottom: -40 }}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     onMouseLeave={() => setHoverIndex(null)}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />

@@ -5,7 +5,7 @@ import { Expense } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
+import { CustomSelect } from '../ui/CustomSelect';
 import expenseService from '../../services/expenseService';
 import BarChart from '../charts/BarChart';
 import PieChart from '../charts/PieChart';
@@ -181,6 +181,17 @@ const ExpenseTracker: React.FC = () => {
         );
     }
 
+    if (!loading && expenses.length === 0) {
+        return (
+            <TrackerWrapper tracker={trackerInfo}>
+                <div className="text-center text-text-secondary py-12">
+                    <p className="text-lg font-medium mb-2">No expenses recorded yet</p>
+                    <p className="text-sm">Add your first expense to start tracking.</p>
+                </div>
+            </TrackerWrapper>
+        );
+    }
+
     return (
         <TrackerWrapper tracker={trackerInfo}>
             {isModalOpen && <AddExpenseModal onClose={() => setIsModalOpen(false)} onAdd={handleAddExpense} />}
@@ -212,25 +223,17 @@ const ExpenseTracker: React.FC = () => {
 
                     {/* Select Filters */}
                     <div className="flex items-center gap-3">
-                        <select
-                            value={date.month}
-                            onChange={e => setDate(d => ({ ...d, month: parseInt(e.target.value) }))}
-                            className="p-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
-                        >
-                            {months.map(m => (
-                                <option key={m.value} value={m.value}>{m.name}</option>
-                            ))}
-                        </select>
+                        <CustomSelect
+                            value={String(date.month)}
+                            onChange={val => setDate(d => ({ ...d, month: parseInt(val) }))}
+                            options={months.map(m => ({ value: String(m.value), label: m.name }))}
+                        />
 
-                        <select
-                            value={date.year}
-                            onChange={e => setDate(d => ({ ...d, year: parseInt(e.target.value) }))}
-                            className="p-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
-                        >
-                            {years.map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </select>
+                        <CustomSelect
+                            value={String(date.year)}
+                            onChange={val => setDate(d => ({ ...d, year: parseInt(val) }))}
+                            options={years.map(y => ({ value: String(y), label: String(y) }))}
+                        />
                     </div>
 
                     {/* Add Button */}
@@ -314,19 +317,19 @@ const ExpenseTracker: React.FC = () => {
                     {/* Rows Per Page */}
                     <div className="flex items-center gap-2">
                         <span>Rows per page:</span>
-                        <select
-                            value={pagination.itemsPerPage}
-                            onChange={e => setPagination(p => ({
+                        <CustomSelect
+                            value={String(pagination.itemsPerPage)}
+                            onChange={val => setPagination(p => ({
                                 ...p,
-                                itemsPerPage: parseInt(e.target.value),
+                                itemsPerPage: parseInt(val),
                                 currentPage: 1,
                             }))}
-                            className="p-2 rounded-lg bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all"
-                        >
-                            <option value={10}>10</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                        </select>
+                            options={[
+                                { value: '10', label: '10' },
+                                { value: '25', label: '25' },
+                                { value: '50', label: '50' },
+                            ]}
+                        />
                     </div>
 
                     {/* Pagination Controls */}

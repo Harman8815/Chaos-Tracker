@@ -2,7 +2,6 @@ import { client as apiClient } from '../api/client';
 import { Goal, GoalCategory, GoalStatus, GoalPriority, GoalFrequency } from '../types';
 
 export interface GoalListResponse {
-  success: boolean;
   count: number;
   goals: Goal[];
 }
@@ -48,8 +47,8 @@ export const createGoal = async (
 export const updateGoal = async (
   goalId: number,
   updates: Partial<Goal>
-): Promise<{ success: boolean; message: string; goal: Goal }> => {
-  return await apiClient.patch<{ success: boolean; message: string; goal: Goal }>(
+): Promise<{ message: string; goal: Goal }> => {
+  return await apiClient.patch<{ message: string; goal: Goal }>(
     `/goals/${goalId}/`,
     updates
   );

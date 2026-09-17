@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { X, Plus, Calendar, Tag, Clock, AlertCircle, Trash2 } from 'lucide-react';
 
 interface CreateGoalModalProps {
@@ -148,237 +148,230 @@ const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ open, onClose, onSave
                     </p>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-5">
-                    {/* Goal Type Selector */}
-                    <div className="space-y-2">
-                        <Label>Goal Type</Label>
-                        <div className="flex gap-2">
-                            {GOAL_TYPE_OPTIONS.map(opt => (
-                                <button
-                                    key={opt.value}
-                                    type="button"
-                                    onClick={() => setGoalType(opt.value)}
-                                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                                        goalType === opt.value
-                                            ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary/30'
-                                            : 'bg-white/[0.03] text-text-secondary hover:bg-white/[0.06] border border-white/10'
-                                    }`}
-                                >
-                                    {opt.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Goal Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-name">
-                            Goal Name <span className="text-error">*</span>
-                        </Label>
-                        <Input
-                            id="goal-name"
-                            type="text"
-                            value={text}
-                            onChange={e => setText(e.target.value)}
-                            placeholder="What do you want to achieve?"
-                            className={errors.text ? 'border-error' : ''}
-                        />
-                        {errors.text && (
-                            <p className="text-xs text-error flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" />
-                                {errors.text}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-description">Description</Label>
-                        <Textarea
-                            id="goal-description"
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            placeholder="Add a description or brief overview..."
-                            rows={3}
-                        />
-                    </div>
-
-                    {/* Category Selector/Creator */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-category">Category</Label>
-                        <div className="relative">
-                            <Tag className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary" />
-                            <Input
-                                id="goal-category"
-                                type="text"
-                                value={categoryName}
-                                onChange={e => setCategoryName(e.target.value)}
-                                placeholder="e.g. Health, Work, Finance (press comma to add tag)"
-                                className="pl-9"
-                            />
-                        </div>
-                        {tagsInput && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                                {tagsInput.split(',').map((tag, i) => {
-                                    const t = tag.trim();
-                                    if (!t) return null;
-                                    return (
-                                        <span key={i} className="text-xs px-2 py-1 rounded-full bg-white/[0.06] text-text-secondary border border-white/10 flex items-center gap-1">
-                                            {t}
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const tags = tagsInput.split(',');
-                                                    tags.splice(i, 1);
-                                                    setTagsInput(tags.join(','));
-                                                }}
-                                                className="hover:text-error"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Additional Tags */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-tags">Additional Tags (comma-separated)</Label>
-                        <Input
-                            id="goal-tags"
-                            type="text"
-                            value={tagsInput}
-                            onChange={e => setTagsInput(e.target.value)}
-                            placeholder="urgent, important,..."
-                        />
-                    </div>
-
-                    {/* Date Fields (conditional) */}
-                    {showDateFields && (
-                        <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="px-6 pb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
+                        {/* Left Column - Core Goal Info */}
+                        <div className="space-y-5">
+                            {/* Goal Type Selector */}
                             <div className="space-y-2">
-                                <Label htmlFor="goal-start-date">Start Date</Label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary" />
-                                    <Input
-                                        id="goal-start-date"
-                                        type="date"
-                                        value={startDate}
-                                        onChange={e => setStartDate(e.target.value)}
-                                        className="pl-9"
-                                    />
+                                <Label>Goal Type</Label>
+                                <div className="flex gap-2">
+                                    {GOAL_TYPE_OPTIONS.map(opt => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setGoalType(opt.value)}
+                                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                                                goalType === opt.value
+                                                    ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary/30'
+                                                    : 'bg-white/[0.03] text-text-secondary hover:bg-white/[0.06] border border-white/10'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
+
+                            {/* Goal Name */}
                             <div className="space-y-2">
-                                <Label htmlFor="goal-due-date">
-                                    {isFuture ? 'Target Completion Date' : 'Due Date'}
+                                <Label htmlFor="goal-name">
+                                    Goal Name <span className="text-error">*</span>
                                 </Label>
+                                <Input
+                                    id="goal-name"
+                                    type="text"
+                                    value={text}
+                                    onChange={e => setText(e.target.value)}
+                                    placeholder="What do you want to achieve?"
+                                    className={errors.text ? 'border-error' : ''}
+                                />
+                                {errors.text && (
+                                    <p className="text-xs text-error flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {errors.text}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-description">Description</Label>
+                                <Textarea
+                                    id="goal-description"
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                    placeholder="Add a description or brief overview..."
+                                    rows={3}
+                                />
+                            </div>
+
+                            {/* Category Selector/Creator */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-category">Category</Label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary" />
+                                    <Tag className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary" />
                                     <Input
-                                        id="goal-due-date"
-                                        type="date"
-                                        value={dueDate}
-                                        onChange={e => setDueDate(e.target.value)}
+                                        id="goal-category"
+                                        type="text"
+                                        value={categoryName}
+                                        onChange={e => setCategoryName(e.target.value)}
+                                        placeholder="e.g. Health, Work, Finance (press comma to add tag)"
                                         className="pl-9"
                                     />
                                 </div>
+                                {tagsInput && (
+                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                        {tagsInput.split(',').map((tag, i) => {
+                                            const t = tag.trim();
+                                            if (!t) return null;
+                                            return (
+                                                <span key={i} className="text-xs px-2 py-1 rounded-full bg-white/[0.06] text-text-secondary border border-white/10 flex items-center gap-1">
+                                                    {t}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const tags = tagsInput.split(',');
+                                                            tags.splice(i, 1);
+                                                            setTagsInput(tags.join(','));
+                                                        }}
+                                                        className="hover:text-error"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Additional Tags */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-tags">Additional Tags (comma-separated)</Label>
+                                <Input
+                                    id="goal-tags"
+                                    type="text"
+                                    value={tagsInput}
+                                    onChange={e => setTagsInput(e.target.value)}
+                                    placeholder="urgent, important,..."
+                                />
                             </div>
                         </div>
-                    )}
 
-                    {/* Priority */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-priority">Priority</Label>
-                        <Select
-                            id="goal-priority"
-                            value={priority}
-                            onChange={e => setPriority(e.target.value as GoalPriority)}
-                        >
-                            {PRIORITY_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
+                        {/* Right Column - Settings */}
+                        <div className="space-y-5">
+                            {/* Date Fields (conditional) */}
+                            {showDateFields && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="goal-start-date">Start Date</Label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary" />
+                                            <Input
+                                                id="goal-start-date"
+                                                type="date"
+                                                value={startDate}
+                                                onChange={e => setStartDate(e.target.value)}
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="goal-due-date">
+                                            {isFuture ? 'Target Completion Date' : 'Due Date'}
+                                        </Label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary" />
+                                            <Input
+                                                id="goal-due-date"
+                                                type="date"
+                                                value={dueDate}
+                                                onChange={e => setDueDate(e.target.value)}
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* Target Value */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-target">Target Value</Label>
-                        <Input
-                            id="goal-target"
-                            type="number"
-                            min={1}
-                            value={targetValue}
-                            onChange={e => setTargetValue(Math.max(1, parseInt(e.target.value) || 1))}
-                        />
-                        <p className="text-xs text-text-tertiary">
-                            Set how many tasks or milestones complete this goal.
-                        </p>
-                    </div>
+                            {/* Priority */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-priority">Priority</Label>
+                                <CustomSelect
+                                    id="goal-priority"
+                                    value={priority}
+                                    onChange={val => setPriority(val as GoalPriority)}
+                                    options={PRIORITY_OPTIONS}
+                                />
+                            </div>
 
-                    {/* Frequency (recurring) */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-frequency">Frequency</Label>
-                        <Select
-                            id="goal-frequency"
-                            value={frequency}
-                            onChange={e => setFrequency(e.target.value)}
-                        >
-                            {FREQUENCY_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </Select>
-                        {goalType === 'daily' && frequency === 'none' && (
-                            <p className="text-xs text-text-tertiary">
-                                Set a different frequency for recurring daily goals.
-                            </p>
-                        )}
-                    </div>
+                            {/* Target Value */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-target">Target Value</Label>
+                                <Input
+                                    id="goal-target"
+                                    type="number"
+                                    min={1}
+                                    value={targetValue}
+                                    onChange={e => setTargetValue(Math.max(1, parseInt(e.target.value) || 1))}
+                                />
+                                <p className="text-xs text-text-tertiary">
+                                    Set how many tasks or milestones complete this goal.
+                                </p>
+                            </div>
 
-                    {/* Reminder */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-reminder">Reminder</Label>
-                        <Select
-                            id="goal-reminder"
-                            value={reminder}
-                            onChange={e => setReminder(e.target.value)}
-                        >
-                            {REMINDER_OPTIONS.map(opt => (
-                                <option key={opt} value={opt}>
-                                    {opt}
-                                </option>
-                            ))}
-                        </Select>
-                    </div>
+                            {/* Frequency (recurring) */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-frequency">Frequency</Label>
+                                <CustomSelect
+                                    id="goal-frequency"
+                                    value={frequency}
+                                    onChange={val => setFrequency(val)}
+                                    options={FREQUENCY_OPTIONS}
+                                />
+                                {goalType === 'daily' && frequency === 'none' && (
+                                    <p className="text-xs text-text-tertiary">
+                                        Set a different frequency for recurring daily goals.
+                                    </p>
+                                )}
+                            </div>
 
-                    {/* Completion Criteria */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-criteria">Completion Criteria</Label>
-                        <Textarea
-                            id="goal-criteria"
-                            value={completionCriteria}
-                            onChange={e => setCompletionCriteria(e.target.value)}
-                            placeholder="How will you know this goal is complete?..."
-                            rows={2}
-                        />
-                    </div>
+                            {/* Reminder */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-reminder">Reminder</Label>
+                                <CustomSelect
+                                    id="goal-reminder"
+                                    value={reminder}
+                                    onChange={val => setReminder(val)}
+                                    options={REMINDER_OPTIONS.map(r => ({ value: r, label: r }))}
+                                />
+                            </div>
 
-                    {/* Notes */}
-                    <div className="space-y-2">
-                        <Label htmlFor="goal-notes">Notes (optional)</Label>
-                        <Textarea
-                            id="goal-notes"
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                            placeholder="Any additional thoughts or context..."
-                            rows={2}
-                        />
+                            {/* Completion Criteria */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-criteria">Completion Criteria</Label>
+                                <Textarea
+                                    id="goal-criteria"
+                                    value={completionCriteria}
+                                    onChange={e => setCompletionCriteria(e.target.value)}
+                                    placeholder="How will you know this goal is complete?..."
+                                    rows={2}
+                                />
+                            </div>
+
+                            {/* Notes */}
+                            <div className="space-y-2">
+                                <Label htmlFor="goal-notes">Notes (optional)</Label>
+                                <Textarea
+                                    id="goal-notes"
+                                    value={notes}
+                                    onChange={e => setNotes(e.target.value)}
+                                    placeholder="Any additional thoughts or context..."
+                                    rows={2}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Form Actions */}
