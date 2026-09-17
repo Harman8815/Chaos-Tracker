@@ -434,12 +434,8 @@ const Dashboard: React.FC = () => {
                 Today's Distribution
               </h3>
               <div className="min-h-64 h-full flex items-center justify-center">
-  <PieChart
-    data={todayPieData}
-    type="pie"
-    height="100%"
-  />
-</div>
+                <PieChart data={todayPieData} type="pie" height="70%" />
+              </div>
             </Card>
 
             <Card
@@ -604,12 +600,12 @@ const Dashboard: React.FC = () => {
                 <div className="w-full flex-grow flex items-center justify-center">
                   <PieChart data={overallProgressData} type="donut" />
                 </div>
-                <div className="text-center mt-4 pt-4 border-t border-white/10">
+                {/* <div className="text-center mt-4 pt-4 border-t border-white/10">
                   <h3 className="font-bold text-sm text-text-secondary uppercase tracking-wide mb-2">
                     Current Time
                   </h3>
                   <ClockDisplay timeFormat={settings.timeFormat} />
-                </div>
+                </div> */}
               </div>
             </Card>
           </div>
