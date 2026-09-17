@@ -290,13 +290,13 @@ class QuoteSourceListCreateView(views.APIView):
         )
 
         # Optional filtering by type
-        source_type = request.request.query_params.get("type")
+        source_type = request.query_params.get("type")
         if source_type:
             sources = sources.filter(type=source_type)
 
         # Determine serializer based on query param
         include_quotes = (
-            request.request.query_params.get("include_quotes", "true").lower() == "true"
+            request.query_params.get("include_quotes", "true").lower() == "true"
         )
 
         if include_quotes:
