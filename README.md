@@ -2,6 +2,8 @@
 
 A comprehensive personal productivity application for tracking daily activities, goals, expenses, habits, and journal entries.
 
+**Version:** 2.0.0
+
 **Frontend:** Next.js + TypeScript + TailwindCSS  
 **Backend:** Django + Django REST Framework + SQLite
 
@@ -36,6 +38,18 @@ The Tracker Application is a full-stack personal productivity suite that helps u
 - **Django REST Framework** - API development
 - **SQLite** - Database
 - **Session Authentication** - User management
+
+---
+
+## 📣 Changelog
+
+### v2.0.0
+
+- **UI Refactor**: New `CustomSelect` component replacing native `<select>` across the app (Settings, GoalTracker, ExpenseTracker, Achievements, JournalTracker, QuoteCollector)
+- **Charts**: PieChart refactored with improved responsiveness, tooltip styling, and legend layout
+- **Dashboard**: Layout adjustments for better visual hierarchy
+- **CreateGoalModal**: Restructured form into two-column layout with CustomSelect for priority, frequency, and reminder fields
+- **Backend**: Structured logging in population service with detailed per-type counts
 
 ---
 
