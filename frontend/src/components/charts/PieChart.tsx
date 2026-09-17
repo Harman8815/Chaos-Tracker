@@ -1,21 +1,21 @@
-import React from 'react';
+import React from "react";
 import {
   ResponsiveContainer,
   PieChart as RechartsPieChart,
   Pie,
   Cell,
   Tooltip,
-} from 'recharts';
+} from "recharts";
 
 const CHART_COLORS = [
-  'var(--color-accent-primary)',
-  'var(--color-accent-secondary)',
-  'var(--color-info)',
-  'var(--color-success)',
-  'var(--color-warning)',
-  'var(--color-destructive)',
-  'var(--color-info)',
-  'var(--color-success)',
+  "var(--color-accent-primary)",
+  "var(--color-accent-secondary)",
+  "var(--color-info)",
+  "var(--color-success)",
+  "var(--color-warning)",
+  "var(--color-destructive)",
+  "var(--color-info)",
+  "var(--color-success)",
 ];
 
 const NoData: React.FC = () => (
@@ -28,10 +28,10 @@ const formatValue = (value: number) => Number(value.toFixed(2));
 
 const PieChart: React.FC<{
   data: { name: string; value: number }[];
-  type?: 'pie' | 'donut';
+  type?: "pie" | "donut";
   title?: string;
   height?: number;
-}> = ({ data, type = 'pie', title, height = 200 }) => {
+}> = ({ data, type = "pie", title, height = 200 }) => {
   if (!data || data.length === 0 || data.every((d) => d.value === 0)) {
     return <NoData />;
   }
@@ -40,7 +40,9 @@ const PieChart: React.FC<{
 
   return (
     <div className="flex flex-col items-center gap-4 w-full" style={{ height }}>
-      {title && <h4 className="text-sm font-medium text-text-secondary">{title}</h4>}
+      {title && (
+        <h4 className="text-sm font-medium text-text-secondary">{title}</h4>
+      )}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart>
           <Pie
@@ -49,23 +51,31 @@ const PieChart: React.FC<{
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={type === 'donut' ? undefined : 80}
-            innerRadius={type === 'donut' ? 50 : 0}
+            outerRadius={type === "donut" ? undefined : 80}
+            innerRadius={type === "donut" ? 50 : 0}
             stroke="transparent"
             label
           >
             {data.map((_, index) => (
-              <Cell key={index} style={{ fill: CHART_COLORS[index % CHART_COLORS.length] }} />
+              <Cell
+                key={index}
+                style={{ fill: CHART_COLORS[index % CHART_COLORS.length] }}
+              />
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => [formatValue(value), 'Value']}
+            formatter={(value: number) => [formatValue(value), "Value"]}
             contentStyle={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
+              backgroundColor: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "6px",
             }}
-            labelStyle={{ color: 'var(--color-text-primary)' }}
+            itemStyle={{
+              color: "var(--color-text-primary)",
+            }}
+            labelStyle={{
+              color: "var(--color-text-primary)",
+            }}
           />
         </RechartsPieChart>
       </ResponsiveContainer>
@@ -77,7 +87,8 @@ const PieChart: React.FC<{
               style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
             />
             <span>
-              {slice.name} ({total > 0 ? ((slice.value / total) * 100).toFixed(0) : 0}%)
+              {slice.name} (
+              {total > 0 ? ((slice.value / total) * 100).toFixed(0) : 0}%)
             </span>
           </div>
         ))}
